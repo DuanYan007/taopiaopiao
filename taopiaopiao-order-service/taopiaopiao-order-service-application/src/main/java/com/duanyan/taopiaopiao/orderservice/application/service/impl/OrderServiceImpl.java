@@ -14,6 +14,7 @@ import com.duanyan.taopiaopiao.orderservice.application.client.dto.MarkSeatsSold
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateDTO;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.SessionDTO;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueDTO;
+import com.duanyan.taopiaopiao.orderservice.application.config.OrderIdGenerator;
 import com.duanyan.taopiaopiao.orderservice.application.controller.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
@@ -46,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final EventClient eventClient;
     private final VenueClient venueClient;
     private final SeatTemplateClient seatTemplateClient;
+    private final OrderIdGenerator orderIdGenerator;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -62,24 +64,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse createPendingOrder(CreatePendingOrderRequest request) {
-        // 生成订单号
-        String orderNo = generateOrderNo();
+        // 使用雪花算法生成订单号
+        String orderNo = String.valueOf(orderIdGenerator.nextId());
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expireTime = now.plusMinutes(15); // 15分钟过期
 
         // 获取场次信息确定eventId
         Long eventId = request.getEventId();
-        if (eventId == null) {
-            Result<SessionDTO> sessionResult = sessionClient.getSessionById(request.getSessionId());
-            if (sessionResult == null || sessionResult.getData() == null) {
-                throw new RuntimeException("场次不存在");
-            }
-            eventId = sessionResult.getData().getEventId();
-            if (eventId == null) {
-                throw new RuntimeException("场次关联的演出信息不存在");
-            }
-        }
-
         // 创建待支付订单
         Order order = Order.builder()
                 .orderNo(orderNo)
@@ -280,10 +271,10 @@ public class OrderServiceImpl implements OrderService {
             }
         }
     }
-
-    private String generateOrderNo() {
-        return "ORD" + System.currentTimeMillis() + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
-    }
+      // 之前使用的订单号生成算法
+//    private String generateOrderNo() {
+//        return "ORD" + System.currentTimeMillis() + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+//    }
 
     private OrderResponse buildOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();
