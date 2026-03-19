@@ -4,6 +4,56 @@
 
 ---
 
+## 秒杀/抢票架构
+
+### 决策时间
+2026-03-19
+
+### 决策内容
+使用 Redis + Lua 脚本实现原子性锁座机制，防止超卖。
+
+### 核心组件
+| 组件 | 说明 |
+|------|------|
+| Redis | 存储座位实时状态 |
+| Lua 脚本 | 保证锁座操作的原子性 |
+| Redisson | Redis 客户端 |
+
+### Redis 数据结构
+```
+# 座位状态（String，值=状态码）
+seat:{sessionId}:{seatId} → 0/1/2
+
+# 用户锁座记录（Hash，field=seatId, value=1）
+user:{userId}:locks
+
+# 场次座位集合（Set，存储所有座位ID）
+session:{sessionId}:seats
+```
+
+### 座位状态码（SeatStatus）
+- **0** - AVAILABLE（可选）
+- **1** - LOCKED（已锁定，有 TTL）
+- **2** - SOLD（已售出）
+
+### Lua 脚本
+1. **lock_seat.lua** - 锁座脚本
+   - 返回 0: 成功
+   - 返回 1: 座位不存在
+   - 返回 2: 座位已锁定或已售出
+   - 返回 3: 用户已锁定该座位（重复购票）
+
+2. **unlock_seat.lua** - 释放座位脚本
+   - 返回释放的座位数量
+
+3. **confirm_purchase.lua** - 确认购买脚本
+   - 返回 0: 成功
+   - 返回 1: 无权操作
+
+---
+
+---
+
 ## 微服务架构
 
 ### 决策时间
@@ -180,6 +230,25 @@ VenueResponse venue = resp.getData();
 
 ---
 
+## 服务端口配置
+
+### 决策时间
+2026-03-19
+
+### 端口分配
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| gateway | 8080 | 网关服务 |
+| user-service | 8081 | 用户服务 |
+| venue-service | 8082 | 场馆服务 |
+| event-service | 8083 | 演出服务 |
+| session-service | 8084 | 场次服务 |
+| seat-template-service | 8085 | 座位模板服务 |
+| seckill-service | 8086 | 秒杀/选座服务 |
+| order-service | 8087 | 订单服务 |
+
+---
+
 ## 命名规范
 
 ### 包名
@@ -237,3 +306,111 @@ public class MyBatisPlusMetaObjectHandler implements MetaObjectHandler {
 ### 注意事项
 - 更新时如果字段已有值（从数据库查询出的对象），自动填充不会生效
 - 需要在更新前手动设置 `entity.setUpdatedAt(null)`
+
+---
+
+## 订单服务架构
+
+### 决策时间
+2026-03-19
+
+### 决策内容
+订单服务采用「锁座 → 待支付订单 → 支付 → 确认购买」的流程。
+
+### 订单状态（OrderStatus）
+| 状态码 | 枚举值 | 说明 |
+|--------|--------|------|
+| 1 | UNPAID | 未支付（15分钟过期） |
+| 2 | PAID | 已支付 |
+| 3 | CANCELLED | 已取消（用户主动取消） |
+| 4 | REFUNDED | 已退款 |
+| 5 | TIMEOUT | 超时取消（系统自动取消） |
+
+### 核心流程
+
+#### 1. 锁座流程（SeckillService）
+```
+用户请求锁座
+  ↓
+Redis Lua 原子性锁座
+  ↓ 成功
+插入 seat_locks 记录（status=LOCKED, orderNo=null）
+  ↓
+调用订单服务创建待支付订单
+  ↓ 成功
+更新 seat_locks 的 orderNo
+  ↓
+返回 orderNo 给前端
+```
+
+#### 2. 支付流程（OrderService）
+```
+用户提交支付（携带 orderNo）
+  ↓
+验证订单状态（必须是 UNPAID 且未过期）
+  ↓
+调用秒杀服务标记座位已支付（Redis 状态 1→2）
+  ↓
+更新 seat_locks 状态为 PAID
+  ↓
+调用场次服务更新 seats 表状态为 sold
+  ↓
+更新订单状态为 PAID
+  ↓
+支付成功
+```
+
+#### 3. 取消订单流程
+```
+用户取消或超时
+  ↓
+调用秒杀服务释放座位（Redis 删除用户锁座记录）
+  ↓
+更新 seat_locks 状态为 RELEASED
+  ↓
+更新订单状态为 CANCELLED/TIMEOUT
+```
+
+---
+
+## 座位锁定记录表（seat_locks）
+
+### 决策时间
+2026-03-19
+
+### 决策内容
+使用 seat_locks 表记录所有座位锁定历史，用于追溯和对账。
+
+### 表结构
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | BIGINT | 主键 |
+| session_id | BIGINT | 场次ID |
+| user_id | BIGINT | 用户ID |
+| seat_id | VARCHAR | 座位ID |
+| seat_row | INT | 行号 |
+| seat_col | INT | 列号 |
+| lock_time | BIGINT | 锁定时间戳 |
+| expire_time | BIGINT | 过期时间戳 |
+| status | INT | 状态（0=已释放，1=已锁定，2=已支付） |
+| order_no | VARCHAR | 关联订单号 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
+
+### 锁定状态（LockStatus）
+- **0** - RELEASED（已释放）
+- **1** - LOCKED（已锁定）
+- **2** - PAID（已支付）
+
+### 与 Redis 的关系
+- Redis：存储座位实时状态（快速读写）
+- seat_locks：记录锁定历史（持久化、追溯）
+
+---
+
+### 订单号生成
+- 使用简化版雪花算法（OrderIdGenerator）
+- 仅包含：时间戳 + 序列号（无机器ID和数据中心ID）
+- START_TIMESTAMP = 1735660800000L（2025-01-01）
+
+---

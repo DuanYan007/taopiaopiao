@@ -6,7 +6,7 @@
 
 **架构模式**: 微服务架构（DDD四层→三层简化）
 
-**最后更新**: 2026-02-28
+**最后更新**: 2026-03-19
 
 ---
 
@@ -38,6 +38,10 @@
 ### 安全与认证
 - **JWT**: jjwt 0.12.6
 
+### 缓存与分布式
+- **Redis**: Redisson（Redis 端口 6349，密码 7566）
+- **Lua 脚本**: lock_seat.lua, unlock_seat.lua, confirm_purchase.lua
+
 ### API文档
 - **Knife4j**: 4.5.0 (OpenAPI 3.0)
 
@@ -48,38 +52,62 @@
 ```
 taopiaopiao-backend/
 ├── taopiaopiao-common/              # 公共核心模块
-├── taopiaopiao-common-web/           # 公共Web模块
-│   ├── config/                      # Web配置（GlobalExceptionHandler, JwtUtil, MyBatisPlusConfig等）
-│   ├── util/                        # 工具类
-│   └── ...
+├── taopiaopiao-common-web/          # 公共Web模块
+├── taopiaopiao-common-redis/        # 公共Redis模块（Lua脚本、RedisService）
+│   ├── lua/
+│   │   ├── lock_seat.lua           # 锁座脚本
+│   │   ├── unlock_seat.lua         # 释放座位脚本
+│   │   └── confirm_purchase.lua    # 确认购买脚本
+│   └── constants/
+│       ├── SeatStatus.java         # 座位状态枚举（0=可选，1=已锁定，2=已售出）
+│       └── RedisKey.java           # Redis Key 常量
 ├── taopiaopiao-gateway/             # 网关服务
-├── taopiaopiao-user-service/        # 用户服务
-│   ├── taopiaopiao-user-service-api/           # API模块
-│   ├── taopiaopiao-user-service-application/  # 应用模块
-│   └── taopiaopiao-user-service-domain/      # 领域模块
-├── taopiaopiao-venue-service/       # 场馆服务
-│   ├── taopiaopiao-venue-service-api/
-│   ├── taopiaopiao-venue-service-application/
-│   └── taopiaopiao-venue-service-domain/
-├── taopiaopiao-event-service/        # 演出服务
-│   ├── taopiaopiao-event-service-api/
-│   ├── taopiaopiao-event-service-application/
-│   └── taopiaopiao-event-service-domain/
-└── taopiaopiao-session-service/      # 场次服务
-    ├── taopiaopiao-session-service-api/
-    ├── taopiaopiao-session-service-application/
-    │   ├── client/                   # Feign Client（VenueClient, EventClient）
+├── taopiaopiao-user-service/        # 用户服务 (8081)
+├── taopiaopiao-venue-service/       # 场馆服务 (8082)
+├── taopiaopiao-event-service/       # 演出服务 (8083)
+├── taopiaopiao-session-service/     # 场次服务 (8084)
+├── taopiaopiao-seat-template-service/  # 座位模板服务 (8085)
+├── taopiaopiao-seckill-service/     # 秒杀/选座服务 (8086)
+│   ├── taopiaopiao-seckill-service-api/
+│   │   └── dto/
+│   │       ├── LockSeatRequest.java
+│   │       └── LockSeatResponse.java
+│   ├── taopiaopiao-seckill-service-application/
+│   │   ├── client/                 # Feign Client（OrderClient, SessionClient）
+│   │   ├── controller/
+│   │   │   ├── SeckillController.java      # 对外接口
+│   │   │   └── InternalSeatController.java # 内部接口
+│   │   ├── service/impl/
+│   │   │   └── SeckillServiceImpl.java
+│   │   └── mapper/
+│   │       └── SeatLockMapper.java
+│   └── taopiaopiao-seckill-service-domain/
+│       ├── entity/
+│       │   └── SeatLock.java       # 座位锁定记录表
+│       └── enums/
+│           └── LockStatus.java     # 0=已释放，1=已锁定，2=已支付
+└── taopiaopiao-order-service/       # 订单服务 (8087)
+    ├── taopiaopiao-order-service-api/
+    │   └── dto/
+    │       ├── CreateOrderRequest.java
+    │       ├── OrderResponse.java
+    │       └── OrderPageRequest.java
+    ├── taopiaopiao-order-service-application/
+    │   ├── client/                 # Feign Client（SeckillInternalClient, SessionClient, EventClient, VenueClient, SeatTemplateClient）
     │   ├── controller/
+    │   │   ├── OrderController.java          # 对外接口
+    │   │   └── InternalOrderController.java # 内部接口
     │   ├── service/impl/
+    │   │   └── OrderServiceImpl.java
+    │   ├── config/
+    │   │   └── OrderIdGenerator.java # 简化版雪花算法
     │   └── mapper/
-    └── taopiaopiao-session-service-domain/
-├── taopiaopiao-seat-template-service/  # 座位模板服务
-    ├── taopiaopiao-seat-template-service-api/
-    ├── taopiaopiao-seat-template-service-application/
-    │   ├── controller/
-    │   ├── service/impl/
-    │   └── mapper/
-    └── taopiaopiao-seat-template-service-domain/
+    │       └── OrderMapper.java
+    └── taopiaopiao-order-service-domain/
+        ├── entity/
+        │   └── Order.java
+        └── enums/
+            └── OrderStatus.java     # 1=未支付，2=已支付，3=已取消，4=已退款，5=超时取消
 ```
 
 ---
@@ -135,43 +163,72 @@ taopiaopiao-backend/
 - [x] 客户端查询接口（/client/seat-templates）
 - [x] 通过 Feign 调用 venue-service 获取场馆名称
 
+### 秒杀服务（seckill-service）
+- [x] Redis + Lua 原子性锁座（防止超卖）
+- [x] 座位状态管理（可选、已锁定、已售出）
+- [x] 锁座记录表 seat_locks
+- [x] 释放座位接口（取消/超时订单）
+- [x] 标记座位已支付接口
+- [x] 锁座失败自动回滚机制
+
+### 订单服务（order-service）
+- [x] 创建待支付订单（锁座成功后自动创建）
+- [x] 支付订单（确认购买）
+- [x] 订单查询（分页、详情）
+- [x] 取消订单（释放座位）
+- [x] 删除订单
+- [x] 超时订单处理（定时任务）
+- [x] 雪花算法订单号生成
+
+### Redis 基础设施
+- [x] common-redis 模块创建
+- [x] Redisson 客户端集成
+- [x] Lua 脚本加载与执行
+- [x] 座位状态初始化接口
+- [x] 场次数据清理接口
+
 ---
 
 ## 进行中（In Progress）
 
-### Redis 集成准备
-- **文档已完成**: `docs/Redis安装与配置指南.md`
-- **待执行**: Redis 安装与 common-redis 模块创建
+无
 
 ---
 
 ## 待开发（Todo）
 
-### 抢票/秒杀业务域
-- [x] Redis 安装文档（待执行安装）
-- [ ] common-redis 模块创建
-- [ ] 座位状态数据结构初始化
-- [ ] Lua 锁座脚本编写
-- [ ] Seckill Service（选座服务）
-- [ ] Order Service（订单服务）
-- [ ] RocketMQ 消息队列
-- [ ] 抢票资格预约
-- [ ] 支付集成
-- [ ] 超时取消机制
+### 抢票/秒杀业务域增强
+- [ ] RocketMQ 消息队列集成（异步处理、削峰填谷）
+- [ ] 抢票资格预约（预热机制）
+- [ ] 真实支付集成（支付宝/微信）
+- [ ] 分布式事务优化（Saga/TCC）
+- [ ] 座位状态持久化（定时同步 Redis→MySQL）
+
+### 性能优化
+- [ ] 多级缓存（本地缓存 Caffeine + Redis）
+- [ ] 数据库读写分离
+- [ ] 接口限流（Sentinel）
+- [ ] 座席数据冷热分离
 
 ### 其他
 - [ ] 前端对接联调
+- [ ] 通知服务（购票成功/失败通知）
 
 ---
 
 ## 数据库配置
 
 ### 连接信息
-- **端口**: 3306
+- **MySQL 端口**: 3306
 - **地址**: localhost
 - **数据库**: taopiaopiao
 - **用户**: root
-- **密码**: root
+- **密码**: 7566
+
+### Redis 配置
+- **端口**: 6349
+- **地址**: localhost
+- **密码**: 7566
 
 ### 服务端口
 - **Gateway**: 8080
@@ -180,6 +237,8 @@ taopiaopiao-backend/
 - **Event Service**: 8083
 - **Session Service**: 8084
 - **Seat Template Service**: 8085
+- **Seckill Service**: 8086
+- **Order Service**: 8087
 
 ### API文档
 - **Knife4j UI**: http://localhost:8080/doc.html
@@ -251,35 +310,12 @@ taopiaopiao-backend/
 
 ## 当前工作状态
 
-**最近提交**: 待提交
+**最近更新**: 2026-03-19
 
-**当前任务**: seat-template-service 已完成，网关路由已配置
+**当前任务**: 秒杀服务和订单服务已完成
 
-**已完成接口**:
-- 演出相关: `GET /client/events`、`GET /client/events/{id}`、`GET /client/events/{id}/sessions`
-- 场次相关: `GET /client/sessions`、`GET /client/sessions/{id}`
-- 场馆相关: `GET /client/venues`、`GET /client/venues/{id}`
-- **座位模板**: `GET /api/admin/seat-templates`、`POST /api/admin/seat-templates`、`PUT /api/admin/seat-templates/{id}`、`DELETE /api/admin/seat-templates/{id}`、`GET /api/client/seat-templates/{id}/layout`
-
-**服务端口**:
-- Gateway: 8080
-- User Service: 8081
-- Venue Service: 8082
-- Event Service: 8083
-- Session Service: 8084
-- **Seat Template Service: 8085**
-
-**下一步**: Redis 安装与 common-redis 模块创建
-
-### 抢票/秒杀业务域
-- [x] Redis 安装文档（待执行安装）
-- [ ] common-redis 模块创建
-- [ ] 座位状态数据结构初始化
-- [ ] Lua 锁座脚本编写
-- [ ] Seckill Service（选座服务）
-- [ ] Order Service（订单服务）
-- [ ] RocketMQ 消息队列
-- [ ] 抢票资格预约
-- [ ] Notification Service（通知服务）
-- [ ] 支付集成
-- [ ] 超时取消机制
+**核心实现**:
+- **锁座机制**: Redis + Lua 原子性操作，防止超卖
+- **座位状态**: 0=可选，1=已锁定，2=已售出
+- **订单流程**: 锁座 → 创建待支付订单 → 支付 → 确认购买 → 标记座位已售出
+- **超时处理**: 15分钟过期，定时任务取消超时订单
