@@ -42,7 +42,7 @@ public class SeckillServiceImpl implements SeckillService {
 
         String lockId = UUID.randomUUID().toString().replace("-", "");
         long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
-
+        // 1. 锁定座位
         int code = redisService.lockSeats(sessionId, userId, seatIds, expireSeconds);
 
         if (code == 0) {

@@ -15,7 +15,7 @@ public interface OrderService {
      * 支付订单（将未支付订单修改为已支付状态）
      * request.orderNo 必填
      */
-    OrderResponse createOrder(Long userId, CreateOrderRequest request);
+    OrderResponse pay(Long userId, CreateOrderRequest request);
 
     /**
      * 创建待支付订单（内部接口，供秒杀服务调用）

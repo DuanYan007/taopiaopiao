@@ -38,7 +38,7 @@ public class OrderController {
     @Operation(summary = "支付订单")
     public Result<OrderResponse> createOrder(@RequestHeader("X-User-Id") Long userId,
                                               @Valid @RequestBody CreateOrderRequest request) {
-        OrderResponse response = orderService.createOrder(userId, request);
+        OrderResponse response = orderService.pay(userId, request);
         return Result.success(response);
     }
 

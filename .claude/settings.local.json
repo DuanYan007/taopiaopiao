@@ -48,7 +48,13 @@
       "Bash(sudo docker exec mysql mysql -uroot -proot -e \"DESCRIBE taopiaopiao.seats;\" 2>&1)",
       "Bash(sudo docker exec mysql mysql -utaopiaopiao -pTaopiaopiao@2025 -e \"DESCRIBE taopiaopiao.orders;\" 2>&1 | grep -v \"Warning\")",
       "Bash(sudo docker exec mysql mysql -uroot -p7566 -e \"DESCRIBE taopiaopiao.orders;\" 2>&1 | grep -v \"Warning\")",
-      "Bash(sudo docker exec mysql mysql -uroot -p7566 -e \"SELECT id, order_no, user_id, session_id, event_id, seat_ids FROM taopiaopiao.orders WHERE order_no='ORD1773151405835F74992E8';\" 2>&1 | grep -v \"Warning\")"
+      "Bash(sudo docker exec mysql mysql -uroot -p7566 -e \"SELECT id, order_no, user_id, session_id, event_id, seat_ids FROM taopiaopiao.orders WHERE order_no='ORD1773151405835F74992E8';\" 2>&1 | grep -v \"Warning\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"SHOW TABLES;\" taopiaopiao 2>&1 | grep -v \"Using a password\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"DESC seats;\" taopiaopiao 2>&1 | grep -v \"Using a password\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"DESC seat_locks;\" taopiaopiao 2>&1 | grep -v \"Using a password\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"DESC orders;\" taopiaopiao 2>&1 | grep -v \"Using a password\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"SELECT DISTINCT status FROM seats;\" taopiaopiao 2>&1 | grep -v \"Using a password\")",
+      "Bash(docker exec mysql mysql -uroot -p7566 -e \"SELECT * FROM seats LIMIT 3;\" taopiaopiao 2>&1 | grep -v \"Using a password\")"
     ],
     "deny": [],
     "ask": []

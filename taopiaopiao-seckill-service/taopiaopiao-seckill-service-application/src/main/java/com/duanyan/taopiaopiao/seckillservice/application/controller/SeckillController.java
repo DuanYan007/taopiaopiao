@@ -33,9 +33,4 @@ public class SeckillController {
         return response.getSuccess() ? Result.success(response) : Result.fail(response.getCode(), response.getMessage());
     }
 
-    @GetMapping("/ping")
-    @Operation(summary = "健康检查")
-    public Result<String> ping() {
-        return Result.success("seckill-service is running");
-    }
 }

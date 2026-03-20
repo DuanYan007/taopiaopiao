@@ -51,15 +51,6 @@ public class OrderServiceImpl implements OrderService {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Override
-    @Transactional
-    public OrderResponse createOrder(Long userId, CreateOrderRequest request) {
-        // orderNo 必填，用于支付已有订单
-        if (request.getOrderNo() == null || request.getOrderNo().isBlank()) {
-            throw new RuntimeException("订单号不能为空");
-        }
-        return payExistingOrder(userId, request);
-    }
 
     @Override
     @Transactional
@@ -67,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         // 使用雪花算法生成订单号
         String orderNo = String.valueOf(orderIdGenerator.nextId());
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expireTime = now.plusMinutes(15); // 15分钟过期
+        LocalDateTime expireTime = now.plusMinutes(5); // 5分钟过期
 
         // 获取场次信息确定eventId
         Long eventId = request.getEventId();
@@ -96,7 +87,12 @@ public class OrderServiceImpl implements OrderService {
     /**
      * 支付已有订单
      */
-    private OrderResponse payExistingOrder(Long userId, CreateOrderRequest request) {
+    @Override
+    @Transactional
+    public OrderResponse pay(Long userId, CreateOrderRequest request) {
+        if (request.getOrderNo() == null || request.getOrderNo().isBlank()) {
+            throw new RuntimeException("订单号不能为空");
+        }
         // 查询订单
         Order order = orderMapper.selectOne(
                 new LambdaQueryWrapper<Order>()

@@ -104,6 +104,10 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.duanyan</groupId>
+            <artifactId>taopiaopiao-common-mq</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
