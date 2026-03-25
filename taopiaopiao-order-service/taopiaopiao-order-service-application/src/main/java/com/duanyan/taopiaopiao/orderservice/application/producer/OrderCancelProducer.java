@@ -39,16 +39,39 @@ public class OrderCancelProducer {
     }
 
     /**
+     * RocketMQ 默认延时等级对照表
+     * <pre>
+     * 等级 1  = 1秒
+     * 等级 2  = 5秒
+     * 等级 3  = 10秒
+     * 等级 4  = 30秒
+     * 等级 5  = 1分钟
+     * 等级 6  = 2分钟
+     * 等级 7  = 3分钟
+     * 等级 8  = 4分钟
+     * 等级 9  = 5分钟
+     * 等级 10 = 6分钟
+     * 等级 11 = 7分钟
+     * 等级 12 = 8分钟
+     * 等级 13 = 9分钟
+     * 等级 14 = 10分钟
+     * 等级 15 = 15分钟
+     * 等级 16 = 20分钟
+     * </pre>
+     */
+
+    /**
      * 发送延时取消消息（超时取消）
      *
-     * @param message   消息内容
-     * @param delayLevel 延时等级（1=1s, 2=5s, 3=10s, 4=30s, 5=1m, 6=2m, 7=3m, 8=4m, 9=5m, 10=6m, 11=7m, 12=8m, 13=9m, 14=10m, 15=15m, 16=20m）
+     * @param message      消息内容
+     * @param delayMinutes 延时分钟数（当前仅支持 15 分钟）
      */
     public void sendDelayCancelMessage(OrderCancelMessage message, int delayMinutes) {
         Message<OrderCancelMessage> mqMessage = MessageBuilder.withPayload(message).build();
 
-        // RocketMQ 延时等级 16 对应 15 分钟
-        int delayLevel = 16;
+        // 订单超时时间为 5 分钟，使用 RocketMQ 延时等级 9
+        // 注意：如果需要其他延时时间，需要在 Broker 配置文件中自定义延时等级
+        int delayLevel = 5;  // 5 分钟
         rocketMQTemplate.syncSend(
                 MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_CANCEL_ORDER,
                 mqMessage,
@@ -56,6 +79,7 @@ public class OrderCancelProducer {
                 delayLevel
         );
 
-        log.info("发送延时取消消息: orderNo={}, delayMinutes={}", message.getOrderNo(), delayMinutes);
+        log.info("发送延时取消消息: orderNo={}, delayMinutes={}, delayLevel={}",
+                message.getOrderNo(), delayMinutes, delayLevel);
     }
 }

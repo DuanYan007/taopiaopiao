@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /home/duanyan/project/taopiaopiao-backend/taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/producer && mv PaymentTransactionProducer.java PaymentSuccessProducer.java)",
+      "Bash(cd /home/duanyan/project/taopiaopiao-backend && mvn clean compile -pl taopiaopiao-order-service/taopiaopiao-order-service-domain -am 2>&1 | tail -30)",
+      "Bash(cd /home/duanyan/project/taopiaopiao-backend && mvn clean install -DskipTests 2>&1 | tail -50)"
+    ]
+  }
+}

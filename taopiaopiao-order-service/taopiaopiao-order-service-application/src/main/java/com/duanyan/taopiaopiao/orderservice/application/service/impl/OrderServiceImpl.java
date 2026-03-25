@@ -2,6 +2,8 @@ package com.duanyan.taopiaopiao.orderservice.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
+import com.duanyan.taopiaopiao.common.mq.message.PaymentSuccessMessage;
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.orderservice.api.dto.*;
 import com.duanyan.taopiaopiao.orderservice.application.client.EventClient;
@@ -17,6 +19,8 @@ import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueDTO;
 import com.duanyan.taopiaopiao.orderservice.application.config.OrderIdGenerator;
 import com.duanyan.taopiaopiao.orderservice.application.controller.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
+import com.duanyan.taopiaopiao.orderservice.application.producer.OrderCancelProducer;
+import com.duanyan.taopiaopiao.orderservice.application.producer.PaymentSuccessProducer;
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
@@ -48,6 +52,8 @@ public class OrderServiceImpl implements OrderService {
     private final VenueClient venueClient;
     private final SeatTemplateClient seatTemplateClient;
     private final OrderIdGenerator orderIdGenerator;
+    private final PaymentSuccessProducer paymentSuccessProducer;
+    private final OrderCancelProducer orderCancelProducer;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -58,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
         // 使用雪花算法生成订单号
         String orderNo = String.valueOf(orderIdGenerator.nextId());
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expireTime = now.plusMinutes(5); // 5分钟过期
+        LocalDateTime expireTime = now.plusMinutes(5); // 15分钟过期
 
         // 获取场次信息确定eventId
         Long eventId = request.getEventId();
@@ -77,6 +83,16 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.insert(order);
+
+        // 发送 15 分钟延时消息（超时取消）
+        OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
+                .orderNo(orderNo)
+                .userId(request.getUserId())
+                .sessionId(request.getSessionId())
+                .seatIds(request.getSeatIds())
+                .reason("TIMEOUT")
+                .build();
+        orderCancelProducer.sendDelayCancelMessage(cancelMessage, 1);
 
         log.info("创建待支付订单成功: orderNo={}, userId={}, amount={}, seats={}",
                 orderNo, request.getUserId(), request.getTotalAmount(), request.getSeatIds());
@@ -123,18 +139,25 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("确认购买失败");
         }
 
-        // 3. 更新 seats 表状态为 sold
-        MarkSeatsSoldRequest markRequest = new MarkSeatsSoldRequest();
-        markRequest.setSessionId(order.getSessionId());
-        markRequest.setSeatIds(seatIds);
-        markRequest.setOrderNo(order.getOrderNo());
-        sessionClient.markSeatsSold(markRequest);
-
-        // 4. 更新订单状态
+        // 3. 更新订单状态
         LocalDateTime now = LocalDateTime.now();
         order.setStatus(OrderStatus.PAID.getCode());
         order.setPayTime(now);
+        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
         orderMapper.updateById(order);
+
+        // 4. 发送 RocketMQ 消息异步更新 seats 表
+        // 注意：本地事务（订单状态更新、Redis 更新）已在上面完成
+        // 此处发送消息通知 SessionService 更新 seats 表，消息发送失败不影响支付结果
+        PaymentSuccessMessage message = PaymentSuccessMessage.builder()
+                .orderNo(order.getOrderNo())
+                .userId(userId)
+                .sessionId(order.getSessionId())
+                .seatIds(seatIds)
+                .amount(order.getTotalAmount())
+                .payTime(now)
+                .build();
+        paymentSuccessProducer.sendPaymentSuccessMessage(message);
 
         log.info("支付成功: orderNo={}, userId={}, amount={}", order.getOrderNo(), userId, order.getTotalAmount());
 
@@ -201,17 +224,22 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("只能取消待支付订单");
         }
 
-        // 释放座位
         List<String> seatIds = List.of(order.getSeatIds().split(","));
-        Result<Integer> result = seckillInternalClient.releaseSeats(order.getSessionId(), userId, seatIds);
 
-        if (result == null || !result.isSuccess()) {
-            log.warn("释放座位失败: orderNo={}", orderNo);
-        }
+        // 1. 发送取消消息（异步释放座位）
+        OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
+                .orderNo(orderNo)
+                .userId(userId)
+                .sessionId(order.getSessionId())
+                .seatIds(seatIds)
+                .reason("USER")  // 用户主动取消
+                .build();
+        orderCancelProducer.sendCancelMessage(cancelMessage);
 
-        // 更新订单状态
+        // 2. 更新订单状态
         order.setStatus(OrderStatus.CANCELLED.getCode());
         order.setCancelTime(LocalDateTime.now());
+        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
         orderMapper.updateById(order);
 
         log.info("订单取消成功: orderNo={}, userId={}", orderNo, userId);
@@ -243,30 +271,11 @@ public class OrderServiceImpl implements OrderService {
         return true;
     }
 
-    @Override
-    @Transactional
-    public void cancelTimeoutOrders() {
-        List<Order> timeoutOrders = orderMapper.selectList(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getStatus, OrderStatus.UNPAID.getCode())
-                        .lt(Order::getExpireTime, LocalDateTime.now())
-        );
+    // 该方法已废弃，改用 RocketMQ 延时消息处理超时取消
+    // @Override
+    // @Transactional
+    // public void cancelTimeoutOrders() { ... }
 
-        for (Order order : timeoutOrders) {
-            try {
-                List<String> seatIds = List.of(order.getSeatIds().split(","));
-                Result<Integer> result = seckillInternalClient.releaseSeats(order.getSessionId(), order.getUserId(), seatIds);
-
-                if (result != null && result.isSuccess()) {
-                    order.setStatus(OrderStatus.TIMEOUT.getCode());
-                    orderMapper.updateById(order);
-                    log.info("订单超时取消: orderNo={}", order.getOrderNo());
-                }
-            } catch (Exception e) {
-                log.error("取消超时订单失败: orderNo={}", order.getOrderNo(), e);
-            }
-        }
-    }
       // 之前使用的订单号生成算法
 //    private String generateOrderNo() {
 //        return "ORD" + System.currentTimeMillis() + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();

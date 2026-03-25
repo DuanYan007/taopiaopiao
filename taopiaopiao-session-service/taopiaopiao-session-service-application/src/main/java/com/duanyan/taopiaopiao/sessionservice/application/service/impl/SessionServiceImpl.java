@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.duanyan.taopiaopiao.common.exception.BusinessException;
+import com.duanyan.taopiaopiao.common.mq.message.PaymentSuccessMessage;
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionCreateRequest;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionPageResponse;
@@ -386,5 +387,26 @@ public class SessionServiceImpl implements SessionService {
             log.error("生成座位记录失败, sessionId: {}, error: {}", sessionId, e.getMessage(), e);
             throw new BusinessException(500, "生成座位记录失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    public boolean isSeatsMarkedSold(String orderNo) {
+        // 检查是否已存在该订单号的座位记录
+        Long count = seatMapper.selectCount(
+                new LambdaQueryWrapper<Seat>()
+                        .eq(Seat::getOrderNo, orderNo)
+                        .eq(Seat::getStatus, "sold")
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markSeatsSold(PaymentSuccessMessage message) {
+        log.info("标记座位已售出: orderNo={}, seatIds={}", message.getOrderNo(), message.getSeatIds());
+
+        // 调用 Mapper 更新座位状态
+        int updated = seatMapper.markSeatsSold(message.getSessionId(), message.getSeatIds(), message.getOrderNo());
+        log.info("成功更新{}条座位记录为已售出", updated);
     }
 }

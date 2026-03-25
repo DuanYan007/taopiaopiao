@@ -47,8 +47,10 @@ rocketmq:
     group: order-service-producer-group
     send-message-timeout: 3000
     retry-times-when-send-failed: 2
+    # 开发环境：允许自动创建 Topic（生产环境建议手动创建）
+    auto-create-topic-enable: true
 
 logging:
   level:
     root: INFO
-    com.duanyan.taopiaopiao: DEBUG
+    com.duanyan.taopiaopiao: INFO

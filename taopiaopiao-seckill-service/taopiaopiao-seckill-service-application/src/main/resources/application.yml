@@ -49,7 +49,13 @@ knife4j:
     language: zh_cn
   production: false
 
+# RocketMQ 配置
+rocketmq:
+  name-server: 127.0.0.1:9876
+  consumer:
+    group: seckill-service-consumer-group
+
 logging:
   level:
     root: INFO
-    com.duanyan.taopiaopiao: DEBUG
+    com.duanyan.taopiaopiao: INFO

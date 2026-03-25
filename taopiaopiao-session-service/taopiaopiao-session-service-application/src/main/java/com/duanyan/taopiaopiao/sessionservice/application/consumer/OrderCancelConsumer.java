@@ -2,51 +2,39 @@ package com.duanyan.taopiaopiao.sessionservice.application.consumer;
 
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
 
 /**
- * 订单取消消息消费者
+ * 订单取消消息消费者（Session Service）
+ * <p>
+ * 注意：
+ * - 座位的释放由 SeckillService 的 OrderCancelConsumer 处理
+ * - 此消费者仅用于日志记录和监控
+ * - SessionService 中不需要额外的取消逻辑，因为 seats 表在支付时才更新
  *
  * @author duanyan
  * @since 1.0.0
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @RocketMQMessageListener(
         topic = MqTopic.ORDER_TOPIC,
         selectorExpression = MqTopic.TAG_CANCEL_ORDER,
-        consumerGroup = MqTopic.ORDER_CONSUMER_GROUP,
+        consumerGroup = "session-service-cancel-consumer-group",
         messageModel = MessageModel.CLUSTERING,
         consumeMode = ConsumeMode.CONCURRENTLY
 )
-public class OrderCancelConsumer implements org.apache.rocketmq.spring.core.RocketMQListener<OrderCancelMessage> {
+public class OrderCancelConsumer implements RocketMQListener<OrderCancelMessage> {
 
-    /**
-     * 处理订单取消消息
-     * 注意：座位的释放由 SeckillService 的内部接口处理
-     * 此消费者主要用于记录日志或后续扩展
-     *
-     * @param message 取消消息
-     */
     @Override
     public void onMessage(OrderCancelMessage message) {
-        try {
-            log.info("收到订单取消消息: orderNo={}, reason={}", message.getOrderNo(), message.getReason());
-
-            // 座位释放逻辑由 SeckillService 内部接口处理
-            // 此处可添加其他业务逻辑，如发送通知等
-
-            log.info("处理订单取消消息成功: orderNo={}", message.getOrderNo());
-
-        } catch (Exception e) {
-            log.error("处理订单取消消息异常: orderNo={}", message.getOrderNo(), e);
-            throw e;  // 抛出异常，触发重试
-        }
+        // 仅记录日志，座位释放由 SeckillService 处理
+        log.info("收到订单取消消息（仅记录）: orderNo={}, reason={}, seatIds={}",
+                message.getOrderNo(), message.getReason(), message.getSeatIds());
     }
 }

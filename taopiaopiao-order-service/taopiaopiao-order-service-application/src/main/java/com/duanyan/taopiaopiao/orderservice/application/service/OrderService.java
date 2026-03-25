@@ -41,9 +41,4 @@ public interface OrderService {
      * 删除订单
      */
     Boolean deleteOrder(Long userId, String orderNo);
-
-    /**
-     * 订单超时取消（定时任务调用）
-     */
-    void cancelTimeoutOrders();
 }

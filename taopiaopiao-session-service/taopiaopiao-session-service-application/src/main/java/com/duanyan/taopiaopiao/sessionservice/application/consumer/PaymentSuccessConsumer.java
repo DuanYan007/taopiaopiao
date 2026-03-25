@@ -2,12 +2,13 @@ package com.duanyan.taopiaopiao.sessionservice.application.consumer;
 
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.PaymentSuccessMessage;
-import com.duanyan.taopiaopiao.sessionservice.application.service.SeatService;
+import com.duanyan.taopiaopiao.sessionservice.application.service.SessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,9 +27,9 @@ import org.springframework.stereotype.Component;
         messageModel = MessageModel.CLUSTERING,
         consumeMode = ConsumeMode.CONCURRENTLY
 )
-public class PaymentSuccessConsumer implements org.apache.rocketmq.spring.core.RocketMQListener<PaymentSuccessMessage> {
+public class PaymentSuccessConsumer implements RocketMQListener<PaymentSuccessMessage> {
 
-    private final SeatService seatService;
+    private final SessionService sessionService;
 
     @Override
     public void onMessage(PaymentSuccessMessage message) {
@@ -36,13 +37,13 @@ public class PaymentSuccessConsumer implements org.apache.rocketmq.spring.core.R
             log.info("收到支付成功消息: orderNo={}", message.getOrderNo());
 
             // 幂等性校验：检查是否已处理
-            if (seatService.isSeatsMarkedSold(message.getOrderNo())) {
+            if (sessionService.isSeatsMarkedSold(message.getOrderNo())) {
                 log.info("座位已标记为 sold，跳过处理: orderNo={}", message.getOrderNo());
                 return;
             }
 
             // 标记座位为已售出
-            seatService.markSeatsSold(message);
+            sessionService.markSeatsSold(message);
 
             log.info("处理支付成功消息成功: orderNo={}", message.getOrderNo());
 

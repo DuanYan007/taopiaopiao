@@ -55,5 +55,4 @@ rocketmq:
 logging:
   level:
     root: INFO
-    com.duanyan.taopiaopiao: DEBUG
-    com.duanyan.taopiaopiao.sessionservice.application.mapper: DEBUG
+    com.duanyan.taopiaopiao: INFO

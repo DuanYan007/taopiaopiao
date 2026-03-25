@@ -52,5 +52,4 @@ knife4j:
 logging:
   level:
     root: INFO
-    com.duanyan.taopiaopiao: DEBUG
-    com.duanyan.taopiaopiao.userservice.application.mapper: DEBUG
+    com.duanyan.taopiaopiao: INFO

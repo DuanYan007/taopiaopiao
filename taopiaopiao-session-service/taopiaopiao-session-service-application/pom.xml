@@ -31,6 +31,16 @@
             <groupId>com.duanyan</groupId>
             <artifactId>taopiaopiao-common-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.duanyan</groupId>
+            <artifactId>taopiaopiao-common-mq</artifactId>
+        </dependency>
+
+        <!-- RocketMQ Spring Boot Starter -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>

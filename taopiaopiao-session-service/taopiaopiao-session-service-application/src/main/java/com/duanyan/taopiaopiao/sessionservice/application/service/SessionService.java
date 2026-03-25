@@ -1,5 +1,6 @@
 package com.duanyan.taopiaopiao.sessionservice.application.service;
 
+import com.duanyan.taopiaopiao.common.mq.message.PaymentSuccessMessage;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionCreateRequest;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionPageResponse;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionQueryRequest;
@@ -48,4 +49,19 @@ public interface SessionService {
      * 标记座位已售出（内部接口，供订单服务调用）
      */
     Integer markSeatsSold(Long sessionId, java.util.List<String> seatIds, String orderNo);
+
+    /**
+     * 检查座位是否已标记为 sold（幂等性校验）
+     *
+     * @param orderNo 订单号
+     * @return true=已处理，false=未处理
+     */
+    boolean isSeatsMarkedSold(String orderNo);
+
+    /**
+     * 标记座位为已售出（处理支付成功消息）
+     *
+     * @param message 支付成功消息
+     */
+    void markSeatsSold(PaymentSuccessMessage message);
 }
