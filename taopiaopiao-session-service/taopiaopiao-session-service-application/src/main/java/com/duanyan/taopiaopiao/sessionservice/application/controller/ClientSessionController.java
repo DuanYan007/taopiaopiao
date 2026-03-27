@@ -78,4 +78,18 @@ public class ClientSessionController {
         );
         return Result.success(updated);
     }
+
+    /**
+     * 查询单个座位价格（内部接口，供秒杀服务调用）
+     */
+    @GetMapping("/{sessionId}/seats/{seatNumber}/price")
+    @Operation(summary = "查询单个座位价格（内部接口）")
+    public Result<java.math.BigDecimal> getSeatPrice(
+            @Parameter(description = "场次ID", required = true)
+            @PathVariable Long sessionId,
+            @Parameter(description = "座位号", required = true)
+            @PathVariable String seatNumber) {
+        java.math.BigDecimal price = clientSessionService.getSeatPrice(sessionId, seatNumber);
+        return Result.success(price);
+    }
 }

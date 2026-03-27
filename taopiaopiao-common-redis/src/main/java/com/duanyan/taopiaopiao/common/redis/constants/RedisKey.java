@@ -21,6 +21,12 @@ public class RedisKey {
      * <p>值类型: String，值为状态码 (0=可选, 1=已锁定, 2=已售出)
      */
     public static final String SEAT_PREFIX = "seat:";
+    /**
+     * 座位价格 Key 前缀
+     * <p>完整格式: price:{sessionId}:{seatId}
+     * <p>值类型: String 价格
+     */
+    public static final String PRICE_PREFIX = "price:";
 
     /**
      * 用户锁座记录 Key 前缀
@@ -72,6 +78,16 @@ public class RedisKey {
         return SEAT_PREFIX + sessionId + ":" + seatId;
     }
 
+    /**
+     * 构建座位状态 Key（使用座位ID）
+     *
+     * @param sessionId 场次ID
+     * @param seatId    座位ID
+     * @return seat:sessionId:seatIds
+     */
+    public static String seatPriceKey(Long sessionId, String seatId) {
+        return PRICE_PREFIX + sessionId + ":" + seatId;
+    }
     /**
      * 构建用户锁座记录 Key
      *

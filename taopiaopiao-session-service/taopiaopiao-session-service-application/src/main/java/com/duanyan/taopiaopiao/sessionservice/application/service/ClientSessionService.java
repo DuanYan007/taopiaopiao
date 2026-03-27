@@ -45,4 +45,13 @@ public interface ClientSessionService {
      * @return 更新数量
      */
     Integer markSeatsSold(Long sessionId, java.util.List<String> seatIds, String orderNo);
+
+    /**
+     * 查询单个座位价格（内部接口，供秒杀服务调用）
+     *
+     * @param sessionId 场次ID
+     * @param seatNumber 座位号
+     * @return 座位价格
+     */
+    java.math.BigDecimal getSeatPrice(Long sessionId, String seatNumber);
 }

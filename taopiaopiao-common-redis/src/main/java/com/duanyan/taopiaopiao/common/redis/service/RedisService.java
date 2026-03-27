@@ -2,6 +2,7 @@ package com.duanyan.taopiaopiao.common.redis.service;
 
 import com.duanyan.taopiaopiao.common.redis.constants.SeatStatus;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -19,6 +20,14 @@ public interface RedisService {
      * @param seatIds   座位ID列表 (格式: "row:col")
      */
     void initSessionSeats(Long sessionId, List<String> seatIds);
+
+    /**
+     * 初始化场次座位数据
+     *
+     * @param sessionId 场次ID
+     * @param seatIds   座位ID列表 (格式: "row:col")
+     */
+    List<BigDecimal> getSeatsPrice(Long sessionId, List<String> seatIds);
 
     /**
      * 锁定座位

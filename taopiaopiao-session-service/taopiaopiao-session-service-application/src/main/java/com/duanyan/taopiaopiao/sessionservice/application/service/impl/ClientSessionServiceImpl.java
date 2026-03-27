@@ -157,6 +157,29 @@ public class ClientSessionServiceImpl implements ClientSessionService {
         return updated;
     }
 
+    @Override
+    public java.math.BigDecimal getSeatPrice(Long sessionId, String seatNumber) {
+        log.info("查询单个座位价格: sessionId={}, seatNumber={}", sessionId, seatNumber);
+
+        // 查询座位价格
+        Seat seat = seatMapper.selectOne(
+                new LambdaQueryWrapper<Seat>()
+                        .eq(Seat::getSessionId, sessionId)
+                        .eq(Seat::getId, seatNumber)
+        );
+
+        if (seat == null) {
+            throw new BusinessException(404, "座位不存在: " + seatNumber);
+        }
+
+        if (!"available".equals(seat.getStatus())) {
+            throw new BusinessException(400, "座位不可售: " + seatNumber);
+        }
+
+        log.info("查询座位价格成功: seatNumber={}, price={}", seatNumber, seat.getPrice());
+        return seat.getPrice();
+    }
+
     /**
      * 转换为座位响应DTO
      */

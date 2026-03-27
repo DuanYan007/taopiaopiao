@@ -6,11 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * 场次DTO
+ * <p>
+ * 注意：价格信息存储在 seats 表中，不在场次表中
  */
 @Data
 @Builder
@@ -44,11 +45,6 @@ public class SessionDTO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
-
-    /**
-     * 价格
-     */
-    private BigDecimal price;
 
     /**
      * 场次状态

@@ -6,6 +6,7 @@ import com.duanyan.taopiaopiao.common.redis.constants.SeatStatus;
 import com.duanyan.taopiaopiao.common.redis.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.BatchResult;
 import org.redisson.api.RBatch;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
@@ -15,6 +16,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +71,22 @@ public class RedisServiceImpl implements RedisService {
 
         batch.execute();
         log.info("初始化场次座位数据, sessionId: {}, seatCount: {}", sessionId, seatIds.size());
+    }
+
+    @Override
+    public List<BigDecimal> getSeatsPrice(Long sessionId, List<String> seatIds) {
+        List<BigDecimal> pricesList = new ArrayList<>();
+        RBatch batch = redissonClient.createBatch();
+        for(String seatId : seatIds){
+            String seatPriceKey = RedisKey.seatPriceKey(sessionId, seatId);
+            batch.getBucket(seatPriceKey).getAsync();
+        }
+        List<?> responses = batch.execute().getResponses();
+        for(int i = 0; i < seatIds.size(); i++){
+            Object value = responses.get(i);
+            pricesList.add(new BigDecimal(value.toString()));
+        }
+        return pricesList;
     }
 
     @Override

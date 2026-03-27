@@ -38,11 +38,13 @@ public class SeckillServiceImpl implements SeckillService {
         Long sessionId = request.getSessionId();
         Long userId = request.getUserId();
         List<String> seatIds = request.getSeatIds();
+        BigDecimal frontendUnitPrice = request.getUnitPrice();  // 前端传入的单价
         Integer expireSeconds = request.getExpireSeconds() != null ? request.getExpireSeconds() : 300;
 
         String lockId = UUID.randomUUID().toString().replace("-", "");
         long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
-        // 1. 锁定座位
+
+        // 1. 锁定座位（Redis）
         int code = redisService.lockSeats(sessionId, userId, seatIds, expireSeconds);
 
         if (code == 0) {
@@ -66,61 +68,59 @@ public class SeckillServiceImpl implements SeckillService {
             // 调用订单服务创建待支付订单
             String orderNo = null;
             try {
-                // 获取场次信息（获取价格）
+                // 2. 计算总金额（前端价格 × 座位数量）
+                List<BigDecimal> prices = redisService.getSeatsPrice(sessionId, seatIds);
+                BigDecimal totalAmount = prices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                // 3. 获取场次信息（获取 eventId）
                 Result<SessionDTO> sessionResult = sessionClient.getSessionById(sessionId);
-                if (sessionResult != null && sessionResult.getData() != null) {
-                    SessionDTO session = sessionResult.getData();
-
-                    // 计算总金额
-                    BigDecimal unitPrice = session.getPrice() != null ? session.getPrice() : BigDecimal.ZERO;
-                    BigDecimal totalAmount = unitPrice.multiply(BigDecimal.valueOf(seatIds.size()));
-
-                    // 创建待支付订单
-                    CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
-                            .userId(userId)
-                            .sessionId(sessionId)
-                            .eventId(session.getEventId())
-                            .seatIds(seatIds)
-                            .seatCount(seatIds.size())
-                            .unitPrice(unitPrice)
-                            .totalAmount(totalAmount)
-                            .build();
-
-                    Result<OrderDTO> orderResult = orderClient.createPendingOrder(createOrderDTO);
-                    if (orderResult != null && orderResult.isSuccess() && orderResult.getData() != null) {
-                        orderNo = orderResult.getData().getOrderNo();
-                        // 更新 seat_locks 的 orderNo
-                        for (String seatId : seatIds) {
-                            seatLockMapper.updateOrderNo(sessionId, userId, seatId, orderNo);
-                        }
-                        log.info("创建待支付订单成功: orderNo={}, userId={}, sessionId={}", orderNo, userId, sessionId);
-                    } else {
-                        log.error("创建待支付订单失败: sessionId={}, userId={}", sessionId, userId);
-                        // 订单创建失败，需要回滚锁座
-                        releaseSeatsInternal(sessionId, userId, seatIds);
-                        return LockSeatResponse.builder()
-                                .success(false)
-                                .code(4)
-                                .message("创建订单失败，请重试")
-                                .build();
-                    }
-                } else {
+                if (sessionResult == null || !sessionResult.isSuccess() || sessionResult.getData() == null) {
                     log.error("获取场次信息失败: sessionId={}", sessionId);
-                    // 获取场次信息失败，需要回滚锁座
-                    releaseSeatsInternal(sessionId, userId, seatIds);
+                    releaseSeats(sessionId, userId, seatIds);
                     return LockSeatResponse.builder()
                             .success(false)
-                            .code(5)
+                            .code(6)
                             .message("获取场次信息失败，请重试")
                             .build();
                 }
+                SessionDTO session = sessionResult.getData();
+
+                // 6. 创建待支付订单
+                CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
+                        .userId(userId)
+                        .sessionId(sessionId)
+                        .eventId(session.getEventId())
+                        .seatIds(seatIds)
+                        .seatCount(seatIds.size())
+                        .unitPrice(frontendUnitPrice)
+                        .totalAmount(totalAmount)
+                        .build();
+
+                Result<OrderDTO> orderResult = orderClient.createPendingOrder(createOrderDTO);
+                if (orderResult != null && orderResult.isSuccess() && orderResult.getData() != null) {
+                    orderNo = orderResult.getData().getOrderNo();
+                    // 更新 seat_locks 的 orderNo
+                    for (String seatId : seatIds) {
+                        seatLockMapper.updateOrderNo(sessionId, userId, seatId, orderNo);
+                    }
+                    log.info("创建待支付订单成功: orderNo={}, userId={}, sessionId={}, amount={}",
+                            orderNo, userId, sessionId, totalAmount);
+                } else {
+                    log.error("创建待支付订单失败: sessionId={}, userId={}", sessionId, userId);
+                    releaseSeats(sessionId, userId, seatIds);
+                    return LockSeatResponse.builder()
+                            .success(false)
+                            .code(7)
+                            .message("创建订单失败，请重试")
+                            .build();
+                }
+
             } catch (Exception e) {
-                log.error("调用订单服务异常: sessionId={}, userId={}", sessionId, userId, e);
-                // 调用订单服务异常，需要回滚锁座
-                releaseSeatsInternal(sessionId, userId, seatIds);
+                log.error("系统异常: sessionId={}, userId={}", sessionId, userId, e);
+                releaseSeats(sessionId, userId, seatIds);
                 return LockSeatResponse.builder()
                         .success(false)
-                        .code(6)
+                        .code(8)
                         .message("系统异常，请重试")
                         .build();
             }
@@ -153,7 +153,8 @@ public class SeckillServiceImpl implements SeckillService {
     /**
      * 内部方法：释放座位（不对外暴露）
      */
-    private void releaseSeatsInternal(Long sessionId, Long userId, List<String> seatIds) {
+    @Transactional
+    public void releaseSeats(Long sessionId, Long userId, List<String> seatIds) {
         try {
             redisService.unlockSeats(sessionId, userId, seatIds);
             for (String seatId : seatIds) {
@@ -179,12 +180,4 @@ public class SeckillServiceImpl implements SeckillService {
         return count;
     }
 
-    /**
-     * 内部方法：释放座位（供订单服务调用，用于取消/超时）
-     */
-    @Transactional
-    public Integer releaseSeats(Long sessionId, Long userId, List<String> seatIds) {
-        releaseSeatsInternal(sessionId, userId, seatIds);
-        return seatIds.size();
-    }
 }

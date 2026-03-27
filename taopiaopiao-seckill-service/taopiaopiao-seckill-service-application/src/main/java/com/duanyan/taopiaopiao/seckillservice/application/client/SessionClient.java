@@ -17,4 +17,16 @@ public interface SessionClient {
      */
     @GetMapping("/{id}")
     Result<SessionDTO> getSessionById(@PathVariable("id") Long id);
+
+    /**
+     * 查询单个座位价格（内部接口，用于价格校验）
+     *
+     * @param sessionId 场次ID
+     * @param seatNumber 座位号
+     * @return 座位价格
+     */
+    @GetMapping("/{sessionId}/seats/{seatNumber}/price")
+    Result<java.math.BigDecimal> getSeatPrice(
+            @PathVariable("sessionId") Long sessionId,
+            @PathVariable("seatNumber") String seatNumber);
 }

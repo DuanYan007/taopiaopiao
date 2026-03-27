@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -22,9 +23,13 @@ public class LockSeatRequest {
     @NotNull(message = "用户ID不能为空")
     private Long userId;
 
-    @Schema(description = "座位ID列表（seats表的id字段）", required = true)
-    @NotEmpty(message = "座位ID不能为空")
+    @Schema(description = "座位号列表（seats表的seat_number字段）", required = true)
+    @NotEmpty(message = "座位号不能为空")
     private List<String> seatIds;
+
+    @Schema(description = "单价（用于前端展示和后端校验）", required = true)
+    @NotNull(message = "单价不能为空")
+    private BigDecimal unitPrice;
 
     @Schema(description = "锁定时长（秒），默认300秒")
     private Integer expireSeconds = 300;

@@ -71,11 +71,11 @@ public class OrderCancelProducer {
 
         // 订单超时时间为 5 分钟，使用 RocketMQ 延时等级 9
         // 注意：如果需要其他延时时间，需要在 Broker 配置文件中自定义延时等级
-        int delayLevel = 5;  // 5 分钟
+        int delayLevel = 9;  // 5 分钟
         rocketMQTemplate.syncSend(
                 MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_CANCEL_ORDER,
                 mqMessage,
-                3000,
+                10000,
                 delayLevel
         );
 
