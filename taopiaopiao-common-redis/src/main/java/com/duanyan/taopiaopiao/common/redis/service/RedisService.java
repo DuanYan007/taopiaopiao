@@ -92,4 +92,38 @@ public interface RedisService {
      * @return 锁定的座位数量
      */
     long getUserLockedSeatCount(Long userId);
+
+    /**
+     * 获取场次座位布局（含状态）
+     *
+     * @param sessionId 场次ID
+     * @return 布局数据Map，key为field(meta或area:N)，value为JSON字符串
+     *         如果缓存不存在则返回null
+     */
+    java.util.Map<Object, Object> getSessionLayout(Long sessionId);
+
+    /**
+     * 初始化场次缓存数据
+     *
+     * @param sessionId 场次ID
+     * @param seatIds 座位ID列表
+     * @param areaPrices 座位价格列表（索引对应seatIds）
+     */
+    void initSessionData(Long sessionId, java.util.List<String> seatIds, java.util.List<Integer> areaPrices);
+
+    /**
+     * 清除场次所有缓存数据
+     *
+     * @param sessionId 场次ID
+     */
+    void clearSessionCache(Long sessionId);
+
+    /**
+     * 保存座位布局缓存
+     *
+     * @param sessionId 场次ID
+     * @param metaJson 元数据JSON字符串
+     * @param areaJsonMap 各区域座位数据JSON字符串Map，key为"area:0", "area:1"等
+     */
+    void saveSessionLayout(Long sessionId, String metaJson, java.util.Map<String, String> areaJsonMap);
 }

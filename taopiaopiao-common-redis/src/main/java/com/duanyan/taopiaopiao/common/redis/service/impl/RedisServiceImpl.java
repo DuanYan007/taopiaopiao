@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.BatchResult;
 import org.redisson.api.RBatch;
+import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
@@ -215,5 +216,99 @@ public class RedisServiceImpl implements RedisService {
     public long getUserLockedSeatCount(Long userId) {
         String userLocksKey = RedisKey.userLocksKey(userId);
         return redissonClient.getMap(userLocksKey).size();
+    }
+
+    @Override
+    public java.util.Map<Object, Object> getSessionLayout(Long sessionId) {
+        String layoutKey = "session:layout:" + sessionId;
+        org.redisson.api.RMap<Object, Object> map = redissonClient.getMap(layoutKey);
+
+        if (!map.isExists()) {
+            return null;
+        }
+
+        return map.readAllMap();
+    }
+
+    @Override
+    public void initSessionData(Long sessionId, java.util.List<String> seatIds, java.util.List<Integer> areaPrices) {
+        String sessionIdStr = String.valueOf(sessionId);
+        int batchSize = 1000;
+        int totalSeats = seatIds.size();
+
+        // 分批写入座位状态和价格
+        for (int i = 0; i < totalSeats; i += batchSize) {
+            int end = Math.min(i + batchSize, totalSeats);
+            RBatch batch = redissonClient.createBatch();
+
+            for (int j = i; j < end; j++) {
+                String seatId = seatIds.get(j);
+                Integer price = areaPrices.get(j);
+
+                // 写入座位状态
+                String seatKey = RedisKey.SEAT_PREFIX + sessionIdStr + ":" + seatId;
+                batch.getBucket(seatKey).setAsync(0);
+
+                // 写入座位价格
+                String priceKey = RedisKey.PRICE_PREFIX + sessionIdStr + ":" + seatId;
+                batch.getBucket(priceKey).setAsync(price);
+            }
+
+            batch.execute();
+            log.info("初始化场次座位数据: sessionId={}, 进度={}/{}", sessionId, end, totalSeats);
+        }
+
+        // 写入场次座位集合
+        String sessionSeatsKey = RedisKey.sessionSeatsKey(sessionId);
+        redissonClient.getSet(sessionSeatsKey).delete();
+        redissonClient.getSet(sessionSeatsKey).addAll(seatIds);
+
+        log.info("初始化场次数据完成: sessionId={}, totalSeats={}", sessionId, totalSeats);
+    }
+
+    @Override
+    public void clearSessionCache(Long sessionId) {
+        String sessionIdStr = String.valueOf(sessionId);
+
+        // 删除座位布局缓存
+        String layoutKey = "session:layout:" + sessionIdStr;
+        redissonClient.getBucket(layoutKey).delete();
+
+        // 删除场次座位集合
+        String sessionSeatsKey = RedisKey.sessionSeatsKey(sessionId);
+        redissonClient.getSet(sessionSeatsKey).delete();
+
+        // 删除售罄标志
+        String soldoutKey = RedisKey.sessionSoldoutKey(sessionId);
+        redissonClient.getBucket(soldoutKey).delete();
+
+        // 删除所有座位状态和价格（使用scan）
+        String seatPattern = RedisKey.SEAT_PREFIX + sessionIdStr + ":*";
+        String pricePattern = RedisKey.PRICE_PREFIX + sessionIdStr + ":*";
+
+        Iterable<String> seatKeys = redissonClient.getKeys().getKeysByPattern(seatPattern);
+        for (String key : seatKeys) {
+            redissonClient.getBucket(key).delete();
+        }
+
+        Iterable<String> priceKeys = redissonClient.getKeys().getKeysByPattern(pricePattern);
+        for (String key : priceKeys) {
+            redissonClient.getBucket(key).delete();
+        }
+
+        log.info("清除场次缓存: sessionId={}", sessionId);
+    }
+
+    @Override
+    public void saveSessionLayout(Long sessionId, String metaJson, java.util.Map<String, String> areaJsonMap) {
+        String layoutKey = "session:layout:" + sessionId;
+        RMap<String, String> layoutMap = redissonClient.getMap(layoutKey);
+
+        layoutMap.put("meta", metaJson);
+        for (java.util.Map.Entry<String, String> entry : areaJsonMap.entrySet()) {
+            layoutMap.put(entry.getKey(), entry.getValue());
+        }
+
+        log.info("保存场次布局缓存: sessionId={}, areas={}", sessionId, areaJsonMap.size());
     }
 }

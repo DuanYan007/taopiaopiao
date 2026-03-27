@@ -33,9 +33,10 @@ public class InternalSeatController {
 
     @PostMapping("/release")
     @Operation(summary = "释放座位（内部接口，用于取消/超时订单）")
-    public Result<Integer> releaseSeats(@RequestParam Long sessionId,
+    public Result<String> releaseSeats(@RequestParam Long sessionId,
                                         @RequestParam Long userId,
                                         @RequestParam List<String> seatIds) {
-        return Result.success(seckillService.releaseSeats(sessionId, userId, seatIds));
+        seckillService.releaseSeats(sessionId, userId, seatIds);
+        return Result.success("释放成功");
     }
 }
