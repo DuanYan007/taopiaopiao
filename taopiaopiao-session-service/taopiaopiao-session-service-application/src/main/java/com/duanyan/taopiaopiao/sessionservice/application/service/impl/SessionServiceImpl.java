@@ -405,7 +405,7 @@ public class SessionServiceImpl implements SessionService {
     public void markSeatsSold(PaymentSuccessMessage message) {
         log.info("标记座位已售出: orderNo={}, seatIds={}", message.getOrderNo(), message.getSeatIds());
 
-        // 调用 Mapper 更新座位状态
+        // 调用 Mapper 更新数据库座位状态
         int updated = seatMapper.markSeatsSold(message.getSessionId(), message.getSeatIds(), message.getOrderNo());
         log.info("成功更新{}条座位记录为已售出", updated);
     }

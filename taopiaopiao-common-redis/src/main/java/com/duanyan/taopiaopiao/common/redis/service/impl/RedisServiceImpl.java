@@ -219,6 +219,16 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
+    public void removeUserLocks(Long userId, List<String> seatIds) {
+        String userLocksKey = RedisKey.userLocksKey(userId);
+        RMap<Object, Object> userLocksMap = redissonClient.getMap(userLocksKey);
+        for (String seatId : seatIds) {
+            userLocksMap.remove(seatId);
+        }
+        log.info("删除用户锁座记录: userId={}, count={}", userId, seatIds.size());
+    }
+
+    @Override
     public java.util.Map<Object, Object> getSessionLayout(Long sessionId) {
         String layoutKey = "session:layout:" + sessionId;
         org.redisson.api.RMap<Object, Object> map = redissonClient.getMap(layoutKey);

@@ -94,6 +94,14 @@ public interface RedisService {
     long getUserLockedSeatCount(Long userId);
 
     /**
+     * 删除用户锁座记录（支付成功后调用）
+     *
+     * @param userId 用户ID
+     * @param seatIds 座位ID列表
+     */
+    void removeUserLocks(Long userId, List<String> seatIds);
+
+    /**
      * 获取场次座位布局（含状态）
      *
      * @param sessionId 场次ID

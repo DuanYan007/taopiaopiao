@@ -5,6 +5,12 @@ spring:
   application:
     name: session-service
 
+  # 排除Redisson自动配置（session-service不使用Redis）
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
+
   # 数据源配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
