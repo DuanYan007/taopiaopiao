@@ -35,4 +35,7 @@ public class LockSeatResponse {
 
     @Schema(description = "订单号")
     private String orderNo;
+
+    @Schema(description = "支付页面地址（支付系统返回）")
+    private String payUrl;
 }

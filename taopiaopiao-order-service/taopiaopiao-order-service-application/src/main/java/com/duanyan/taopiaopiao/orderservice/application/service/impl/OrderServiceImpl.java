@@ -3,7 +3,6 @@ package com.duanyan.taopiaopiao.orderservice.application.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
-import com.duanyan.taopiaopiao.common.mq.message.PaymentSuccessMessage;
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.orderservice.api.dto.*;
 import com.duanyan.taopiaopiao.orderservice.application.client.EventClient;
@@ -11,16 +10,15 @@ import com.duanyan.taopiaopiao.orderservice.application.client.SeatTemplateClien
 import com.duanyan.taopiaopiao.orderservice.application.client.SeckillInternalClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.SessionClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.VenueClient;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventDTO;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.MarkSeatsSoldRequest;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateDTO;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.SessionDTO;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueDTO;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.SessionResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueResponse;
 import com.duanyan.taopiaopiao.orderservice.application.config.OrderIdGenerator;
-import com.duanyan.taopiaopiao.orderservice.application.controller.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.application.producer.OrderCancelProducer;
-import com.duanyan.taopiaopiao.orderservice.application.producer.PaymentSuccessProducer;
+import com.duanyan.taopiaopiao.orderservice.application.producer.OrderTransactionProducer;
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
@@ -52,116 +50,43 @@ public class OrderServiceImpl implements OrderService {
     private final VenueClient venueClient;
     private final SeatTemplateClient seatTemplateClient;
     private final OrderIdGenerator orderIdGenerator;
-    private final PaymentSuccessProducer paymentSuccessProducer;
     private final OrderCancelProducer orderCancelProducer;
+    private final OrderTransactionProducer orderTransactionProducer;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-
     @Override
-    @Transactional
     public OrderResponse createPendingOrder(CreatePendingOrderRequest request) {
         // 使用雪花算法生成订单号
         String orderNo = String.valueOf(orderIdGenerator.nextId());
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expireTime = now.plusMinutes(5); // 15分钟过期
 
-        // 获取场次信息确定eventId
-        Long eventId = request.getEventId();
-        // 创建待支付订单
-        Order order = Order.builder()
+        log.info("开始创建待支付订单: orderNo={}, userId={}, sessionId={}",
+                orderNo, request.getUserId(), request.getSessionId());
+
+        // 发送事务消息（半消息）
+        // executeLocalTransaction 会被回调，在那里执行真正的本地事务（创建订单、发送延迟消息）
+        boolean sent = orderTransactionProducer.sendOrderCreatedMessage(orderNo, request);
+
+        if (!sent) {
+            log.error("发送事务消息失败: orderNo={}", orderNo);
+            throw new RuntimeException("创建订单失败，请重试");
+        }
+
+        log.info("事务消息发送成功: orderNo={}", orderNo);
+
+        // 返回订单信息（此时订单可能还未创建，但订单号已生成）
+        return OrderResponse.builder()
                 .orderNo(orderNo)
                 .userId(request.getUserId())
                 .sessionId(request.getSessionId())
-                .eventId(eventId)
-                .seatIds(String.join(",", request.getSeatIds()))
+                .eventId(request.getEventId())
+                .seatIds(request.getSeatIds())
                 .seatCount(request.getSeatCount())
                 .unitPrice(request.getUnitPrice())
                 .totalAmount(request.getTotalAmount())
                 .status(OrderStatus.UNPAID.getCode())
-                .expireTime(expireTime)
+                .statusDesc(OrderStatus.UNPAID.getDesc())
                 .build();
-
-        orderMapper.insert(order);
-
-        // 发送 15 分钟延时消息（超时取消）
-        OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
-                .orderNo(orderNo)
-                .userId(request.getUserId())
-                .sessionId(request.getSessionId())
-                .seatIds(request.getSeatIds())
-                .reason("TIMEOUT")
-                .build();
-        orderCancelProducer.sendDelayCancelMessage(cancelMessage, 1);
-
-        log.info("创建待支付订单成功: orderNo={}, userId={}, amount={}, seats={}",
-                orderNo, request.getUserId(), request.getTotalAmount(), request.getSeatIds());
-
-        return buildOrderResponse(order);
-    }
-
-    /**
-     * 支付已有订单
-     */
-    @Override
-    @Transactional
-    public OrderResponse pay(Long userId, CreateOrderRequest request) {
-        if (request.getOrderNo() == null || request.getOrderNo().isBlank()) {
-            throw new RuntimeException("订单号不能为空");
-        }
-        // 查询订单
-        Order order = orderMapper.selectOne(
-                new LambdaQueryWrapper<Order>()
-                        .eq(Order::getOrderNo, request.getOrderNo())
-                        .eq(Order::getUserId, userId)
-        );
-
-        if (order == null) {
-            throw new RuntimeException("订单不存在");
-        }
-
-        if (!OrderStatus.UNPAID.getCode().equals(order.getStatus())) {
-            throw new RuntimeException("订单状态异常，无法支付");
-        }
-
-        // 检查是否过期
-        if (order.getExpireTime() != null && order.getExpireTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("订单已过期");
-        }
-
-        List<String> seatIds = List.of(order.getSeatIds().split(","));
-
-        // 1. Redis 确认购买（状态 1 → 2）
-        // 2. 更新 seat_locks 状态为 2（已支付）
-        Result<Integer> markResult = seckillInternalClient.markSeatLocksPaid(
-                order.getOrderNo(), order.getSessionId(), userId, seatIds);
-        if (markResult == null || !markResult.isSuccess()) {
-            throw new RuntimeException("确认购买失败");
-        }
-
-        // 3. 更新订单状态
-        LocalDateTime now = LocalDateTime.now();
-        order.setStatus(OrderStatus.PAID.getCode());
-        order.setPayTime(now);
-        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
-        orderMapper.updateById(order);
-
-        // 4. 发送 RocketMQ 消息异步更新 seats 表
-        // 注意：本地事务（订单状态更新、Redis 更新）已在上面完成
-        // 此处发送消息通知 SessionService 更新 seats 表，消息发送失败不影响支付结果
-        PaymentSuccessMessage message = PaymentSuccessMessage.builder()
-                .orderNo(order.getOrderNo())
-                .userId(userId)
-                .sessionId(order.getSessionId())
-                .seatIds(seatIds)
-                .amount(order.getTotalAmount())
-                .payTime(now)
-                .build();
-        paymentSuccessProducer.sendPaymentSuccessMessage(message);
-
-        log.info("支付成功: orderNo={}, userId={}, amount={}", order.getOrderNo(), userId, order.getTotalAmount());
-
-        return buildOrderResponse(order);
     }
 
     @Override
@@ -271,16 +196,6 @@ public class OrderServiceImpl implements OrderService {
         return true;
     }
 
-    // 该方法已废弃，改用 RocketMQ 延时消息处理超时取消
-    // @Override
-    // @Transactional
-    // public void cancelTimeoutOrders() { ... }
-
-      // 之前使用的订单号生成算法
-//    private String generateOrderNo() {
-//        return "ORD" + System.currentTimeMillis() + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
-//    }
-
     private OrderResponse buildOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();
         BeanUtils.copyProperties(order, response);
@@ -330,32 +245,32 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 获取场次信息
-        Result<SessionDTO> sessionResult = sessionClient.getSessionById(order.getSessionId());
+        Result<SessionResponse> sessionResult = sessionClient.getSessionById(order.getSessionId());
         if (sessionResult != null && sessionResult.getData() != null) {
-            SessionDTO session = sessionResult.getData();
+            SessionResponse session = sessionResult.getData();
             if (session.getStartTime() != null) {
                 item.setStartTime(session.getStartTime().format(DATE_TIME_FORMATTER));
             }
         }
 
         // 获取演出信息
-        Result<EventDTO> eventResult = eventClient.getEventById(order.getEventId());
+        Result<EventResponse> eventResult = eventClient.getEventById(order.getEventId());
         if (eventResult != null && eventResult.getData() != null) {
-            EventDTO event = eventResult.getData();
+            EventResponse event = eventResult.getData();
             item.setEventName(event.getName());
             item.setEventCover(event.getCoverImage());
         }
 
         // 获取场馆信息（通过场次 -> 座位模板 -> 场馆）
-        Result<SessionDTO> sessionForVenue = sessionClient.getSessionById(order.getSessionId());
+        Result<SessionResponse> sessionForVenue = sessionClient.getSessionById(order.getSessionId());
         if (sessionForVenue != null && sessionForVenue.getData() != null) {
-            SessionDTO session = sessionForVenue.getData();
+            SessionResponse session = sessionForVenue.getData();
             if (session.getSeatTemplateId() != null) {
-                Result<SeatTemplateDTO> templateResult = seatTemplateClient.getTemplateById(session.getSeatTemplateId());
+                Result<SeatTemplateResponse> templateResult = seatTemplateClient.getTemplateById(session.getSeatTemplateId());
                 if (templateResult != null && templateResult.getData() != null) {
-                    SeatTemplateDTO template = templateResult.getData();
+                    SeatTemplateResponse template = templateResult.getData();
                     if (template.getVenueId() != null) {
-                        Result<VenueDTO> venueResult = venueClient.getVenueById(template.getVenueId());
+                        Result<VenueResponse> venueResult = venueClient.getVenueById(template.getVenueId());
                         if (venueResult != null && venueResult.getData() != null) {
                             item.setVenueName(venueResult.getData().getName());
                         }

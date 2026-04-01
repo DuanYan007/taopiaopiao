@@ -16,4 +16,7 @@ public interface SeatLockMapper extends BaseMapper<SeatLock> {
 
     int markAsPaid(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
                    @Param("seatId") String seatId, @Param("orderNo") String orderNo);
+
+    int deleteBySessionUserSeat(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
+                                @Param("seatId") String seatId);
 }

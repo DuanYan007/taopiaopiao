@@ -29,4 +29,11 @@
           AND status = 1
     </update>
 
+    <delete id="deleteBySessionUserSeat">
+        DELETE FROM seat_locks
+        WHERE session_id = #{sessionId}
+          AND user_id = #{userId}
+          AND seat_id = #{seatId}
+    </delete>
+
 </mapper>

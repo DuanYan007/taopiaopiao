@@ -1,8 +1,8 @@
 package com.duanyan.taopiaopiao.orderservice.application.controller;
 
 import com.duanyan.taopiaopiao.common.response.Result;
+import com.duanyan.taopiaopiao.orderservice.api.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderResponse;
-import com.duanyan.taopiaopiao.orderservice.application.controller.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

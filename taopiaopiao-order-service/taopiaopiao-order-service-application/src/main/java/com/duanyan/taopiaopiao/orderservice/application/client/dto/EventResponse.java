@@ -6,21 +6,26 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 场馆信息DTO（order-service内部使用）
+ * 演出信息响应（order-service内部使用）
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VenueDTO {
+public class EventResponse {
 
     /**
-     * 场馆ID
+     * 演出ID
      */
     private Long id;
 
     /**
-     * 场馆名称
+     * 演出名称
      */
     private String name;
+
+    /**
+     * 封面图片URL
+     */
+    private String coverImage;
 }

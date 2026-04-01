@@ -6,26 +6,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 座位模板信息DTO（order-service内部使用）
+ * 场馆信息响应（order-service内部使用）
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SeatTemplateDTO {
+public class VenueResponse {
 
     /**
-     * 模板ID
+     * 场馆ID
      */
     private Long id;
 
     /**
-     * 模板名称
+     * 场馆名称
      */
     private String name;
-
-    /**
-     * 关联场馆ID
-     */
-    private Long venueId;
 }

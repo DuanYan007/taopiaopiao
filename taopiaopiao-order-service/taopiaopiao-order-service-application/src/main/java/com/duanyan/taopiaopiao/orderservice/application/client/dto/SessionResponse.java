@@ -1,23 +1,15 @@
-package com.duanyan.taopiaopiao.seckillservice.application.client.dto;
+package com.duanyan.taopiaopiao.orderservice.application.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 /**
- * 场次DTO
- * <p>
- * 注意：价格信息存储在 seats 表中，不在场次表中
+ * 场次信息响应（order-service内部使用）
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SessionDTO {
+public class SessionResponse {
 
     /**
      * 场次ID
@@ -30,9 +22,9 @@ public class SessionDTO {
     private Long eventId;
 
     /**
-     * 座位模板ID
+     * 场次名称
      */
-    private Long seatTemplateId;
+    private String sessionName;
 
     /**
      * 开始时间
@@ -47,7 +39,7 @@ public class SessionDTO {
     private LocalDateTime endTime;
 
     /**
-     * 场次状态
+     * 座位模板ID
      */
-    private String status;
+    private Long seatTemplateId;
 }

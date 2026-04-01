@@ -9,23 +9,13 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 订单DTO（秒杀服务调用订单服务）
+ * 创建待支付订单请求（秒杀服务调用订单服务）
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDTO {
-
-    /**
-     * 订单ID
-     */
-    private Long id;
-
-    /**
-     * 订单号
-     */
-    private String orderNo;
+public class CreatePendingOrderRequest {
 
     /**
      * 用户ID
@@ -61,14 +51,4 @@ public class OrderDTO {
      * 总金额
      */
     private BigDecimal totalAmount;
-
-    /**
-     * 订单状态
-     */
-    private Integer status;
-
-    /**
-     * 状态描述
-     */
-    private String statusDesc;
 }

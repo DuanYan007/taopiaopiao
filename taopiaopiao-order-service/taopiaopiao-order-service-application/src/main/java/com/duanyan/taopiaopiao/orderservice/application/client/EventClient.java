@@ -1,7 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.application.client;
 
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventDTO;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,5 +13,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface EventClient {
 
     @GetMapping("/{id}")
-    Result<EventDTO> getEventById(@PathVariable("id") Long id);
+    Result<EventResponse> getEventById(@PathVariable("id") Long id);
 }

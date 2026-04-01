@@ -12,10 +12,13 @@ import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitRequest;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitResponse;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionLayoutResponse;
 import com.duanyan.taopiaopiao.seckillservice.application.client.OrderClient;
+import com.duanyan.taopiaopiao.seckillservice.application.client.PaymentClient;
 import com.duanyan.taopiaopiao.seckillservice.application.client.SessionClient;
-import com.duanyan.taopiaopiao.seckillservice.application.client.dto.CreateOrderDTO;
-import com.duanyan.taopiaopiao.seckillservice.application.client.dto.OrderDTO;
-import com.duanyan.taopiaopiao.seckillservice.application.client.dto.SessionDTO;
+import com.duanyan.taopiaopiao.seckillservice.application.client.dto.CreatePendingOrderRequest;
+import com.duanyan.taopiaopiao.seckillservice.application.client.dto.OrderResponse;
+import com.duanyan.taopiaopiao.seckillservice.application.client.dto.PaymentCreateRequest;
+import com.duanyan.taopiaopiao.seckillservice.application.client.dto.PaymentCreateResponse;
+import com.duanyan.taopiaopiao.seckillservice.application.client.dto.SessionResponse;
 import com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper;
 import com.duanyan.taopiaopiao.seckillservice.application.service.SeckillService;
 import com.duanyan.taopiaopiao.seckillservice.domain.entity.SeatLock;
@@ -45,6 +48,7 @@ public class SeckillServiceImpl implements SeckillService {
     private final SeatLockMapper seatLockMapper;
     private final SessionClient sessionClient;
     private final OrderClient orderClient;
+    private final PaymentClient paymentClient;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -63,7 +67,7 @@ public class SeckillServiceImpl implements SeckillService {
         int code = redisService.lockSeats(sessionId, userId, seatIds, expireSeconds);
 
         if (code == 0) {
-            // 先插入 seat_locks 记录，orderNo 暂时为空
+            // 插入 seat_locks 记录，orderNo 暂时为空
             for (String seatId : seatIds) {
                 SeatLock seatLock = SeatLock.builder()
                         .sessionId(sessionId)
@@ -82,13 +86,14 @@ public class SeckillServiceImpl implements SeckillService {
 
             // 调用订单服务创建待支付订单
             String orderNo = null;
+            String payUrl = null;
             try {
                 // 2. 计算总金额（前端价格 × 座位数量）
                 List<BigDecimal> prices = redisService.getSeatsPrice(sessionId, seatIds);
                 BigDecimal totalAmount = prices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                // 3. 获取场次信息（获取 eventId）
-                Result<SessionDTO> sessionResult = sessionClient.getSessionById(sessionId);
+                // 3. 获取场次信息（获取 eventId）之后考虑前端是否能删除
+                Result<SessionResponse> sessionResult = sessionClient.getSessionById(sessionId);
                 if (sessionResult == null || !sessionResult.isSuccess() || sessionResult.getData() == null) {
                     log.error("获取场次信息失败: sessionId={}", sessionId);
                     releaseSeats(sessionId, userId, seatIds);
@@ -98,10 +103,10 @@ public class SeckillServiceImpl implements SeckillService {
                             .message("获取场次信息失败，请重试")
                             .build();
                 }
-                SessionDTO session = sessionResult.getData();
+                SessionResponse session = sessionResult.getData();
 
                 // 6. 创建待支付订单
-                CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
+                CreatePendingOrderRequest orderRequest = CreatePendingOrderRequest.builder()
                         .userId(userId)
                         .sessionId(sessionId)
                         .eventId(session.getEventId())
@@ -111,7 +116,7 @@ public class SeckillServiceImpl implements SeckillService {
                         .totalAmount(totalAmount)
                         .build();
 
-                Result<OrderDTO> orderResult = orderClient.createPendingOrder(createOrderDTO);
+                Result<OrderResponse> orderResult = orderClient.createPendingOrder(orderRequest);
                 if (orderResult != null && orderResult.isSuccess() && orderResult.getData() != null) {
                     orderNo = orderResult.getData().getOrderNo();
                     // 更新 seat_locks 的 orderNo
@@ -120,6 +125,26 @@ public class SeckillServiceImpl implements SeckillService {
                     }
                     log.info("创建待支付订单成功: orderNo={}, userId={}, sessionId={}, amount={}",
                             orderNo, userId, sessionId, totalAmount);
+
+                    // 调用支付系统创建支付订单，获取支付 URL
+                    try {
+                        PaymentCreateRequest paymentRequest = PaymentCreateRequest.builder()
+                                .orderNo(orderNo)
+                                .amount(totalAmount)
+                                .payMethod("MOCK")
+                                .body("演唱会门票")
+                                .build();
+                        Result<PaymentCreateResponse> paymentResult = paymentClient.createPayment(paymentRequest);
+                        if (paymentResult != null && paymentResult.isSuccess() && paymentResult.getData() != null) {
+                            payUrl = paymentResult.getData().getPayUrl();
+                            log.info("创建支付订单成功: orderNo={}, payUrl={}", orderNo, payUrl);
+                        } else {
+                            log.warn("创建支付订单失败: orderNo={}", orderNo);
+                        }
+                    } catch (Exception e) {
+                        log.error("调用支付系统异常: orderNo={}", orderNo, e);
+                    }
+
                 } else {
                     log.error("创建待支付订单失败: sessionId={}, userId={}", sessionId, userId);
                     releaseSeats(sessionId, userId, seatIds);
@@ -147,6 +172,7 @@ public class SeckillServiceImpl implements SeckillService {
                     .lockedSeats(seatIds)
                     .lockId(lockId)
                     .orderNo(orderNo)
+                    .payUrl(payUrl)
                     .build();
         }
 
@@ -172,8 +198,9 @@ public class SeckillServiceImpl implements SeckillService {
     public void releaseSeats(Long sessionId, Long userId, List<String> seatIds) {
         try {
             redisService.unlockSeats(sessionId, userId, seatIds);
+            // 直接删除记录，而不是更新状态
             for (String seatId : seatIds) {
-                seatLockMapper.updateStatus(sessionId, userId, seatId, LockStatus.RELEASED.getCode());
+                seatLockMapper.deleteBySessionUserSeat(sessionId, userId, seatId);
             }
             log.info("释放座位成功: sessionId={}, userId={}, count={}", sessionId, userId, seatIds.size());
         } catch (Exception e) {

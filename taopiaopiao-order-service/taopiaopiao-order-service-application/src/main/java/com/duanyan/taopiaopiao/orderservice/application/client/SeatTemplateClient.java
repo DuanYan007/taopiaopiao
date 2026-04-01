@@ -1,7 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.application.client;
 
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateDTO;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,5 +13,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface SeatTemplateClient {
 
     @GetMapping("/{id}")
-    Result<SeatTemplateDTO> getTemplateById(@PathVariable("id") Long id);
+    Result<SeatTemplateResponse> getTemplateById(@PathVariable("id") Long id);
 }

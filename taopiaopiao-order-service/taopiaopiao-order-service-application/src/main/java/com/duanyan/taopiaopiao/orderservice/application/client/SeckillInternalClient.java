@@ -20,7 +20,7 @@ public interface SeckillInternalClient {
                                       @RequestParam("seatIds") List<String> seatIds);
 
     @PostMapping("/release")
-    Result<Integer> releaseSeats(@RequestParam("sessionId") Long sessionId,
+    Result<String> releaseSeats(@RequestParam("sessionId") Long sessionId,
                                 @RequestParam("userId") Long userId,
                                 @RequestParam("seatIds") List<String> seatIds);
 }

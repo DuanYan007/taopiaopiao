@@ -1,17 +1,26 @@
-package com.duanyan.taopiaopiao.orderservice.application.controller.dto;
+package com.duanyan.taopiaopiao.orderservice.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * 创建待支付订单请求（内部接口，供秒杀服务调用）
+ *
+ * @author duanyan
+ * @since 1.0.0
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "创建待支付订单请求")
 public class CreatePendingOrderRequest {
 

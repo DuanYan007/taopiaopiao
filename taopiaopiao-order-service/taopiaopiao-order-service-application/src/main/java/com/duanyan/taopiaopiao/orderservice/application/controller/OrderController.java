@@ -1,7 +1,6 @@
 package com.duanyan.taopiaopiao.orderservice.application.controller;
 
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.orderservice.api.dto.CreateOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderPageRequest;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderPageResponse;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderResponse;
@@ -9,7 +8,6 @@ import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +29,6 @@ public class OrderController {
     public Result<OrderPageResponse> getOrderPage(@RequestHeader("X-User-Id") Long userId,
                                                     OrderPageRequest request) {
         OrderPageResponse response = orderService.getOrderPage(userId, request);
-        return Result.success(response);
-    }
-
-    @PostMapping
-    @Operation(summary = "支付订单")
-    public Result<OrderResponse> createOrder(@RequestHeader("X-User-Id") Long userId,
-                                              @Valid @RequestBody CreateOrderRequest request) {
-        OrderResponse response = orderService.pay(userId, request);
         return Result.success(response);
     }
 
