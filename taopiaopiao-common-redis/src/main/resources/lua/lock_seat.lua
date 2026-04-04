@@ -13,6 +13,8 @@ if expireSeconds <= 0 then
     expireSeconds = 300
 end
 
+-- 第一阶段：完整校验，确保不会出现部分写入
+
 -- 检查重复购票
 for i = 4, 4 + seatCount - 1 do
     if redis.call("HEXISTS", userLockKey, ARGV[i]) == 1 then
@@ -20,7 +22,6 @@ for i = 4, 4 + seatCount - 1 do
     end
 end
 
--- 执行锁座
 for i = 4, 4 + seatCount - 1 do
     local seatId = ARGV[i]
     local seatKey = "seat:" .. sessionId .. ":" .. seatId
@@ -33,7 +34,12 @@ for i = 4, 4 + seatCount - 1 do
     if current ~= 0 then
         return 2  -- 座位不可用
     end
+end
 
+-- 第二阶段：统一写入，避免前半段成功后中途失败留下脏数据
+for i = 4, 4 + seatCount - 1 do
+    local seatId = ARGV[i]
+    local seatKey = "seat:" .. sessionId .. ":" .. seatId
     redis.call("SET", seatKey, 1, "EX", expireSeconds)
     redis.call("HSET", userLockKey, seatId, "1")
 end
