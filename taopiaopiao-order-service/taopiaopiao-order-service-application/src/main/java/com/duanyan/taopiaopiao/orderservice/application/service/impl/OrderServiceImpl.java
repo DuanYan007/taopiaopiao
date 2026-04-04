@@ -7,7 +7,6 @@ import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.orderservice.api.dto.*;
 import com.duanyan.taopiaopiao.orderservice.application.client.EventClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.SeatTemplateClient;
-import com.duanyan.taopiaopiao.orderservice.application.client.SeckillInternalClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.SessionClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.VenueClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
@@ -44,7 +43,6 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
-    private final SeckillInternalClient seckillInternalClient;
     private final SessionClient sessionClient;
     private final EventClient eventClient;
     private final VenueClient venueClient;
@@ -65,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 发送事务消息（半消息）
         // executeLocalTransaction 会被回调，在那里执行真正的本地事务（创建订单、发送延迟消息）
-        boolean sent = orderTransactionProducer.sendOrderCreatedMessage(orderNo, request);
+        boolean sent = orderTransactionProducer.sendOrderPaidMessage(orderNo, request);
 
         if (!sent) {
             log.error("发送事务消息失败: orderNo={}", orderNo);
@@ -151,7 +149,13 @@ public class OrderServiceImpl implements OrderService {
 
         List<String> seatIds = List.of(order.getSeatIds().split(","));
 
-        // 1. 发送取消消息（异步释放座位）
+        // 1. 先更新订单状态，确保本地状态先进入取消态
+        order.setStatus(OrderStatus.CANCELLED.getCode());
+        order.setCancelTime(LocalDateTime.now());
+        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
+        orderMapper.updateById(order);
+
+        // 2. 再发送取消消息（异步释放座位）
         OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
                 .orderNo(orderNo)
                 .userId(userId)
@@ -160,12 +164,6 @@ public class OrderServiceImpl implements OrderService {
                 .reason("USER")  // 用户主动取消
                 .build();
         orderCancelProducer.sendCancelMessage(cancelMessage);
-
-        // 2. 更新订单状态
-        order.setStatus(OrderStatus.CANCELLED.getCode());
-        order.setCancelTime(LocalDateTime.now());
-        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
-        orderMapper.updateById(order);
 
         log.info("订单取消成功: orderNo={}, userId={}", orderNo, userId);
         return true;

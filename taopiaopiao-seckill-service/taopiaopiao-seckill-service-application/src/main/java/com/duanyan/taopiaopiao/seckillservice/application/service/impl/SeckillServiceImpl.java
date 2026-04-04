@@ -196,16 +196,12 @@ public class SeckillServiceImpl implements SeckillService {
      */
     @Transactional
     public void releaseSeats(Long sessionId, Long userId, List<String> seatIds) {
-        try {
-            redisService.unlockSeats(sessionId, userId, seatIds);
-            // 直接删除记录，而不是更新状态
-            for (String seatId : seatIds) {
-                seatLockMapper.deleteBySessionUserSeat(sessionId, userId, seatId);
-            }
-            log.info("释放座位成功: sessionId={}, userId={}, count={}", sessionId, userId, seatIds.size());
-        } catch (Exception e) {
-            log.error("释放座位异常: sessionId={}, userId={}", sessionId, userId, e);
+        redisService.unlockSeats(sessionId, userId, seatIds);
+        // 直接删除记录，而不是更新状态
+        for (String seatId : seatIds) {
+            seatLockMapper.deleteBySessionUserSeat(sessionId, userId, seatId);
         }
+        log.info("释放座位成功: sessionId={}, userId={}, count={}", sessionId, userId, seatIds.size());
     }
 
     /**

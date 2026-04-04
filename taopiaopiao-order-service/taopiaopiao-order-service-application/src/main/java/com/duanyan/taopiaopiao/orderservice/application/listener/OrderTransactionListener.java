@@ -2,7 +2,7 @@ package com.duanyan.taopiaopiao.orderservice.application.listener;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
-import com.duanyan.taopiaopiao.common.mq.message.OrderCreatedMessage;
+import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.taopiaopiao.orderservice.application.client.PaymentClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentResult;
@@ -18,13 +18,14 @@ import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 
 /**
  * 订单事务消息监听器
  * <p>
- * 处理 ORDER_CREATED 事务消息
+ * 处理 ORDER_PAID 事务消息
  * 阶段1：executeLocalTransaction - 执行本地事务（创建订单、发送延迟消息）
  * 阶段2：checkLocalTransaction - 回查本地事务状态
  *
@@ -47,7 +48,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
      * 发送半消息成功后，RocketMQ 回调此方法执行真正的本地事务
      *
      * @param msg 消息
-     * @param arg 参数（OrderCreatedMessage）
+     * @param arg 参数（OrderPaidMessage）
      * @return 事务状态
      */
     @Override
@@ -59,12 +60,12 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
 
         try {
             // 从 arg 中获取创建订单的参数
-            if (!(arg instanceof OrderCreatedMessage)) {
+            if (!(arg instanceof OrderPaidMessage)) {
                 log.error("参数类型错误: {}", arg.getClass());
                 return RocketMQLocalTransactionState.ROLLBACK;
             }
 
-            OrderCreatedMessage message = (OrderCreatedMessage) arg;
+            OrderPaidMessage message = (OrderPaidMessage) arg;
 
             // 创建订单
             Order order = Order.builder()
@@ -102,6 +103,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             return RocketMQLocalTransactionState.UNKNOWN;
 
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             log.error("执行本地事务异常: orderNo={}", orderNo, e);
             return RocketMQLocalTransactionState.ROLLBACK;
         }
@@ -122,8 +124,8 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
         Object payload = msg.getPayload();
         String orderNo = null;
 
-        if (payload instanceof OrderCreatedMessage) {
-            orderNo = ((OrderCreatedMessage) payload).getOrderNo();
+        if (payload instanceof OrderPaidMessage) {
+            orderNo = ((OrderPaidMessage) payload).getOrderNo();
         } else {
             // 兼容：从 header 获取
             orderNo = (String) msg.getHeaders().get("RocketMQMessageKeys");
@@ -132,29 +134,63 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
         log.info("回查本地事务: orderNo={}", orderNo);
 
         try {
-            // 查询支付系统获取真实支付状态
+            Order order = orderMapper.selectOne(
+                    new LambdaQueryWrapper<Order>()
+                            .eq(Order::getOrderNo, orderNo)
+            );
+            if (order == null) {
+                log.warn("回查本地事务时订单不存在，回滚消息: orderNo={}", orderNo);
+                return RocketMQLocalTransactionState.ROLLBACK;
+            }
+
+            if (OrderStatus.PAID.getCode().equals(order.getStatus())) {
+                log.info("回查命中已支付订单，提交事务消息: orderNo={}", orderNo);
+                return RocketMQLocalTransactionState.COMMIT;
+            }
+
+            if (OrderStatus.CANCELLED.getCode().equals(order.getStatus())
+                    || OrderStatus.TIMEOUT.getCode().equals(order.getStatus())
+                    || OrderStatus.REFUNDED.getCode().equals(order.getStatus())) {
+                log.warn("回查命中终态订单，回滚事务消息: orderNo={}, status={}",
+                        orderNo, order.getStatus());
+                return RocketMQLocalTransactionState.ROLLBACK;
+            }
+
+            if (!OrderStatus.UNPAID.getCode().equals(order.getStatus())) {
+                log.warn("回查命中未知订单状态，继续回查: orderNo={}, status={}",
+                        orderNo, order.getStatus());
+                return RocketMQLocalTransactionState.UNKNOWN;
+            }
+
+            // 本地订单仍为待支付，再查询支付系统获取真实支付状态
             PaymentResult<PaymentQueryResponse> result = paymentClient.queryPayment(orderNo);
 
             if (result == null || !result.isSuccess() || result.getData() == null) {
-                log.warn("查询支付系统失败，稍后重试: orderNo={}", orderNo);
+                log.warn("查询支付系统失败，继续回查: orderNo={}, orderStatus={}",
+                        orderNo, order.getStatus());
                 return RocketMQLocalTransactionState.UNKNOWN;
             }
 
             PaymentQueryResponse payment = result.getData();
+            log.info("回查支付状态: orderNo={}, orderStatus={}, paymentStatus={}",
+                    orderNo, order.getStatus(), payment.getStatus());
 
             // 根据支付状态决定事务消息的提交/回滚
             if (payment.isSuccess()) {
                 log.info("订单已支付，提交事务消息: orderNo={}", orderNo);
                 return RocketMQLocalTransactionState.COMMIT;
             } else if (payment.isNotFound()) {
-                log.warn("支付记录不存在，回滚事务消息: orderNo={}", orderNo);
-                return RocketMQLocalTransactionState.ROLLBACK;
+                log.info("支付记录暂不存在，继续回查: orderNo={}", orderNo);
+                return RocketMQLocalTransactionState.UNKNOWN;
             } else if (payment.isPending()) {
                 log.info("订单仍待支付，稍后重试: orderNo={}", orderNo);
                 return RocketMQLocalTransactionState.UNKNOWN;
-            } else {
+            } else if ("FAILED".equals(payment.getStatus()) || "CANCELLED".equals(payment.getStatus())) {
                 log.warn("支付失败或已取消，回滚事务消息: orderNo={}, status={}", orderNo, payment.getStatus());
                 return RocketMQLocalTransactionState.ROLLBACK;
+            } else {
+                log.warn("支付状态未知，继续回查: orderNo={}, status={}", orderNo, payment.getStatus());
+                return RocketMQLocalTransactionState.UNKNOWN;
             }
 
         } catch (Exception e) {

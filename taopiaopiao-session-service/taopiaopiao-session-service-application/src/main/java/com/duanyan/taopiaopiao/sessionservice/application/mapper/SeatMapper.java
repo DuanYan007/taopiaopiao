@@ -22,6 +22,6 @@ public interface SeatMapper extends BaseMapper<Seat> {
      * @return 更新数量
      */
     int markSeatsSold(@Param("sessionId") Long sessionId,
-                       @Param("seatIds") List<String> seatIds,
+                       @Param("seatIds") List<Long> seatIds,
                        @Param("orderNo") String orderNo);
 }

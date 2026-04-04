@@ -43,7 +43,7 @@
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                   │
 │  ┌──────────────────┐  ┌──────────────────┐                     │
-│  │ TransactionListener│ │OrderCreatedConsumer│                  │
+│  │ TransactionListener│ │OrderPaidConsumer │                  │
 │  │  - 主动查询支付系统│ │  - 主动查询支付系统│                  │
 │  │  - 提交/回滚消息  │ │  - 更新订单状态  │                     │
 │  └──────────────────┘  └──────────────────┘                     │
@@ -54,7 +54,7 @@
 
 | Topic | Tag | 类型 | 发送者 | 消费者 | 作用 |
 |-------|-----|------|--------|--------|------|
-| TPP_ORDER_TOPIC | ORDER_CREATED | 事务消息 | 订单服务 | 订单服务、场次服务、秒杀服务 | 支付成功后更新订单、座位状态 |
+| TPP_ORDER_TOPIC | ORDER_PAID | 事务消息 | 订单服务 | 订单服务、场次服务、秒杀服务 | 支付成功后更新订单、座位状态 |
 | TPP_ORDER_TOPIC | CANCEL | 延迟消息 | 订单服务 | 订单服务、秒杀服务 | 15 分钟后超时取消订单 |
 
 ## 流程设计
@@ -126,7 +126,7 @@
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  OrderCreatedConsumer 处理                                       │
+│  OrderPaidConsumer 处理                                          │
 │  ├─ 主动查询支付系统状态                                          │
 │  ├─ 如果已支付：                                                 │
 │  │   ├─ Redis 确认购买（状态 1→2）                                │
@@ -279,12 +279,12 @@ GET http://localhost:7500/payment/simulate/success?orderNo=ORDER001
 ### 2. 订单服务
 - ✅ `OrderTransactionListener` - 回查时主动查询支付系统
 - ✅ `OrderTransactionProducer` - 发送事务消息
-- ✅ `OrderCreatedConsumer` - 处理支付成功后更新订单状态
+- ✅ `OrderPaidConsumer` - 处理支付成功后更新订单状态
 - ✅ `PaymentClient` - 支付系统 Feign 客户端
 - ✅ 幂等性处理：检查订单状态避免重复处理
 
 ### 3. 场次服务
-- ✅ `OrderCreatedConsumer` - 处理支付成功后更新数据库座位状态
+- ✅ `OrderPaidConsumer` - 处理支付成功后更新数据库座位状态
 - ✅ `PaymentClient` - 支付系统 Feign 客户端
 - ✅ 幂等性处理：检查座位状态避免重复更新
 
@@ -297,7 +297,7 @@ GET http://localhost:7500/payment/simulate/success?orderNo=ORDER001
 
 ## 幂等性处理
 
-### 订单服务 OrderCreatedConsumer
+### 订单服务 OrderPaidConsumer
 ```java
 // 检查订单是否已是支付状态
 if (OrderStatus.PAID.getCode().equals(order.getStatus())) {
@@ -306,7 +306,7 @@ if (OrderStatus.PAID.getCode().equals(order.getStatus())) {
 }
 ```
 
-### 场次服务 OrderCreatedConsumer
+### 场次服务 OrderPaidConsumer
 ```java
 // 检查座位是否已售出
 Seat existingSeat = seatMapper.selectOne(...);

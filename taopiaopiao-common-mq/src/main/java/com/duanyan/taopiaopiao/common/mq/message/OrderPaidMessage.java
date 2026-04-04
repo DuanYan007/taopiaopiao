@@ -10,10 +10,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 订单创建消息（事务消息）
+ * 订单支付成功消息（事务消息）
  * <p>
- * 用于在订单创建后通知下游服务
- * 支付成功后，消费者处理订单状态更新、座位状态更新等
+ * 只在支付确认成功后提交给下游服务。
  *
  * @author duanyan
  * @since 1.0.0
@@ -22,7 +21,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCreatedMessage {
+public class OrderPaidMessage {
 
     /**
      * 订单号

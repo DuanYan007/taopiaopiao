@@ -150,8 +150,12 @@ public class ClientSessionServiceImpl implements ClientSessionService {
     public Integer markSeatsSold(Long sessionId, java.util.List<String> seatIds, String orderNo) {
         log.info("标记座位已售出, sessionId: {}, seatIds: {}, orderNo: {}", sessionId, seatIds, orderNo);
 
+        java.util.List<Long> seatIdList = seatIds.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+
         // 调用 Mapper 更新座位状态
-        int updated = seatMapper.markSeatsSold(sessionId, seatIds, orderNo);
+        int updated = seatMapper.markSeatsSold(sessionId, seatIdList, orderNo);
         log.info("成功更新{}条座位记录为已售出", updated);
 
         return updated;

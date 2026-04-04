@@ -28,7 +28,7 @@ public class MqTopic {
      * Tag
      */
     public static final String TAG_CANCEL_ORDER = "CANCEL_ORDER";
-    public static final String TAG_ORDER_CREATED = "ORDER_CREATED";
+    public static final String TAG_ORDER_PAID = "ORDER_PAID";
 
     private MqTopic() {
     }

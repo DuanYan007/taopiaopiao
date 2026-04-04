@@ -8,7 +8,7 @@
             order_no = #{orderNo},
             updated_at = NOW()
         WHERE session_id = #{sessionId}
-          AND seat_number IN
+          AND id IN
         <foreach collection="seatIds" item="seatId" separator="," open="(" close=")">
             #{seatId}
         </foreach>

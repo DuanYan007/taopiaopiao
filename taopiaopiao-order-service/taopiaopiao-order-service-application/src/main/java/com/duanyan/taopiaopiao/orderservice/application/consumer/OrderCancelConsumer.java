@@ -3,6 +3,9 @@ package com.duanyan.taopiaopiao.orderservice.application.consumer;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
+import com.duanyan.taopiaopiao.orderservice.application.client.PaymentClient;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentResult;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
@@ -40,6 +43,7 @@ import java.time.LocalDateTime;
 public class OrderCancelConsumer implements org.apache.rocketmq.spring.core.RocketMQListener<OrderCancelMessage> {
 
     private final OrderMapper orderMapper;
+    private final PaymentClient paymentClient;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -69,6 +73,21 @@ public class OrderCancelConsumer implements org.apache.rocketmq.spring.core.Rock
                 log.info("订单已取消，跳过处理: orderNo={}, status={}",
                         message.getOrderNo(), order.getStatus());
                 return;
+            }
+
+            // TIMEOUT 需要再次确认支付状态，避免临界支付被误取消
+            if ("TIMEOUT".equals(message.getReason())) {
+                PaymentResult<PaymentQueryResponse> result = paymentClient.queryPayment(message.getOrderNo());
+                if (result == null || !result.isSuccess() || result.getData() == null) {
+                    log.warn("超时取消前查询支付状态失败，稍后重试: orderNo={}", message.getOrderNo());
+                    throw new RuntimeException("查询支付状态失败");
+                }
+
+                PaymentQueryResponse payment = result.getData();
+                if (payment.isSuccess()) {
+                    log.info("订单已支付，跳过超时取消: orderNo={}", message.getOrderNo());
+                    return;
+                }
             }
 
             // 3. 更新订单状态

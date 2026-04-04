@@ -1,7 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.application.producer;
 
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
-import com.duanyan.taopiaopiao.common.mq.message.OrderCreatedMessage;
+import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.taopiaopiao.orderservice.api.dto.CreatePendingOrderRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 /**
  * 订单事务消息生产者
  * <p>
- * 发送 ORDER_CREATED 事务消息（半消息）
+ * 发送 ORDER_PAID 事务消息（半消息）
  *
  * @author duanyan
  * @since 1.0.0
@@ -28,7 +28,7 @@ public class OrderTransactionProducer {
     private final RocketMQTemplate rocketMQTemplate;
 
     /**
-     * 发送订单创建事务消息
+     * 发送订单支付成功事件事务消息
      * <p>
      * 流程：
      * 1. 发送半消息到 RocketMQ
@@ -41,12 +41,12 @@ public class OrderTransactionProducer {
      * @param request 创建订单请求参数
      * @return 是否发送成功
      */
-    public boolean sendOrderCreatedMessage(String orderNo, CreatePendingOrderRequest request) {
-        String destination = MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_ORDER_CREATED;
+    public boolean sendOrderPaidMessage(String orderNo, CreatePendingOrderRequest request) {
+        String destination = MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_ORDER_PAID;
 
         try {
-            // 构建订单创建消息（消费者期望的格式）
-            OrderCreatedMessage message = OrderCreatedMessage.builder()
+            // 构建支付成功事件消息，由事务监听器决定是否最终提交
+            OrderPaidMessage message = OrderPaidMessage.builder()
                     .orderNo(orderNo)
                     .userId(request.getUserId())
                     .sessionId(request.getSessionId())
@@ -60,7 +60,7 @@ public class OrderTransactionProducer {
                     .build();
 
             // 构建 Spring Message，使用 orderNo 作为 key
-            Message<OrderCreatedMessage> msg = MessageBuilder.withPayload(message)
+            Message<OrderPaidMessage> msg = MessageBuilder.withPayload(message)
                     .setHeader("RocketMQMessageKeys", orderNo)
                     .build();
 
@@ -68,11 +68,11 @@ public class OrderTransactionProducer {
             // message 作为 arg 参数传递给 executeLocalTransaction
             rocketMQTemplate.sendMessageInTransaction(destination, msg, message);
 
-            log.info("发送订单创建事务消息成功: orderNo={}", orderNo);
+            log.info("发送订单支付成功事务消息成功: orderNo={}", orderNo);
             return true;
 
         } catch (Exception e) {
-            log.error("发送订单创建事务消息失败: orderNo={}", orderNo, e);
+            log.error("发送订单支付成功事务消息失败: orderNo={}", orderNo, e);
             return false;
         }
     }
