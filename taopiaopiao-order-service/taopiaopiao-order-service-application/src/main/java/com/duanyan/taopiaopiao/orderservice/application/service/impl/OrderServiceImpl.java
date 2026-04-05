@@ -54,23 +54,23 @@ public class OrderServiceImpl implements OrderService {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public OrderResponse createPendingOrder(CreatePendingOrderRequest request) {
+    public OrderResponse createPendingOrder(CreatePendingOrderRequest request, String requestId) {
         // 使用雪花算法生成订单号
         String orderNo = String.valueOf(orderIdGenerator.nextId());
 
-        log.info("开始创建待支付订单: orderNo={}, userId={}, sessionId={}",
-                orderNo, request.getUserId(), request.getSessionId());
+        log.info("开始创建待支付订单: requestId={}, orderNo={}, userId={}, sessionId={}",
+                requestId, orderNo, request.getUserId(), request.getSessionId());
 
         // 发送事务消息（半消息）
         // executeLocalTransaction 会被回调，在那里执行真正的本地事务（创建订单、发送延迟消息）
         boolean sent = orderTransactionProducer.sendOrderPaidMessage(orderNo, request);
 
         if (!sent) {
-            log.error("发送事务消息失败: orderNo={}", orderNo);
+            log.error("发送事务消息失败: requestId={}, orderNo={}", requestId, orderNo);
             throw new RuntimeException("创建订单失败，请重试");
         }
 
-        log.info("事务消息发送成功: orderNo={}", orderNo);
+        log.info("事务消息发送成功: requestId={}, orderNo={}", requestId, orderNo);
 
         // 返回订单信息（此时订单可能还未创建，但订单号已生成）
         return OrderResponse.builder()

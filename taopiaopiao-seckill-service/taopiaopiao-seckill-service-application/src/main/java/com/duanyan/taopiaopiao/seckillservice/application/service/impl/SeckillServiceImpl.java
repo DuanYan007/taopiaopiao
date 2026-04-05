@@ -53,15 +53,17 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Override
     @Transactional
-    public LockSeatResponse lockSeats(LockSeatRequest request) {
+    public LockSeatResponse lockSeats(LockSeatRequest request, Long userId, String requestId) {
         Long sessionId = request.getSessionId();
-        Long userId = request.getUserId();
         List<String> seatIds = request.getSeatIds();
         BigDecimal frontendUnitPrice = request.getUnitPrice();  // 前端传入的单价
         Integer expireSeconds = request.getExpireSeconds() != null ? request.getExpireSeconds() : 300;
 
         String lockId = UUID.randomUUID().toString().replace("-", "");
         long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
+
+        log.info("开始锁座: requestId={}, sessionId={}, userId={}, seatIds={}",
+                requestId, sessionId, userId, seatIds);
 
         // 1. 锁定座位（Redis）
         int code = redisService.lockSeats(sessionId, userId, seatIds, expireSeconds);
@@ -82,7 +84,8 @@ public class SeckillServiceImpl implements SeckillService {
                         .build();
                 seatLockMapper.insert(seatLock);
             }
-            log.info("锁座成功: sessionId={}, userId={}, lockId={}", sessionId, userId, lockId);
+            log.info("锁座成功: requestId={}, sessionId={}, userId={}, lockId={}",
+                    requestId, sessionId, userId, lockId);
 
             // 调用订单服务创建待支付订单
             String orderNo = null;
@@ -95,7 +98,7 @@ public class SeckillServiceImpl implements SeckillService {
                 // 3. 获取场次信息（获取 eventId）之后考虑前端是否能删除
                 Result<SessionResponse> sessionResult = sessionClient.getSessionById(sessionId);
                 if (sessionResult == null || !sessionResult.isSuccess() || sessionResult.getData() == null) {
-                    log.error("获取场次信息失败: sessionId={}", sessionId);
+                    log.error("获取场次信息失败: requestId={}, sessionId={}", requestId, sessionId);
                     releaseSeats(sessionId, userId, seatIds);
                     return LockSeatResponse.builder()
                             .success(false)
@@ -116,15 +119,15 @@ public class SeckillServiceImpl implements SeckillService {
                         .totalAmount(totalAmount)
                         .build();
 
-                Result<OrderResponse> orderResult = orderClient.createPendingOrder(orderRequest);
+                Result<OrderResponse> orderResult = orderClient.createPendingOrder(requestId, orderRequest);
                 if (orderResult != null && orderResult.isSuccess() && orderResult.getData() != null) {
                     orderNo = orderResult.getData().getOrderNo();
                     // 更新 seat_locks 的 orderNo
                     for (String seatId : seatIds) {
                         seatLockMapper.updateOrderNo(sessionId, userId, seatId, orderNo);
                     }
-                    log.info("创建待支付订单成功: orderNo={}, userId={}, sessionId={}, amount={}",
-                            orderNo, userId, sessionId, totalAmount);
+                    log.info("创建待支付订单成功: requestId={}, orderNo={}, userId={}, sessionId={}, amount={}",
+                            requestId, orderNo, userId, sessionId, totalAmount);
 
                     // 调用支付系统创建支付订单，获取支付 URL
                     try {
@@ -137,16 +140,18 @@ public class SeckillServiceImpl implements SeckillService {
                         Result<PaymentCreateResponse> paymentResult = paymentClient.createPayment(paymentRequest);
                         if (paymentResult != null && paymentResult.isSuccess() && paymentResult.getData() != null) {
                             payUrl = paymentResult.getData().getPayUrl();
-                            log.info("创建支付订单成功: orderNo={}, payUrl={}", orderNo, payUrl);
+                            log.info("创建支付订单成功: requestId={}, orderNo={}, payUrl={}",
+                                    requestId, orderNo, payUrl);
                         } else {
-                            log.warn("创建支付订单失败: orderNo={}", orderNo);
+                            log.warn("创建支付订单失败: requestId={}, orderNo={}", requestId, orderNo);
                         }
                     } catch (Exception e) {
-                        log.error("调用支付系统异常: orderNo={}", orderNo, e);
+                        log.error("调用支付系统异常: requestId={}, orderNo={}", requestId, orderNo, e);
                     }
 
                 } else {
-                    log.error("创建待支付订单失败: sessionId={}, userId={}", sessionId, userId);
+                    log.error("创建待支付订单失败: requestId={}, sessionId={}, userId={}",
+                            requestId, sessionId, userId);
                     releaseSeats(sessionId, userId, seatIds);
                     return LockSeatResponse.builder()
                             .success(false)
@@ -156,7 +161,7 @@ public class SeckillServiceImpl implements SeckillService {
                 }
 
             } catch (Exception e) {
-                log.error("系统异常: sessionId={}, userId={}", sessionId, userId, e);
+                log.error("系统异常: requestId={}, sessionId={}, userId={}", requestId, sessionId, userId, e);
                 releaseSeats(sessionId, userId, seatIds);
                 return LockSeatResponse.builder()
                         .success(false)
@@ -183,7 +188,7 @@ public class SeckillServiceImpl implements SeckillService {
             default -> "系统错误";
         };
 
-        log.warn("锁座失败: code={}, message={}", code, message);
+        log.warn("锁座失败: requestId={}, code={}, message={}", requestId, code, message);
         return LockSeatResponse.builder()
                 .success(false)
                 .code(code)

@@ -1,6 +1,7 @@
 package com.duanyan.taopiaopiao.seckillservice.application.controller;
 
 import com.duanyan.taopiaopiao.common.response.Result;
+import com.duanyan.taopiaopiao.common.exception.BusinessException;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.LockSeatRequest;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.LockSeatResponse;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitRequest;
@@ -13,7 +14,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 /**
  * 选座控制器（对外接口）
@@ -29,8 +33,18 @@ public class SeckillController {
 
     @PostMapping("/lock")
     @Operation(summary = "锁定座位")
-    public Result<LockSeatResponse> lockSeats(@Valid @RequestBody LockSeatRequest request) {
-        LockSeatResponse response = seckillService.lockSeats(request);
+    public Result<LockSeatResponse> lockSeats(@RequestHeader("X-User-Id") Long userId,
+                                              @RequestHeader(value = "X-Request-Id", required = false) String requestId,
+                                              @Valid @RequestBody LockSeatRequest request) {
+        if (userId == null) {
+            throw new BusinessException(400, "请求头 X-User-Id 不能为空");
+        }
+
+        String finalRequestId = StringUtils.hasText(requestId)
+                ? requestId
+                : "srv-" + UUID.randomUUID().toString().replace("-", "");
+
+        LockSeatResponse response = seckillService.lockSeats(request, userId, finalRequestId);
         return response.getSuccess() ? Result.success(response) : Result.fail(response.getCode(), response.getMessage());
     }
 

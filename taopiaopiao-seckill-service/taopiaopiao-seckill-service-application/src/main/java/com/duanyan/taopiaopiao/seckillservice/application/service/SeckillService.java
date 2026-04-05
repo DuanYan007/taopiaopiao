@@ -11,7 +11,7 @@ public interface SeckillService {
     /**
      * 锁定座位
      */
-    LockSeatResponse lockSeats(LockSeatRequest request);
+    LockSeatResponse lockSeats(LockSeatRequest request, Long userId, String requestId);
 
     /**
      * 获取场次座位布局（含状态）

@@ -6,6 +6,7 @@ import com.duanyan.taopiaopiao.seckillservice.application.client.dto.OrderRespon
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * 订单服务客户端
@@ -17,5 +18,6 @@ public interface OrderClient {
      * 创建待支付订单（内部接口，供秒杀服务调用）
      */
     @PostMapping("/create-pending")
-    Result<OrderResponse> createPendingOrder(@RequestBody CreatePendingOrderRequest request);
+    Result<OrderResponse> createPendingOrder(@RequestHeader("X-Request-Id") String requestId,
+                                             @RequestBody CreatePendingOrderRequest request);
 }

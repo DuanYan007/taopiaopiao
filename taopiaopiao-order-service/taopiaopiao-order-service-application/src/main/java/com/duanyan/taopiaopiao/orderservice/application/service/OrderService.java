@@ -13,7 +13,7 @@ public interface OrderService {
     /**
      * 创建待支付订单（内部接口，供秒杀服务调用）
      */
-    OrderResponse createPendingOrder(CreatePendingOrderRequest request);
+    OrderResponse createPendingOrder(CreatePendingOrderRequest request, String requestId);
 
     /**
      * 订单分页查询

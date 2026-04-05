@@ -25,8 +25,9 @@ public class InternalOrderController {
 
     @PostMapping("/create-pending")
     @Operation(summary = "创建待支付订单（内部接口）")
-    public Result<OrderResponse> createPendingOrder(@Valid @RequestBody CreatePendingOrderRequest request) {
-        OrderResponse response = orderService.createPendingOrder(request);
+    public Result<OrderResponse> createPendingOrder(@RequestHeader(value = "X-Request-Id", required = false) String requestId,
+                                                    @Valid @RequestBody CreatePendingOrderRequest request) {
+        OrderResponse response = orderService.createPendingOrder(request, requestId);
         return Result.success(response);
     }
 }

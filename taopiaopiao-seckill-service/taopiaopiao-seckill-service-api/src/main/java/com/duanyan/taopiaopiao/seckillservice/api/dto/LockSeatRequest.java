@@ -19,8 +19,7 @@ public class LockSeatRequest {
     @NotNull(message = "场次ID不能为空")
     private Long sessionId;
 
-    @Schema(description = "用户ID", required = true)
-    @NotNull(message = "用户ID不能为空")
+    @Schema(description = "用户ID（兼容旧请求体字段，实际以请求头 X-User-Id 为准）")
     private Long userId;
 
     @Schema(description = "座位号列表（seats表的seat_number字段）", required = true)
