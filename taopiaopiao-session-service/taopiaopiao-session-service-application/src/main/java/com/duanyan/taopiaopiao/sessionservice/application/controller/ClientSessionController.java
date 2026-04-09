@@ -2,7 +2,6 @@ package com.duanyan.taopiaopiao.sessionservice.application.controller;
 
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionPageResponse;
-import com.duanyan.taopiaopiao.sessionservice.application.client.dto.MarkSeatsSoldRequest;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionQueryRequest;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionResponse;
 import com.duanyan.taopiaopiao.sessionservice.api.dto.SessionSeatsResponse;
@@ -10,7 +9,6 @@ import com.duanyan.taopiaopiao.sessionservice.application.service.ClientSessionS
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -65,25 +63,10 @@ public class ClientSessionController {
     }
 
     /**
-     * 标记座位已售出（内部接口，供订单服务调用）
-     */
-    @PostMapping("/seats/mark-sold")
-    @Operation(summary = "标记座位已售出（内部接口）")
-    public Result<Integer> markSeatsSold(@Valid @RequestBody MarkSeatsSoldRequest request) {
-        log.info("收到标记座位已售出请求: {}", request);
-        Integer updated = clientSessionService.markSeatsSold(
-                request.getSessionId(),
-                request.getSeatIds(),
-                request.getOrderNo()
-        );
-        return Result.success(updated);
-    }
-
-    /**
-     * 查询单个座位价格（内部接口，供秒杀服务调用）
+     * 查询单个座位价格，当前用于秒杀服务价格校验。
      */
     @GetMapping("/{sessionId}/seats/{seatNumber}/price")
-    @Operation(summary = "查询单个座位价格（内部接口）")
+    @Operation(summary = "查询单个座位价格")
     public Result<java.math.BigDecimal> getSeatPrice(
             @Parameter(description = "场次ID", required = true)
             @PathVariable Long sessionId,

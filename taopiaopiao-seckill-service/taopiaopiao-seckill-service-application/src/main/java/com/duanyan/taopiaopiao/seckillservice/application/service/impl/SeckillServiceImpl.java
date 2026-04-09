@@ -219,20 +219,6 @@ public class SeckillServiceImpl implements SeckillService {
                 sessionId, userId, lockId, releaseStatus, seatIds.size());
     }
 
-    /**
-     * 内部方法：标记座位已支付（供订单服务调用）
-     */
-    @Transactional
-    public Integer markSeatLocksPaid(String orderNo, Long sessionId, Long userId, String lockId, List<String> seatIds) {
-        int count = 0;
-        for (String seatId : seatIds) {
-            int updated = seatLockMapper.markAsPaid(sessionId, userId, seatId, lockId, orderNo);
-            count += updated;
-        }
-        log.info("标记座位锁定已支付: orderNo={}, count={}", orderNo, count);
-        return count;
-    }
-
     @Override
     public SessionLayoutResponse getLayout(Long sessionId) {
         log.info("获取场次座位布局: sessionId={}", sessionId);

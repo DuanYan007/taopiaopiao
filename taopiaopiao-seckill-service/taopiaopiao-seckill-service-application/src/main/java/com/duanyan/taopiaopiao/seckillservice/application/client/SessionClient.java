@@ -19,7 +19,7 @@ public interface SessionClient {
     Result<SessionResponse> getSessionById(@PathVariable("id") Long id);
 
     /**
-     * 查询单个座位价格（内部接口，用于价格校验）
+     * 查询单个座位价格，用于锁座前的价格校验。
      *
      * @param sessionId 场次ID
      * @param seatNumber 座位号

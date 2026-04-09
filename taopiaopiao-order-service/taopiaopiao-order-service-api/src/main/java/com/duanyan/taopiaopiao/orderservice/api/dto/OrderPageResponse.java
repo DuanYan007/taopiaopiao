@@ -43,7 +43,7 @@ public class OrderPageResponse {
         @Schema(description = "订单号")
         private String orderNo;
 
-        @Schema(description = "订单状态: 0-待支付, 1-已支付, 2-已取消, 3-已退款, 4-超时取消")
+        @Schema(description = "订单状态: 1-未支付, 2-已支付, 3-已取消, 4-已退款, 5-超时取消")
         private Integer status;
 
         @Schema(description = "状态描述")

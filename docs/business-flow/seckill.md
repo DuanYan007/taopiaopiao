@@ -16,26 +16,23 @@ Key code:
 - `taopiaopiao-common-redis/src/main/resources/lua/lock_seat.lua`
 
 ## Pay Flow
-1. `order-service` creates a transaction message and local unpaid order.
-2. Broker commits the `ORDER_PAID` message only after transaction check confirms payment success.
-3. `order-service` consumer updates the order to `PAID`.
-4. `seckill-service` consumer confirms Redis seats as sold and marks `seat_locks` as paid.
+1. `order-service` sends a transactional half message and creates a local unpaid order.
+2. Before timeout, Broker transaction checks keep querying payment state and commit `ORDER_PAID` only when payment is confirmed.
+3. At the timeout point, `order-service` handles a delayed timeout-check message and does the final paid-vs-timeout adjudication.
+4. `order-service` consumer updates the order to `PAID` after `ORDER_PAID`.
+5. `seckill-service` consumer confirms Redis seats as sold and marks `seat_locks` as paid.
 
 Key code:
 - `taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/listener/OrderTransactionListener.java`
+- `taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/consumer/OrderTimeoutCheckConsumer.java`
 - `taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/consumer/OrderPaidConsumer.java`
 - `taopiaopiao-seckill-service/taopiaopiao-seckill-service-application/src/main/java/com/duanyan/taopiaopiao/seckillservice/application/consumer/OrderPaidConsumer.java`
 
 ## Cancel Flow
-1. Delay message or user action emits `OrderCancelMessage`.
+1. User action or `order-service` timeout-check emits `OrderCancelMessage`.
 2. `order-service` updates order status to `TIMEOUT` or `CANCELLED`.
 3. `seckill-service` releases Redis seats and clears `seat_locks`.
 
 Key code:
-- `taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/consumer/OrderCancelConsumer.java`
+- `taopiaopiao-order-service/taopiaopiao-order-service-application/src/main/java/com/duanyan/taopiaopiao/orderservice/application/consumer/OrderTimeoutCheckConsumer.java`
 - `taopiaopiao-seckill-service/taopiaopiao-seckill-service-application/src/main/java/com/duanyan/taopiaopiao/seckillservice/application/consumer/OrderCancelConsumer.java`
-
-## Current Review Focus
-- Eventual consistency is intentional.
-- MQ consumers must be idempotent.
-- Payment, paid-event, and cancel-event semantics must stay aligned.

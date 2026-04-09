@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface OrderClient {
 
     /**
-     * 创建待支付订单（内部接口，供秒杀服务调用）
+     * 调用订单服务创建待支付订单。
      */
     @PostMapping("/create-pending")
     Result<OrderResponse> createPendingOrder(@RequestHeader("X-Request-Id") String requestId,

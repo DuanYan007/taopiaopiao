@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 /**
  * 订单取消消息消费者
  * <p>
- * 处理超时取消和用户主动取消的订单
- * 负责释放 Redis 座位和更新 seat_locks 状态
+ * 消费最终确认后的取消事件，负责释放 Redis 座位并更新 `seat_locks` 状态。
  *
  * @author duanyan
  * @since 1.0.0

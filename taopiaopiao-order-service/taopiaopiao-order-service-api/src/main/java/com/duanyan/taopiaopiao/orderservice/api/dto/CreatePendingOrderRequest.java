@@ -12,10 +12,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 创建待支付订单请求（内部接口，供秒杀服务调用）
- *
- * @author duanyan
- * @since 1.0.0
+ * 创建待支付订单请求。
+ * <p>
+ * 用于秒杀服务发起内部下单。
  */
 @Data
 @Builder

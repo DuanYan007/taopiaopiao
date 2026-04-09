@@ -37,17 +37,7 @@ public interface ClientSessionService {
     com.duanyan.taopiaopiao.sessionservice.api.dto.SessionSeatsResponse getSessionSeats(Long sessionId);
 
     /**
-     * 标记座位已售出（内部接口，供订单服务调用）
-     *
-     * @param sessionId 场次ID
-     * @param seatIds 座位ID列表
-     * @param orderNo 订单号
-     * @return 更新数量
-     */
-    Integer markSeatsSold(Long sessionId, java.util.List<String> seatIds, String orderNo);
-
-    /**
-     * 查询单个座位价格（内部接口，供秒杀服务调用）
+     * 查询单个座位价格，当前用于秒杀服务价格校验。
      *
      * @param sessionId 场次ID
      * @param seatNumber 座位号

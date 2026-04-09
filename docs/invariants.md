@@ -22,8 +22,3 @@
 - Confirm which state transitions are allowed.
 - Confirm retry behavior and idempotency point.
 - Confirm failure recovery path, not just happy path.
-
-## Known Follow-up
-- Payment-success handling still needs a follow-up for the case where payment confirmation arrives after the seat lock TTL has expired.
-- In that scenario, if another user has already re-locked and purchased the same seat, the old paid event must not be treated as a harmless idempotent success.
-- The required follow-up is: detect lock-owner mismatch or missing lock during paid-event processing, move the old order into an explicit compensation path such as refund-pending, and add a compensating job or workflow to close the loop.

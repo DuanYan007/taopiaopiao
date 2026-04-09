@@ -24,6 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 支付超时点最终裁决消费者。
+ * <p>
+ * 消费内部 `TIMEOUT_CHECK` 消息，在超时点统一决定订单进入 `PAID` 还是 `TIMEOUT`。
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

@@ -1,6 +1,6 @@
 # TaoPiaoPiao Backend
 
-一个以“演出场次抢票与选座”为核心场景的微服务后端练手项目，目标是模拟高并发下的锁座、下单、支付、取消与最终一致性处理流程，并兼顾本地真实压测与面试讲述能力。
+一个以“演出场次抢票与选座”为核心场景的微服务后端项目，覆盖高并发下的锁座、下单、支付、取消与最终一致性处理流程。
 
 ## 项目定位
 
@@ -14,7 +14,7 @@
 - OpenResty 前置流量控制与削峰
 - 最终一致性而非跨服务强一致性
 
-当前重点链路是 `sessionId=1` 的高并发锁座与支付流程，这也是后续压测、调优和面试表达的核心。
+当前重点链路是 `sessionId=1` 的高并发锁座与支付流程。
 
 ## 技术栈
 
@@ -78,14 +78,15 @@
 
 ### 2. 支付成功链路
 
-1. `order-service` 发送 RocketMQ 事务消息
-2. Broker 二阶段提交的最终判定语义为“支付成功”
-3. `order-service` 消费 `ORDER_PAID`，更新订单为已支付
-4. `seckill-service` 消费 `ORDER_PAID`，确认 Redis 座位为已售并更新 `seat_locks`
+1. `order-service` 发送 RocketMQ 事务半消息并创建本地待支付订单
+2. 超时前由 Broker 事务回查持续确认支付状态
+3. 到支付超时点后，由 `order-service` 的延时超时检查逻辑做最终裁决
+4. 若已支付则发出 `ORDER_PAID`，若未支付则发出 `CANCEL_ORDER`
+5. 下游消费者分别更新订单、Redis、`seat_locks` 和座位售出状态
 
 ### 3. 取消链路
 
-1. 用户主动取消或延迟消息触发超时取消
+1. 用户主动取消或 `order-service` 的延时超时检查确认未支付
 2. `order-service` 更新订单状态为 `CANCELLED` 或 `TIMEOUT`
 3. `seckill-service` 释放 Redis 锁座并清理锁座记录
 
@@ -203,27 +204,3 @@ docker run --rm --network host -v "$(pwd)/scripts/loadtest:/scripts" grafana/k6 
 - `docs/runbook-local.md`：本地运行说明
 - `docs/codex-workflow.md`：如何配合 Codex 开发
 - `docs/skill-standard.md`：仓库内 skill 统一规范
-
-## 当前实现重点
-
-当前已经重点围绕以下内容做了建设：
-
-- Redis Lua 锁座
-- 锁座后立即返回订单号与支付链接
-- 支付成功后的 RocketMQ 事务消息语义梳理
-- 订单支付、取消、座位状态的最终一致性处理
-- OpenResty 热点场次前置流量闸门
-- 针对 `sessionId=1` 的真实压测准备
-
-## 后续可继续打磨的方向
-
-- 完善取消链路的边界与状态机表达
-- 增强支付成功与取消交错场景下的幂等处理
-- 补齐更系统的自动化测试
-- 增加压测结果记录与指标基线
-- 补充面试讲述版架构文档与时序图
-
-## 说明
-
-这是一个面向后端开发实习准备而持续打磨的项目。  
-目标不是堆砌技术点，而是围绕一个真实高并发场景，把架构取舍、链路细节、压测验证和问题定位做深。

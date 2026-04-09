@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 内部订单控制器（供其他服务调用）
+ * 内部订单控制器。
  */
 @Slf4j
 @Tag(name = "内部订单管理", description = "内部订单接口")
@@ -24,7 +24,7 @@ public class InternalOrderController {
     private final OrderService orderService;
 
     @PostMapping("/create-pending")
-    @Operation(summary = "创建待支付订单（内部接口）")
+    @Operation(summary = "创建待支付订单")
     public Result<OrderResponse> createPendingOrder(@RequestHeader(value = "X-Request-Id", required = false) String requestId,
                                                     @Valid @RequestBody CreatePendingOrderRequest request) {
         OrderResponse response = orderService.createPendingOrder(request, requestId);
