@@ -26,9 +26,9 @@ import java.time.LocalDateTime;
 /**
  * 订单事务消息监听器
  * <p>
- * 处理 ORDER_PAID 事务消息
- * 阶段1：executeLocalTransaction - 执行本地事务（创建订单、发送延迟消息）
- * 阶段2：checkLocalTransaction - 回查本地事务状态
+ * 处理订单支付链路的事务半消息。
+ * 阶段1：executeLocalTransaction - 创建订单并发送延时超时检查消息
+ * 阶段2：checkLocalTransaction - 在超时前的支付窗口内回查支付状态
  *
  * @author duanyan
  * @since 1.0.0
@@ -51,7 +51,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
     /**
      * 阶段1：执行本地事务
      * <p>
-     * 发送半消息成功后，RocketMQ 回调此方法执行真正的本地事务
+     * 发送半消息成功后，RocketMQ 回调此方法执行真正的本地事务。
      *
      * @param msg 消息
      * @param arg 参数（OrderPaidMessage）
@@ -120,8 +120,8 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
     /**
      * 阶段2：回查本地事务
      * <p>
-     * 当事务状态为 UNKNOWN 时，RocketMQ 会调用此方法回查
-     * 这里查询支付系统来决定是否提交消息
+     * 当事务状态为 UNKNOWN 时，RocketMQ 会调用此方法回查。
+     * 这里只负责超时前的支付确认窗口，超时点由延时超时检查消息裁决。
      *
      * @param msg 消息
      * @return 事务状态

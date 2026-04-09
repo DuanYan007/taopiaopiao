@@ -17,8 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * 支付成功事件消费者（订单服务）
  * <p>
- * 消费支付成功后的 ORDER_PAID 事务消息
- * 只负责更新订单状态
+ * 消费最终确认后的 ORDER_PAID 事件，只负责更新订单状态。
  *
  * @author duanyan
  * @since 1.0.0

@@ -1,6 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.application.client;
 
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.*;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public interface PaymentClient {
 
     /**
-     * 创建支付订单
-     *
-     * @param request 支付创建请求
-     * @return 支付创建响应
-     */
-    @PostMapping("/payment/create")
-    PaymentResult<PaymentCreateResponse> createPayment(@RequestBody PaymentCreateRequest request);
-
-    /**
      * 查询支付状态
      *
      * @param orderNo 业务订单号
@@ -34,12 +26,4 @@ public interface PaymentClient {
     @GetMapping("/payment/query")
     PaymentResult<PaymentQueryResponse> queryPayment(@RequestParam("orderNo") String orderNo);
 
-    /**
-     * 模拟支付成功（测试用）
-     *
-     * @param orderNo 订单号
-     * @return 是否成功
-     */
-    @GetMapping("/payment/simulate/success")
-    PaymentResult<String> simulateSuccess(@RequestParam("orderNo") String orderNo);
 }

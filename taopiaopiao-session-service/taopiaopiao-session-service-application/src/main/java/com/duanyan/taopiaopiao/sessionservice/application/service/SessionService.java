@@ -44,16 +44,4 @@ public interface SessionService {
      */
     void updateSessionStatus(Long id, String status);
 
-    /**
-     * 标记座位已售出（内部接口，供订单服务调用）
-     */
-    Integer markSeatsSold(Long sessionId, java.util.List<String> seatIds, String orderNo);
-
-    /**
-     * 检查座位是否已标记为 sold（幂等性校验）
-     *
-     * @param orderNo 订单号
-     * @return true=已处理，false=未处理
-     */
-    boolean isSeatsMarkedSold(String orderNo);
 }

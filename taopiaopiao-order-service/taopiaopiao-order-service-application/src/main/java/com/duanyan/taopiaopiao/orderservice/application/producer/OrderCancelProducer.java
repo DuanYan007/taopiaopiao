@@ -61,24 +61,11 @@ public class OrderCancelProducer {
      */
 
     /**
-     * 发送延时取消消息（超时取消）
+     * 发送延时超时检查消息。
      *
      * @param message    消息内容
-     * @param delayLevel RocketMQ 延时等级（1-16），等级16 = 15分钟
+     * @param delayLevel RocketMQ 延时等级（1-16）
      */
-    public void sendDelayCancelMessage(OrderCancelMessage message, int delayLevel) {
-        Message<OrderCancelMessage> mqMessage = MessageBuilder.withPayload(message).build();
-
-        rocketMQTemplate.syncSend(
-                MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_CANCEL_ORDER,
-                mqMessage,
-                10000,
-                delayLevel
-        );
-
-        log.info("发送延时取消消息: orderNo={}, delayLevel={}", message.getOrderNo(), delayLevel);
-    }
-
     public void sendDelayTimeoutCheckMessage(OrderCancelMessage message, int delayLevel) {
         Message<OrderCancelMessage> mqMessage = MessageBuilder.withPayload(message).build();
 

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 /**
  * 订单事务消息生产者
  * <p>
- * 发送 ORDER_PAID 事务消息（半消息）
+ * 发送订单支付链路所需的 RocketMQ 消息。
  *
  * @author duanyan
  * @since 1.0.0
@@ -28,14 +28,12 @@ public class OrderTransactionProducer {
     private final RocketMQTemplate rocketMQTemplate;
 
     /**
-     * 发送订单支付成功事件事务消息
+     * 发送订单支付成功事务半消息。
      * <p>
      * 流程：
      * 1. 发送半消息到 RocketMQ
-     * 2. Broker 回调
-     *
-     * 3. 在 executeLocalTransaction 中创建订单、发送延迟消息
-     * 4. 根据返回值提交/回滚消息
+     * 2. 在 executeLocalTransaction 中创建订单并发送延时超时检查消息
+     * 3. 在支付成功窗口内由事务回查决定是否提交 ORDER_PAID
      *
      * @param orderNo 订单号
      * @param request 创建订单请求参数
@@ -65,7 +63,6 @@ public class OrderTransactionProducer {
                     .setHeader("RocketMQMessageKeys", orderNo)
                     .build();
 
-            // 发送事务消息
             // message 作为 arg 参数传递给 executeLocalTransaction
             rocketMQTemplate.sendMessageInTransaction(destination, msg, message);
 
@@ -78,6 +75,9 @@ public class OrderTransactionProducer {
         }
     }
 
+    /**
+     * 当超时检查发现订单已支付时，补发普通 ORDER_PAID 消息给下游。
+     */
     public void sendOrderPaidEvent(OrderPaidMessage message) {
         Message<OrderPaidMessage> mqMessage = MessageBuilder.withPayload(message)
                 .setHeader("RocketMQMessageKeys", message.getOrderNo())

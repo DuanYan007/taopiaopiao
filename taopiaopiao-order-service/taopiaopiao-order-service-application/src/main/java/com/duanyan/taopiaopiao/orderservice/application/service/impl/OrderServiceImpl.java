@@ -10,7 +10,6 @@ import com.duanyan.taopiaopiao.orderservice.application.client.SeatTemplateClien
 import com.duanyan.taopiaopiao.orderservice.application.client.SessionClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.VenueClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.MarkSeatsSoldRequest;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.SessionResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueResponse;
@@ -61,8 +60,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("开始创建待支付订单: requestId={}, orderNo={}, userId={}, sessionId={}",
                 requestId, orderNo, request.getUserId(), request.getSessionId());
 
-        // 发送事务消息（半消息）
-        // executeLocalTransaction 会被回调，在那里执行真正的本地事务（创建订单、发送延迟消息）
+        // 发送事务半消息，订单创建和延时超时检查消息由本地事务回调完成
         boolean sent = orderTransactionProducer.sendOrderPaidMessage(orderNo, request);
 
         if (!sent) {
