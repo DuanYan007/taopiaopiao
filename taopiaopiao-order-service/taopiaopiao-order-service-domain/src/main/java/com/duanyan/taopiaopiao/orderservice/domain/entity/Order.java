@@ -35,6 +35,9 @@ public class Order {
     @Schema(description = "场次ID")
     private Long sessionId;
 
+    @Schema(description = "锁ID")
+    private String lockId;
+
     @Schema(description = "演出ID")
     private Long eventId;
 

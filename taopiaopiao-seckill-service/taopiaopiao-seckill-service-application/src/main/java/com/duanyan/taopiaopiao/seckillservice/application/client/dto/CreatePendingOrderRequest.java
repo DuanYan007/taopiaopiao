@@ -28,6 +28,11 @@ public class CreatePendingOrderRequest {
     private Long sessionId;
 
     /**
+     * 锁ID
+     */
+    private String lockId;
+
+    /**
      * 演出ID
      */
     private Long eventId;
@@ -51,4 +56,9 @@ public class CreatePendingOrderRequest {
      * 总金额
      */
     private BigDecimal totalAmount;
+
+    /**
+     * 订单超时秒数
+     */
+    private Integer expireSeconds;
 }

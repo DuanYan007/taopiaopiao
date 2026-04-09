@@ -17,6 +17,7 @@
         WHERE session_id = #{sessionId}
           AND user_id = #{userId}
           AND seat_id = #{seatId}
+          AND lock_id = #{lockId}
           AND status = 1
     </update>
 
@@ -26,14 +27,18 @@
         WHERE session_id = #{sessionId}
           AND user_id = #{userId}
           AND seat_id = #{seatId}
+          AND lock_id = #{lockId}
           AND status = 1
     </update>
 
-    <delete id="deleteBySessionUserSeat">
-        DELETE FROM seat_locks
+    <update id="updateStatusByLock">
+        UPDATE seat_locks
+        SET status = #{toStatus}, updated_at = NOW()
         WHERE session_id = #{sessionId}
           AND user_id = #{userId}
           AND seat_id = #{seatId}
-    </delete>
+          AND lock_id = #{lockId}
+          AND status = #{fromStatus}
+    </update>
 
 </mapper>

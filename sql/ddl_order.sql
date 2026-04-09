@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS orders (
     order_no VARCHAR(64) NOT NULL UNIQUE COMMENT '订单号',
     user_id BIGINT NOT NULL COMMENT '用户ID',
     session_id BIGINT NOT NULL COMMENT '场次ID',
+    lock_id VARCHAR(64) NOT NULL COMMENT '锁ID',
     event_id BIGINT NOT NULL COMMENT '演出ID',
     seat_ids JSON NOT NULL COMMENT '座位ID列表(JSON)',
     seat_count INT NOT NULL COMMENT '座位数量',
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     KEY idx_user_id (user_id),
     KEY idx_order_no (order_no),
+    KEY idx_lock_id (lock_id),
     KEY idx_status_expire (status, expire_time),
     KEY idx_session_id (session_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';

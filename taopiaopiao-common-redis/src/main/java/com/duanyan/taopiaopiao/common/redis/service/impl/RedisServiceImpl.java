@@ -1,12 +1,10 @@
 package com.duanyan.taopiaopiao.common.redis.service.impl;
 
-import cn.hutool.core.io.resource.ResourceUtil;
 import com.duanyan.taopiaopiao.common.redis.constants.RedisKey;
 import com.duanyan.taopiaopiao.common.redis.constants.SeatStatus;
 import com.duanyan.taopiaopiao.common.redis.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.BatchResult;
 import org.redisson.api.RBatch;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
@@ -20,7 +18,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Redis 服务实现
@@ -63,7 +63,7 @@ public class RedisServiceImpl implements RedisService {
 
         // 批量设置座位初始状态为可选(0)
         for (String seatId : seatIds) {
-            String seatKey = RedisKey.seatKey(sessionId, seatId);
+            String seatKey = RedisKey.seatStateKey(sessionId, seatId);
             batch.getBucket(seatKey).setAsync(SeatStatus.AVAILABLE.getCode());
         }
 
@@ -91,11 +91,12 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
-    public int lockSeats(Long sessionId, Long userId, List<String> seatIds, int expireSeconds) {
+    public int lockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, int expireSeconds) {
         List<Object> keys = List.of(String.valueOf(sessionId));
 
         List<Object> params = new ArrayList<>();
         params.add(String.valueOf(userId));
+        params.add(lockId);
         params.add(String.valueOf(seatIds.size()));
         params.add(String.valueOf(expireSeconds));
         params.addAll(seatIds);
@@ -110,18 +111,19 @@ public class RedisServiceImpl implements RedisService {
         );
 
         int code = result.intValue();
-        log.info("锁座结果: sessionId={}, userId={}, seatIds={}, code={}",
-                sessionId, userId, seatIds, code);
+        log.info("锁座结果: sessionId={}, userId={}, lockId={}, seatIds={}, code={}",
+                sessionId, userId, lockId, seatIds, code);
 
         return code;
     }
 
     @Override
-    public int unlockSeats(Long sessionId, Long userId, List<String> seatIds) {
+    public int unlockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds) {
         List<Object> keys = List.of(String.valueOf(sessionId));
 
         List<Object> params = new ArrayList<>();
         params.add(String.valueOf(userId));
+        params.add(lockId);
         params.add(String.valueOf(seatIds.size()));
         params.addAll(seatIds);
 
@@ -135,17 +137,18 @@ public class RedisServiceImpl implements RedisService {
         );
 
         int count = result.intValue();
-        log.info("释放座位: sessionId={}, userId={}, count={}", sessionId, userId, count);
+        log.info("释放座位: sessionId={}, userId={}, lockId={}, count={}", sessionId, userId, lockId, count);
 
         return count;
     }
 
     @Override
-    public boolean confirmPurchase(Long sessionId, Long userId, List<String> seatIds) {
+    public boolean confirmPurchase(Long sessionId, Long userId, String lockId, List<String> seatIds) {
         List<Object> keys = List.of(String.valueOf(sessionId));
 
         List<Object> params = new ArrayList<>();
         params.add(String.valueOf(userId));
+        params.add(lockId);
         params.add(String.valueOf(seatIds.size()));
         params.addAll(seatIds);
 
@@ -159,14 +162,14 @@ public class RedisServiceImpl implements RedisService {
         );
 
         boolean success = result.intValue() == 0;
-        log.info("确认购买: sessionId={}, userId={}, success={}", sessionId, userId, success);
+        log.info("确认购买: sessionId={}, userId={}, lockId={}, success={}", sessionId, userId, lockId, success);
 
         return success;
     }
 
     @Override
     public SeatStatus getSeatStatus(Long sessionId, String seatId) {
-        String seatKey = RedisKey.seatKey(sessionId, seatId);
+        String seatKey = RedisKey.seatStateKey(sessionId, seatId);
         Integer code = (Integer) redissonClient.getBucket(seatKey).get();
 
         if (code == null) {
@@ -178,7 +181,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public void setSeatStatus(Long sessionId, String seatId, SeatStatus status) {
-        String seatKey = RedisKey.seatKey(sessionId, seatId);
+        String seatKey = RedisKey.seatStateKey(sessionId, seatId);
         redissonClient.getBucket(seatKey).set(status.getCode());
     }
 
@@ -198,8 +201,8 @@ public class RedisServiceImpl implements RedisService {
 
         // 删除所有座位状态
         for (String seatId : seatIds) {
-            String seatKey = RedisKey.seatKey(sessionId, seatId);
-            batch.getBucket(seatKey).deleteAsync();
+            batch.getBucket(RedisKey.seatStateKey(sessionId, seatId)).deleteAsync();
+            batch.getBucket(RedisKey.seatLockKey(sessionId, seatId)).deleteAsync();
         }
 
         // 删除场次座位集合
@@ -214,16 +217,29 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public long getUserLockedSeatCount(Long userId) {
-        String userLocksKey = RedisKey.userLocksKey(userId);
-        return redissonClient.getMap(userLocksKey).size();
+        long count = 0;
+        Iterable<String> lockKeys = redissonClient.getKeys().getKeysByPattern(RedisKey.SEAT_LOCK_PREFIX + "*");
+        String prefix = userId + "|";
+        for (String key : lockKeys) {
+            Object value = redissonClient.getBucket(key).get();
+            if (value != null && value.toString().startsWith(prefix)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
     public void removeUserLocks(Long userId, List<String> seatIds) {
-        String userLocksKey = RedisKey.userLocksKey(userId);
-        RMap<Object, Object> userLocksMap = redissonClient.getMap(userLocksKey);
+        String prefix = userId + "|";
         for (String seatId : seatIds) {
-            userLocksMap.remove(seatId);
+            Iterable<String> lockKeys = redissonClient.getKeys().getKeysByPattern(RedisKey.SEAT_LOCK_PREFIX + "*:" + seatId);
+            for (String key : lockKeys) {
+                Object value = redissonClient.getBucket(key).get();
+                if (value != null && value.toString().startsWith(prefix)) {
+                    redissonClient.getBucket(key).delete();
+                }
+            }
         }
         log.info("删除用户锁座记录: userId={}, count={}", userId, seatIds.size());
     }
@@ -256,7 +272,7 @@ public class RedisServiceImpl implements RedisService {
                 Integer price = areaPrices.get(j);
 
                 // 写入座位状态
-                String seatKey = RedisKey.SEAT_PREFIX + sessionIdStr + ":" + seatId;
+                String seatKey = RedisKey.seatStateKey(sessionId, seatId);
                 batch.getBucket(seatKey).setAsync(0);
 
                 // 写入座位价格
@@ -293,11 +309,24 @@ public class RedisServiceImpl implements RedisService {
         redissonClient.getBucket(soldoutKey).delete();
 
         // 删除所有座位状态和价格（使用scan）
-        String seatPattern = RedisKey.SEAT_PREFIX + sessionIdStr + ":*";
+        // 兼容迁移：顺手清理旧版 seat:{sessionId}:{seatId} 结构，避免初始化后仍有遗留脏数据。
+        String legacySeatPattern = "seat:" + sessionIdStr + ":*";
+        String seatStatePattern = RedisKey.SEAT_STATE_PREFIX + sessionIdStr + ":*";
+        String seatLockPattern = RedisKey.SEAT_LOCK_PREFIX + sessionIdStr + ":*";
         String pricePattern = RedisKey.PRICE_PREFIX + sessionIdStr + ":*";
 
-        Iterable<String> seatKeys = redissonClient.getKeys().getKeysByPattern(seatPattern);
-        for (String key : seatKeys) {
+        Iterable<String> legacySeatKeys = redissonClient.getKeys().getKeysByPattern(legacySeatPattern);
+        for (String key : legacySeatKeys) {
+            redissonClient.getBucket(key).delete();
+        }
+
+        Iterable<String> seatStateKeys = redissonClient.getKeys().getKeysByPattern(seatStatePattern);
+        for (String key : seatStateKeys) {
+            redissonClient.getBucket(key).delete();
+        }
+
+        Iterable<String> seatLockKeys = redissonClient.getKeys().getKeysByPattern(seatLockPattern);
+        for (String key : seatLockKeys) {
             redissonClient.getBucket(key).delete();
         }
 
@@ -320,5 +349,37 @@ public class RedisServiceImpl implements RedisService {
         }
 
         log.info("保存场次布局缓存: sessionId={}, areas={}", sessionId, areaJsonMap.size());
+    }
+
+    @Override
+    public Map<String, Integer> getEffectiveSeatStatuses(Long sessionId, List<String> seatIds) {
+        Map<String, Integer> statuses = new HashMap<>();
+        if (seatIds == null || seatIds.isEmpty()) {
+            return statuses;
+        }
+
+        RBatch batch = redissonClient.createBatch();
+        for (String seatId : seatIds) {
+            batch.getBucket(RedisKey.seatStateKey(sessionId, seatId)).getAsync();
+            batch.getBucket(RedisKey.seatLockKey(sessionId, seatId)).getAsync();
+        }
+
+        List<?> responses = batch.execute().getResponses();
+        for (int i = 0; i < seatIds.size(); i++) {
+            String seatId = seatIds.get(i);
+            Object stateValue = responses.get(i * 2);
+            Object lockValue = responses.get(i * 2 + 1);
+
+            int status = SeatStatus.AVAILABLE.getCode();
+            if (stateValue != null && String.valueOf(SeatStatus.SOLD.getCode()).equals(String.valueOf(stateValue))) {
+                status = SeatStatus.SOLD.getCode();
+            } else if (lockValue != null) {
+                status = 1;
+            }
+
+            statuses.put(seatId, status);
+        }
+
+        return statuses;
     }
 }

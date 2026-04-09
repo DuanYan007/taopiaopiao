@@ -33,6 +33,11 @@ public class    OrderCancelMessage implements Serializable {
     private Long userId;
 
     /**
+     * 锁ID
+     */
+    private String lockId;
+
+    /**
      * 场次ID
      */
     private Long sessionId;

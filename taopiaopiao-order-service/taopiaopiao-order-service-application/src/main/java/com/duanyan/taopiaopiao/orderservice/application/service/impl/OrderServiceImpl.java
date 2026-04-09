@@ -159,6 +159,7 @@ public class OrderServiceImpl implements OrderService {
         OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
                 .orderNo(orderNo)
                 .userId(userId)
+                .lockId(order.getLockId())
                 .sessionId(order.getSessionId())
                 .seatIds(seatIds)
                 .reason("USER")  // 用户主动取消

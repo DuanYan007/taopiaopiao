@@ -17,10 +17,12 @@ public interface SeckillInternalClient {
     Result<Integer> markSeatLocksPaid(@RequestParam("orderNo") String orderNo,
                                       @RequestParam("sessionId") Long sessionId,
                                       @RequestParam("userId") Long userId,
+                                      @RequestParam("lockId") String lockId,
                                       @RequestParam("seatIds") List<String> seatIds);
 
     @PostMapping("/release")
     Result<String> releaseSeats(@RequestParam("sessionId") Long sessionId,
                                 @RequestParam("userId") Long userId,
+                                @RequestParam("lockId") String lockId,
                                 @RequestParam("seatIds") List<String> seatIds);
 }

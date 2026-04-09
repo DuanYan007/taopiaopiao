@@ -62,6 +62,7 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
             boolean confirmed = redisService.confirmPurchase(
                     message.getSessionId(),
                     message.getUserId(),
+                    message.getLockId(),
                     seatIds
             );
             if (!confirmed) {
@@ -69,7 +70,8 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
             }
 
             for (String seatId : seatIds) {
-                seatLockMapper.markAsPaid(message.getSessionId(), message.getUserId(), seatId, message.getOrderNo());
+                seatLockMapper.markAsPaid(message.getSessionId(), message.getUserId(), seatId,
+                        message.getLockId(), message.getOrderNo());
             }
 
             Long finalPaidCount = seatLockMapper.selectCount(

@@ -6,6 +6,7 @@ import com.duanyan.taopiaopiao.seckillservice.application.client.PaymentClient;
 import com.duanyan.taopiaopiao.seckillservice.application.client.dto.PaymentQueryResponse;
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
+import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
@@ -59,7 +60,11 @@ public class OrderCancelConsumer implements RocketMQListener<OrderCancelMessage>
             }
 
             // 调用 SeckillService 释放座位
-            seckillService.releaseSeats(message.getSessionId(), message.getUserId(), message.getSeatIds());
+            LockStatus releaseStatus = "TIMEOUT".equals(message.getReason())
+                    ? LockStatus.EXPIRED
+                    : LockStatus.RELEASED;
+            seckillService.releaseSeats(message.getSessionId(), message.getUserId(),
+                    message.getLockId(), message.getSeatIds(), releaseStatus);
 
             log.info("处理订单取消消息成功: orderNo={}, reason={}", message.getOrderNo(), message.getReason());
 

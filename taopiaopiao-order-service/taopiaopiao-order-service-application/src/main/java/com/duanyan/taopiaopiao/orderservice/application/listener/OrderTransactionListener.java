@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -37,6 +38,11 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @RocketMQTransactionListener(rocketMQTemplateBeanName = "rocketMQTemplate")
 public class OrderTransactionListener implements RocketMQLocalTransactionListener {
+
+    private static final int[] DELAY_SECONDS = {
+            1, 5, 10, 30, 60, 120, 180, 240,
+            300, 360, 420, 480, 540, 600, 900, 1200
+    };
 
     private final OrderMapper orderMapper;
     private final OrderCancelProducer orderCancelProducer;
@@ -71,6 +77,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             Order order = Order.builder()
                     .orderNo(orderNo)
                     .userId(message.getUserId())
+                    .lockId(message.getLockId())
                     .sessionId(message.getSessionId())
                     .eventId(message.getEventId())
                     .seatIds(String.join(",", message.getSeatIds()))
@@ -91,11 +98,12 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
                     .orderNo(orderNo)
                     .userId(message.getUserId())
+                    .lockId(message.getLockId())
                     .sessionId(message.getSessionId())
                     .seatIds(message.getSeatIds())
                     .reason("TIMEOUT")
                     .build();
-            orderCancelProducer.sendDelayCancelMessage(cancelMessage, 9); // 延迟等级9 = 5分钟
+            orderCancelProducer.sendDelayCancelMessage(cancelMessage, resolveDelayLevel(message.getExpireTime()));
 
             log.info("延迟取消消息已发送: orderNo={}", orderNo);
 
@@ -197,5 +205,15 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             log.error("回查本地事务异常: orderNo={}", orderNo, e);
             return RocketMQLocalTransactionState.UNKNOWN;
         }
+    }
+
+    private int resolveDelayLevel(LocalDateTime expireTime) {
+        long seconds = Math.max(1, Duration.between(LocalDateTime.now(), expireTime).getSeconds());
+        for (int i = 0; i < DELAY_SECONDS.length; i++) {
+            if (seconds <= DELAY_SECONDS[i]) {
+                return i + 1;
+            }
+        }
+        return DELAY_SECONDS.length;
     }
 }

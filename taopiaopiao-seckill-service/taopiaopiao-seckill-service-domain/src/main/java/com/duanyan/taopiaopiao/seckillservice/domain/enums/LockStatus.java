@@ -11,7 +11,8 @@ import lombok.Getter;
 public enum LockStatus {
     RELEASED(0, "已释放"),
     LOCKED(1, "已锁定"),
-    PAID(2, "已支付");
+    PAID(2, "已支付"),
+    EXPIRED(3, "已超时释放");
 
     private final Integer code;
     private final String desc;

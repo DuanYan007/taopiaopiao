@@ -32,6 +32,10 @@ public class CreatePendingOrderRequest {
     @Schema(description = "场次ID", required = true)
     private Long sessionId;
 
+    @NotNull(message = "锁ID不能为空")
+    @Schema(description = "锁ID", required = true)
+    private String lockId;
+
     @Schema(description = "演出ID")
     private Long eventId;
 
@@ -50,4 +54,8 @@ public class CreatePendingOrderRequest {
     @NotNull(message = "总金额不能为空")
     @Schema(description = "订单总金额", required = true)
     private BigDecimal totalAmount;
+
+    @NotNull(message = "订单超时秒数不能为空")
+    @Schema(description = "订单超时秒数", required = true)
+    private Integer expireSeconds;
 }

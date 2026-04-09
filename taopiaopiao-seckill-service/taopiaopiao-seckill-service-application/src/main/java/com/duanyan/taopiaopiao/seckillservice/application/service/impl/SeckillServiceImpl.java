@@ -44,6 +44,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SeckillServiceImpl implements SeckillService {
 
+    private static final int DEFAULT_ORDER_EXPIRE_SECONDS = 300;
+    private static final int LOCK_TTL_GRACE_SECONDS = 30;
+
     private final RedisService redisService;
     private final SeatLockMapper seatLockMapper;
     private final SessionClient sessionClient;
@@ -57,16 +60,19 @@ public class SeckillServiceImpl implements SeckillService {
         Long sessionId = request.getSessionId();
         List<String> seatIds = request.getSeatIds();
         BigDecimal frontendUnitPrice = request.getUnitPrice();  // 前端传入的单价
-        Integer expireSeconds = request.getExpireSeconds() != null ? request.getExpireSeconds() : 300;
+        int orderExpireSeconds = request.getExpireSeconds() != null
+                ? request.getExpireSeconds()
+                : DEFAULT_ORDER_EXPIRE_SECONDS;
+        int lockExpireSeconds = orderExpireSeconds + LOCK_TTL_GRACE_SECONDS;
 
         String lockId = UUID.randomUUID().toString().replace("-", "");
-        long expireTime = System.currentTimeMillis() + expireSeconds * 1000L;
+        long expireTime = System.currentTimeMillis() + lockExpireSeconds * 1000L;
 
         log.info("开始锁座: requestId={}, sessionId={}, userId={}, seatIds={}",
                 requestId, sessionId, userId, seatIds);
 
         // 1. 锁定座位（Redis）
-        int code = redisService.lockSeats(sessionId, userId, seatIds, expireSeconds);
+        int code = redisService.lockSeats(sessionId, userId, lockId, seatIds, lockExpireSeconds);
 
         if (code == 0) {
             // 插入 seat_locks 记录，orderNo 暂时为空
@@ -75,6 +81,7 @@ public class SeckillServiceImpl implements SeckillService {
                         .sessionId(sessionId)
                         .userId(userId)
                         .seatId(seatId)
+                        .lockId(lockId)
                         .seatRow(0)
                         .seatCol(0)
                         .lockTime(System.currentTimeMillis())
@@ -99,7 +106,7 @@ public class SeckillServiceImpl implements SeckillService {
                 Result<SessionResponse> sessionResult = sessionClient.getSessionById(sessionId);
                 if (sessionResult == null || !sessionResult.isSuccess() || sessionResult.getData() == null) {
                     log.error("获取场次信息失败: requestId={}, sessionId={}", requestId, sessionId);
-                    releaseSeats(sessionId, userId, seatIds);
+                    releaseSeats(sessionId, userId, lockId, seatIds, LockStatus.RELEASED);
                     return LockSeatResponse.builder()
                             .success(false)
                             .code(6)
@@ -112,11 +119,13 @@ public class SeckillServiceImpl implements SeckillService {
                 CreatePendingOrderRequest orderRequest = CreatePendingOrderRequest.builder()
                         .userId(userId)
                         .sessionId(sessionId)
+                        .lockId(lockId)
                         .eventId(session.getEventId())
                         .seatIds(seatIds)
                         .seatCount(seatIds.size())
                         .unitPrice(frontendUnitPrice)
                         .totalAmount(totalAmount)
+                        .expireSeconds(orderExpireSeconds)
                         .build();
 
                 Result<OrderResponse> orderResult = orderClient.createPendingOrder(requestId, orderRequest);
@@ -124,7 +133,7 @@ public class SeckillServiceImpl implements SeckillService {
                     orderNo = orderResult.getData().getOrderNo();
                     // 更新 seat_locks 的 orderNo
                     for (String seatId : seatIds) {
-                        seatLockMapper.updateOrderNo(sessionId, userId, seatId, orderNo);
+                        seatLockMapper.updateOrderNo(sessionId, userId, seatId, lockId, orderNo);
                     }
                     log.info("创建待支付订单成功: requestId={}, orderNo={}, userId={}, sessionId={}, amount={}",
                             requestId, orderNo, userId, sessionId, totalAmount);
@@ -152,7 +161,7 @@ public class SeckillServiceImpl implements SeckillService {
                 } else {
                     log.error("创建待支付订单失败: requestId={}, sessionId={}, userId={}",
                             requestId, sessionId, userId);
-                    releaseSeats(sessionId, userId, seatIds);
+                    releaseSeats(sessionId, userId, lockId, seatIds, LockStatus.RELEASED);
                     return LockSeatResponse.builder()
                             .success(false)
                             .code(7)
@@ -162,7 +171,7 @@ public class SeckillServiceImpl implements SeckillService {
 
             } catch (Exception e) {
                 log.error("系统异常: requestId={}, sessionId={}, userId={}", requestId, sessionId, userId, e);
-                releaseSeats(sessionId, userId, seatIds);
+                releaseSeats(sessionId, userId, lockId, seatIds, LockStatus.RELEASED);
                 return LockSeatResponse.builder()
                         .success(false)
                         .code(8)
@@ -200,23 +209,24 @@ public class SeckillServiceImpl implements SeckillService {
      * 内部方法：释放座位（不对外暴露）
      */
     @Transactional
-    public void releaseSeats(Long sessionId, Long userId, List<String> seatIds) {
-        redisService.unlockSeats(sessionId, userId, seatIds);
-        // 直接删除记录，而不是更新状态
+    public void releaseSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, LockStatus releaseStatus) {
+        redisService.unlockSeats(sessionId, userId, lockId, seatIds);
         for (String seatId : seatIds) {
-            seatLockMapper.deleteBySessionUserSeat(sessionId, userId, seatId);
+            seatLockMapper.updateStatusByLock(sessionId, userId, seatId, lockId,
+                    LockStatus.LOCKED.getCode(), releaseStatus.getCode());
         }
-        log.info("释放座位成功: sessionId={}, userId={}, count={}", sessionId, userId, seatIds.size());
+        log.info("释放座位成功: sessionId={}, userId={}, lockId={}, status={}, count={}",
+                sessionId, userId, lockId, releaseStatus, seatIds.size());
     }
 
     /**
      * 内部方法：标记座位已支付（供订单服务调用）
      */
     @Transactional
-    public Integer markSeatLocksPaid(String orderNo, Long sessionId, Long userId, List<String> seatIds) {
+    public Integer markSeatLocksPaid(String orderNo, Long sessionId, Long userId, String lockId, List<String> seatIds) {
         int count = 0;
         for (String seatId : seatIds) {
-            int updated = seatLockMapper.markAsPaid(sessionId, userId, seatId, orderNo);
+            int updated = seatLockMapper.markAsPaid(sessionId, userId, seatId, lockId, orderNo);
             count += updated;
         }
         log.info("标记座位锁定已支付: orderNo={}, count={}", orderNo, count);
@@ -254,6 +264,7 @@ public class SeckillServiceImpl implements SeckillService {
 
                 if (areaJson != null) {
                     List<SeatLayoutDTO> seats = objectMapper.readValue(areaJson, new TypeReference<List<SeatLayoutDTO>>() {});
+                    refreshSeatStatuses(sessionId, seats);
                     areas.add(seats);
                 } else {
                     // 如果某个区域没有数据，添加空列表
@@ -271,6 +282,24 @@ public class SeckillServiceImpl implements SeckillService {
         } catch (Exception e) {
             log.error("解析场次布局数据失败: sessionId={}", sessionId, e);
             throw new BusinessException(500, "解析布局数据失败: " + e.getMessage());
+        }
+    }
+
+    private void refreshSeatStatuses(Long sessionId, List<SeatLayoutDTO> seats) {
+        if (seats == null || seats.isEmpty()) {
+            return;
+        }
+
+        List<String> seatIds = seats.stream()
+                .map(seat -> String.valueOf(seat.getId()))
+                .toList();
+        Map<String, Integer> statusMap = redisService.getEffectiveSeatStatuses(sessionId, seatIds);
+
+        for (SeatLayoutDTO seat : seats) {
+            Integer status = statusMap.get(String.valueOf(seat.getId()));
+            if (status != null) {
+                seat.setStatus(status);
+            }
         }
     }
 

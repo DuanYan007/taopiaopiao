@@ -1,47 +1,59 @@
 -- 锁座脚本
--- 参数: KEYS[1]=sessionId, ARGV[1]=userId, ARGV[2]=seatCount, ARGV[3]=expireSeconds, ARGV[4..]=seats
+-- 参数: KEYS[1]=sessionId, ARGV[1]=userId, ARGV[2]=lockId, ARGV[3]=seatCount, ARGV[4]=expireSeconds, ARGV[5..]=seats
 -- 返回: 0=成功, 1=座位不存在, 2=座位不可用, 3=重复购票
 
 local sessionId = KEYS[1]
-local userId = ARGV[1]
-local seatCount = tonumber(ARGV[2])
-local expireSeconds = tonumber(ARGV[3]) or 300  -- 默认300秒
-local userLockKey = "user:" .. userId .. ":locks"
+local userId = tostring(ARGV[1])
+local lockId = tostring(ARGV[2])
+local seatCount = tonumber(ARGV[3])
+local expireSeconds = tonumber(ARGV[4]) or 330
 
--- 确保 expireSeconds 有效
 if expireSeconds <= 0 then
-    expireSeconds = 300
+    expireSeconds = 330
 end
 
--- 第一阶段：完整校验，确保不会出现部分写入
-
--- 检查重复购票
-for i = 4, 4 + seatCount - 1 do
-    if redis.call("HEXISTS", userLockKey, ARGV[i]) == 1 then
-        return 3
+local function parse_lock_value(lockValue)
+    local delimiter = string.find(lockValue, "|", 1, true)
+    if not delimiter then
+        return nil, nil
     end
+
+    local ownerUserId = string.sub(lockValue, 1, delimiter - 1)
+    local ownerLockId = string.sub(lockValue, delimiter + 1)
+    return ownerUserId, ownerLockId
 end
 
-for i = 4, 4 + seatCount - 1 do
+for i = 5, 5 + seatCount - 1 do
     local seatId = ARGV[i]
-    local seatKey = "seat:" .. sessionId .. ":" .. seatId
-    local current = tonumber(redis.call("GET", seatKey))
+    local seatStateKey = "seat:state:" .. sessionId .. ":" .. seatId
+    local seatLockKey = "seat:lock:" .. sessionId .. ":" .. seatId
+    local current = tonumber(redis.call("GET", seatStateKey))
 
     if current == nil then
-        return 1  -- 座位不存在
+        return 1
     end
 
-    if current ~= 0 then
-        return 2  -- 座位不可用
+    if current == 2 then
+        return 2
+    end
+
+    local lockValue = redis.call("GET", seatLockKey)
+    if lockValue then
+        local ownerUserId, ownerLockId = parse_lock_value(lockValue)
+        if ownerUserId == userId and ownerLockId == lockId then
+            return 3
+        end
+        if ownerUserId == userId then
+            return 3
+        end
+        return 2
     end
 end
 
--- 第二阶段：统一写入，避免前半段成功后中途失败留下脏数据
-for i = 4, 4 + seatCount - 1 do
+for i = 5, 5 + seatCount - 1 do
     local seatId = ARGV[i]
-    local seatKey = "seat:" .. sessionId .. ":" .. seatId
-    redis.call("SET", seatKey, 1, "EX", expireSeconds)
-    redis.call("HSET", userLockKey, seatId, "1")
+    local seatLockKey = "seat:lock:" .. sessionId .. ":" .. seatId
+    redis.call("SET", seatLockKey, userId .. "|" .. lockId, "EX", expireSeconds)
 end
 
 return 0

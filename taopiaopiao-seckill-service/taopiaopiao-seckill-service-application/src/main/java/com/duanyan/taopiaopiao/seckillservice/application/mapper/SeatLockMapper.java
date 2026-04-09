@@ -12,11 +12,14 @@ public interface SeatLockMapper extends BaseMapper<SeatLock> {
                       @Param("seatId") String seatId, @Param("status") Integer status);
 
     int updateOrderNo(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
-                       @Param("seatId") String seatId, @Param("orderNo") String orderNo);
+                      @Param("seatId") String seatId, @Param("lockId") String lockId,
+                      @Param("orderNo") String orderNo);
 
     int markAsPaid(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
-                   @Param("seatId") String seatId, @Param("orderNo") String orderNo);
+                   @Param("seatId") String seatId, @Param("lockId") String lockId,
+                   @Param("orderNo") String orderNo);
 
-    int deleteBySessionUserSeat(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
-                                @Param("seatId") String seatId);
+    int updateStatusByLock(@Param("sessionId") Long sessionId, @Param("userId") Long userId,
+                           @Param("seatId") String seatId, @Param("lockId") String lockId,
+                           @Param("fromStatus") Integer fromStatus, @Param("toStatus") Integer toStatus);
 }

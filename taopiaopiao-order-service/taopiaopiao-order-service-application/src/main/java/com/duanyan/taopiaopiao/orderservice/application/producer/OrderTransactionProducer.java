@@ -49,6 +49,7 @@ public class OrderTransactionProducer {
             OrderPaidMessage message = OrderPaidMessage.builder()
                     .orderNo(orderNo)
                     .userId(request.getUserId())
+                    .lockId(request.getLockId())
                     .sessionId(request.getSessionId())
                     .eventId(request.getEventId())
                     .seatIds(request.getSeatIds())
@@ -56,7 +57,7 @@ public class OrderTransactionProducer {
                     .unitPrice(request.getUnitPrice())
                     .totalAmount(request.getTotalAmount())
                     .createdAt(LocalDateTime.now())
-                    .expireTime(LocalDateTime.now().plusMinutes(5))
+                    .expireTime(LocalDateTime.now().plusSeconds(request.getExpireSeconds()))
                     .build();
 
             // 构建 Spring Message，使用 orderNo 作为 key

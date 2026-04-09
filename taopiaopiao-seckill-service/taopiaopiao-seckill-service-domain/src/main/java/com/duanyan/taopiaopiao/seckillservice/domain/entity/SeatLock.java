@@ -24,6 +24,7 @@ public class SeatLock {
     private Long sessionId;
     private Long userId;
     private String seatId;
+    private String lockId;
 
     private Integer seatRow;
     private Integer seatCol;

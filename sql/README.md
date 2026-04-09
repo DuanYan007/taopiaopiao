@@ -9,6 +9,8 @@
 #### 核心业务表
 - `ddl_venues.sql` - 场馆表结构
 - `ddl_events.sql` - 演出表结构
+- `ddl_order.sql` - 订单表结构
+- `seckill_service.sql` - 秒杀锁座表结构
 - `ddl_ticket_tiers.sql` - 票档表结构
 
 #### 其他表
@@ -81,6 +83,10 @@ mysql -u root -p taopiaopiao < sql/init_ticket_tiers.sql
 ```
 
 ## 重要注意事项
+
+### 增量迁移
+- `20260408_lock_model_upgrade.sql`：将锁模型升级为 `seat:state + seat:lock` 设计时需要执行的数据库增量脚本
+- `20260409_fix_lock_id_index.sql`：修复 `seat_locks.lock_id` 被错误建成唯一索引的问题，改为普通索引
 
 ### 外键约束
 - `events.venue_id` → `venues.id`

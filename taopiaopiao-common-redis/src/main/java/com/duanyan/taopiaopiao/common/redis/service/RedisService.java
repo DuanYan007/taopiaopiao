@@ -4,6 +4,7 @@ import com.duanyan.taopiaopiao.common.redis.constants.SeatStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Redis 服务接口
@@ -38,7 +39,7 @@ public interface RedisService {
      * @param expireSeconds 过期时间（秒）
      * @return 锁座结果码: 0=成功, 1=座位不存在, 2=座位不可用, 3=重复购票
      */
-    int lockSeats(Long sessionId, Long userId, List<String> seatIds, int expireSeconds);
+    int lockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, int expireSeconds);
 
     /**
      * 释放座位
@@ -48,7 +49,7 @@ public interface RedisService {
      * @param seatIds   座位ID列表
      * @return 实际释放的座位数量
      */
-    int unlockSeats(Long sessionId, Long userId, List<String> seatIds);
+    int unlockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds);
 
     /**
      * 确认购买（将锁定状态改为已售出）
@@ -58,7 +59,7 @@ public interface RedisService {
      * @param seatIds   座位ID列表
      * @return true=成功, false=失败（无权操作）
      */
-    boolean confirmPurchase(Long sessionId, Long userId, List<String> seatIds);
+    boolean confirmPurchase(Long sessionId, Long userId, String lockId, List<String> seatIds);
 
     /**
      * 获取座位状态
@@ -134,4 +135,14 @@ public interface RedisService {
      * @param areaJsonMap 各区域座位数据JSON字符串Map，key为"area:0", "area:1"等
      */
     void saveSessionLayout(Long sessionId, String metaJson, java.util.Map<String, String> areaJsonMap);
+
+    /**
+     * 批量获取座位当前有效状态。
+     * 优先级：已售出(2) > 已锁定(1) > 可选(0)
+     *
+     * @param sessionId 场次ID
+     * @param seatIds   座位ID列表
+     * @return key=seatId, value=当前有效状态码
+     */
+    Map<String, Integer> getEffectiveSeatStatuses(Long sessionId, List<String> seatIds);
 }
