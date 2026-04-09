@@ -2,15 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper">
 
-    <update id="updateStatus">
-        UPDATE seat_locks
-        SET status = #{status}, updated_at = NOW()
-        WHERE session_id = #{sessionId}
-          AND user_id = #{userId}
-          AND seat_id = #{seatId}
-          AND status = 0
-    </update>
-
     <update id="updateOrderNo">
         UPDATE seat_locks
         SET order_no = #{orderNo}, updated_at = NOW()

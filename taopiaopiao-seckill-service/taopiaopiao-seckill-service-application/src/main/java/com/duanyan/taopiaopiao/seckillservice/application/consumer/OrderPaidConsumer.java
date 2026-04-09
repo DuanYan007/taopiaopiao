@@ -21,7 +21,7 @@ import java.util.List;
  * 支付成功事件消费者（秒杀服务）
  *
  * 负责：
- * 1. Redis 锁座状态确认购买（1 -> 2）
+ * 1. Redis 座位确认购买（写入已售并删除临时锁）
  * 2. seat_locks 标记为已支付
  */
 @Slf4j
