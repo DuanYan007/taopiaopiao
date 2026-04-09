@@ -94,7 +94,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             log.info("本地事务成功，订单已创建: orderNo={}, userId={}, amount={}",
                     orderNo, message.getUserId(), message.getTotalAmount());
 
-            // 订单创建成功后，发送延迟消息（超时取消）
+            // 订单创建成功后，发送延迟消息（最终超时检查）
             OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
                     .orderNo(orderNo)
                     .userId(message.getUserId())
@@ -103,9 +103,9 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
                     .seatIds(message.getSeatIds())
                     .reason("TIMEOUT")
                     .build();
-            orderCancelProducer.sendDelayCancelMessage(cancelMessage, resolveDelayLevel(message.getExpireTime()));
+            orderCancelProducer.sendDelayTimeoutCheckMessage(cancelMessage, resolveDelayLevel(message.getExpireTime()));
 
-            log.info("延迟取消消息已发送: orderNo={}", orderNo);
+            log.info("延迟超时检查消息已发送: orderNo={}", orderNo);
 
             // 返回 UNKNOWN，等待支付完成后通过回查确认
             return RocketMQLocalTransactionState.UNKNOWN;
@@ -152,8 +152,8 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             }
 
             if (OrderStatus.PAID.getCode().equals(order.getStatus())) {
-                log.info("回查命中已支付订单，提交事务消息: orderNo={}", orderNo);
-                return RocketMQLocalTransactionState.COMMIT;
+                log.info("回查命中已支付订单，事务消息由其他链路兜底完成，回滚半消息: orderNo={}", orderNo);
+                return RocketMQLocalTransactionState.ROLLBACK;
             }
 
             if (OrderStatus.CANCELLED.getCode().equals(order.getStatus())

@@ -77,4 +77,17 @@ public class OrderTransactionProducer {
             return false;
         }
     }
+
+    public void sendOrderPaidEvent(OrderPaidMessage message) {
+        Message<OrderPaidMessage> mqMessage = MessageBuilder.withPayload(message)
+                .setHeader("RocketMQMessageKeys", message.getOrderNo())
+                .build();
+
+        rocketMQTemplate.syncSend(
+                MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_ORDER_PAID,
+                mqMessage
+        );
+
+        log.info("发送订单支付成功普通消息: orderNo={}", message.getOrderNo());
+    }
 }

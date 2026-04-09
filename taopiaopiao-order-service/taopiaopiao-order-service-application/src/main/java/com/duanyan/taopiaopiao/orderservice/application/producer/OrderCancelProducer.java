@@ -78,4 +78,17 @@ public class OrderCancelProducer {
 
         log.info("发送延时取消消息: orderNo={}, delayLevel={}", message.getOrderNo(), delayLevel);
     }
+
+    public void sendDelayTimeoutCheckMessage(OrderCancelMessage message, int delayLevel) {
+        Message<OrderCancelMessage> mqMessage = MessageBuilder.withPayload(message).build();
+
+        rocketMQTemplate.syncSend(
+                MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_TIMEOUT_CHECK,
+                mqMessage,
+                10000,
+                delayLevel
+        );
+
+        log.info("发送延时超时检查消息: orderNo={}, delayLevel={}", message.getOrderNo(), delayLevel);
+    }
 }

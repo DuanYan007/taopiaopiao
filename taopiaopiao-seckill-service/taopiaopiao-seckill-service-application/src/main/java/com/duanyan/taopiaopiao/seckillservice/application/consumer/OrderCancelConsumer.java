@@ -2,9 +2,6 @@ package com.duanyan.taopiaopiao.seckillservice.application.consumer;
 
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
-import com.duanyan.taopiaopiao.seckillservice.application.client.PaymentClient;
-import com.duanyan.taopiaopiao.seckillservice.application.client.dto.PaymentQueryResponse;
-import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
 import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import lombok.RequiredArgsConstructor;
@@ -37,27 +34,12 @@ import org.springframework.stereotype.Component;
 public class OrderCancelConsumer implements RocketMQListener<OrderCancelMessage> {
 
     private final SeckillServiceImpl seckillService;
-    private final PaymentClient paymentClient;
 
     @Override
     public void onMessage(OrderCancelMessage message) {
         try {
             log.info("收到订单取消消息: orderNo={}, reason={}, seatIds={}",
                     message.getOrderNo(), message.getReason(), message.getSeatIds());
-
-            if ("TIMEOUT".equals(message.getReason())) {
-                Result<PaymentQueryResponse> result = paymentClient.queryPayment(message.getOrderNo());
-                if (result == null || !result.isSuccess() || result.getData() == null) {
-                    log.warn("超时释放前查询支付状态失败，稍后重试: orderNo={}", message.getOrderNo());
-                    throw new RuntimeException("查询支付状态失败");
-                }
-
-                PaymentQueryResponse payment = result.getData();
-                if (payment.isSuccess()) {
-                    log.info("订单已支付，跳过释放座位: orderNo={}", message.getOrderNo());
-                    return;
-                }
-            }
 
             // 调用 SeckillService 释放座位
             LockStatus releaseStatus = "TIMEOUT".equals(message.getReason())

@@ -3,6 +3,7 @@ package com.duanyan.taopiaopiao.orderservice.application.consumer;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
+import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,6 @@ import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 /**
  * 支付成功事件消费者（订单服务）
@@ -36,7 +35,7 @@ import java.time.LocalDateTime;
 )
 public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
 
-    private final com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper orderMapper;
+    private final OrderMapper orderMapper;
 
     @Override
     public void onMessage(OrderPaidMessage message) {
@@ -67,11 +66,16 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
                 return;
             }
 
-            order.setStatus(OrderStatus.PAID.getCode());
-            order.setPayTime(order.getPayTime() != null ? order.getPayTime() : LocalDateTime.now());
-            order.setUpdatedAt(null);
-            int updated = orderMapper.updateById(order);
+            int updated = orderMapper.markPaidIfUnpaid(message.getOrderNo(), OrderStatus.PAID.getCode());
             if (updated != 1) {
+                Order latest = orderMapper.selectOne(
+                        new LambdaQueryWrapper<Order>()
+                                .eq(Order::getOrderNo, message.getOrderNo())
+                );
+                if (latest != null && OrderStatus.PAID.getCode().equals(latest.getStatus())) {
+                    log.info("订单已由其他链路更新为支付状态，跳过: orderNo={}", message.getOrderNo());
+                    return;
+                }
                 throw new RuntimeException("更新订单状态失败: " + message.getOrderNo());
             }
 
