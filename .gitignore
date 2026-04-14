@@ -8,6 +8,10 @@ target/
 *.iws
 *.iml
 *.ipr
+.run/
+.tmp/
+logs/
+nohup.out
 
 ### Eclipse ###
 .apt_generated

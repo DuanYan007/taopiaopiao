@@ -34,3 +34,8 @@ Do not hardcode new secrets or environment-specific endpoints. Prefer environmen
 
 ## Agent Workflow
 Before changing code, read the relevant file in `docs/` and then inspect the affected controller, service, consumer, and mapper classes. For high-risk flows such as seat locking, payment, RocketMQ consumers, cancellation, and OpenResty gating, review the full producer-consumer chain before proposing code changes.
+
+## Skills
+- `tpp-bootstrap-repo`: bootstrap this repository before implementation-heavy work.
+- `tpp-create-skill`: create or update repository-specific skills.
+- `tpp-prepare-push`: separate valid changes from local runtime artifacts, then create a clean commit and push.
