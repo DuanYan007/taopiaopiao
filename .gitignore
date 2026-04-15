@@ -12,6 +12,7 @@ target/
 .tmp/
 logs/
 nohup.out
+scripts/loadtest/.obsidian/
 
 ### Eclipse ###
 .apt_generated

@@ -4,6 +4,8 @@ import { buildSeatPool, postLockSeat, requestId } from './common.js';
 
 const MAX_ATTEMPTS_PER_USER = Number(__ENV.MAX_ATTEMPTS_PER_USER || __ENV.REQUESTS_PER_USER || 3);
 const REQUEST_INTERVAL_SECONDS = Number(__ENV.REQUEST_INTERVAL_SECONDS || 1);
+const STOP_ON_409 = __ENV.STOP_ON_409 === 'true';
+const STOP_ON_429 = __ENV.STOP_ON_429 === 'true';
 
 const lockBusinessSuccess = new Counter('lock_business_success_total');
 const lockBusinessConflict = new Counter('lock_business_conflict_total');
@@ -80,6 +82,18 @@ export default function () {
             } else {
                 lockBusinessOtherFailure.add(1);
             }
+            userStoppedAfterTerminalFailure.add(1);
+            userFinalSuccessRate.add(false);
+            return;
+        }
+
+        if (response.status === 409 && STOP_ON_409) {
+            userStoppedAfterTerminalFailure.add(1);
+            userFinalSuccessRate.add(false);
+            return;
+        }
+
+        if (response.status === 429 && STOP_ON_429) {
             userStoppedAfterTerminalFailure.add(1);
             userFinalSuccessRate.add(false);
             return;

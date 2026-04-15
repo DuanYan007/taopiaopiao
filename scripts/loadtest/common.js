@@ -50,11 +50,26 @@ export function postLockSeat({ userId, seatIds, requestIdValue }) {
     return response;
 }
 
-export function buildSeatPool() {
-    return [
-        ['1'], ['2'], ['3'], ['4'], ['5'],
-        ['6'], ['7'], ['8'], ['9'], ['10'],
-        ['11'], ['12'], ['13'], ['14'], ['15'],
-        ['16'], ['17'], ['18'], ['19'], ['20']
-    ];
+export function buildSeatPool({
+    startSeatId = Number(__ENV.SEAT_START_ID || 1),
+    endSeatId = Number(__ENV.SEAT_END_ID || 20),
+    seatsPerRequest = Number(__ENV.SEATS_PER_REQUEST || 1)
+} = {}) {
+    const seatPool = [];
+
+    if (startSeatId > endSeatId || seatsPerRequest <= 0) {
+        return seatPool;
+    }
+
+    for (let current = startSeatId; current <= endSeatId; current += seatsPerRequest) {
+        const seatIds = [];
+        for (let offset = 0; offset < seatsPerRequest && current + offset <= endSeatId; offset++) {
+            seatIds.push(String(current + offset));
+        }
+        if (seatIds.length === seatsPerRequest) {
+            seatPool.push(seatIds);
+        }
+    }
+
+    return seatPool;
 }
