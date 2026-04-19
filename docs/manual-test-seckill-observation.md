@@ -514,3 +514,16 @@ seckill-backlog-snapshot ...
 10. 再做一笔主动取消订单，确认阶段 7
 
 这样能一次把受理、建单、支付、超时、取消五类状态全覆盖。
+  docker run --rm --network host \
+    -e SESSION_ID=2 \
+    -e USERS=1600 \
+    -e USER_BASE=100000 \
+    -e SEAT_START_ID=161 \
+    -e SEAT_END_ID=1760 \
+    -e SEATS_PER_REQUEST=1 \
+    -e MAX_ATTEMPTS_PER_USER=30 \
+    -e REQUEST_INTERVAL_SECONDS=1 \
+    -e MAX_DURATION=40s \
+    -v "$(pwd)/scripts/loadtest:/scripts" \
+    grafana/k6 run /scripts/lock_only_burst.js
+
