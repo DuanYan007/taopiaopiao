@@ -72,23 +72,26 @@
 1. 用户请求进入 OpenResty
 2. 对 `sessionId=1` 应用短时间重复点击拦截、令牌桶限流、并发闸门
 3. Gateway 转发到 `seckill-service`
-4. `seckill-service` 调用 Redis Lua 原子锁座
-5. 锁座成功后写入 `seat_locks`
-6. 调用 `order-service` 创建待支付订单并返回 `orderNo`、`payUrl`
+4. `seckill-service` 基于 Redis 场次快照校验 `eventId`，并通过 Redis Lua 原子锁座
+5. 锁座成功后将锁单聚合、用户锁索引、过期索引和 `LOCK_ACCEPTED` 载荷写入 Redis，立即返回 `lockId`、`orderNo`、`PROCESSING`、`NOT_READY`
+6. `seckill-service` 通过 Redis Stream 异步桥接 `LOCK_ACCEPTED` 到 RocketMQ
+7. `order-service` 消费 `LOCK_ACCEPTED`，异步创建正式订单
+8. 前端按 `orderNo` 轮询 `/client/orders/{orderNo}`，待订单可支付时再获得 `paymentStatus=READY` 和 `payUrl`
 
 ### 2. 支付成功链路
 
-1. `order-service` 发送 RocketMQ 事务半消息并创建本地待支付订单
-2. 超时前由 Broker 事务回查持续确认支付状态
-3. 到支付超时点后，由 `order-service` 的延时超时检查逻辑做最终裁决
-4. 若已支付则发出 `ORDER_PAID`，若未支付则发出 `CANCEL_ORDER`
-5. 下游消费者分别更新订单、Redis、`seat_locks` 和座位售出状态
+1. `order-service` 消费 `LOCK_ACCEPTED` 后发送 RocketMQ 事务半消息
+2. `OrderTransactionListener` 创建本地 `UNPAID` 订单，发出 `ORDER_CREATED_INTERNAL`，并发送延时 `TIMEOUT_CHECK`
+3. 超时前由 Broker 事务回查持续确认支付状态，只有支付真实成功才提交 `ORDER_PAID`
+4. 到支付超时点后，由 `order-service` 的 `TIMEOUT_CHECK` 做最终 `PAID/TIMEOUT` 裁决
+5. 若最终已支付则发出 `ORDER_PAID`，若最终未支付则发出取消事件
+6. 下游消费者分别更新订单状态、Redis 座位状态、锁单聚合和 `seat_locks` 审计记录
 
 ### 3. 取消链路
 
 1. 用户主动取消或 `order-service` 的延时超时检查确认未支付
 2. `order-service` 更新订单状态为 `CANCELLED` 或 `TIMEOUT`
-3. `seckill-service` 释放 Redis 锁座并清理锁座记录
+3. `seckill-service` 释放 Redis 锁座，并推进锁单聚合与 `seat_locks` 审计状态
 
 ## 一致性设计
 

@@ -2,6 +2,52 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper">
 
+    <select id="selectSeatPositions" resultType="com.duanyan.taopiaopiao.seckillservice.application.model.SeatPositionRecord">
+        SELECT CAST(id AS CHAR) AS seatId,
+               CAST(seat_row AS SIGNED) AS seatRow,
+               CAST(seat_column AS SIGNED) AS seatCol
+        FROM seats
+        WHERE session_id = #{sessionId}
+          AND id IN
+        <foreach collection="seatIds" item="seatId" open="(" separator="," close=")">
+            #{seatId}
+        </foreach>
+    </select>
+
+    <insert id="batchInsert">
+        INSERT INTO seat_locks (
+            session_id,
+            user_id,
+            seat_id,
+            lock_id,
+            seat_row,
+            seat_col,
+            lock_time,
+            expire_time,
+            status,
+            order_no,
+            created_at,
+            updated_at
+        )
+        VALUES
+        <foreach collection="seatLocks" item="seatLock" separator=",">
+            (
+                #{seatLock.sessionId},
+                #{seatLock.userId},
+                #{seatLock.seatId},
+                #{seatLock.lockId},
+                #{seatLock.seatRow},
+                #{seatLock.seatCol},
+                #{seatLock.lockTime},
+                #{seatLock.expireTime},
+                #{seatLock.status},
+                #{seatLock.orderNo},
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
     <update id="updateOrderNo">
         UPDATE seat_locks
         SET order_no = #{orderNo}, updated_at = NOW()

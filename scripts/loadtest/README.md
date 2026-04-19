@@ -1,6 +1,6 @@
 # Load Test Scripts
 
-These k6 scripts target the phase-1 gated lock-seat entry at `sessionId=1`.
+These k6 scripts target the current gated lock-seat entry at `sessionId=1`.
 
 ## Prerequisites
 
@@ -47,5 +47,5 @@ docker run --rm --network host \
 
 - OpenResty access log: `/usr/local/openresty/nginx/logs/tpp_access.log`
 - `seckill-service` logs for actual backend entries
-- `order-service` logs for downstream order creation
+- `order-service` logs for downstream formal order creation and payment preparation
 - `docker stats` or `top` for host resource usage

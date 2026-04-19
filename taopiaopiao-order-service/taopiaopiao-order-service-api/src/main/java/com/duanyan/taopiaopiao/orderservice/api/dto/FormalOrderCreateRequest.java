@@ -12,16 +12,16 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 创建待支付订单请求。
+ * 正式订单创建参数。
  * <p>
- * 用于秒杀服务发起内部下单。
+ * 由 order-service 在消费 LOCK_ACCEPTED 后构造，并交给事务消息监听器创建本地 UNPAID 订单。
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "创建待支付订单请求")
-public class CreatePendingOrderRequest {
+@Schema(description = "正式订单创建参数")
+public class FormalOrderCreateRequest {
 
     @NotNull(message = "用户ID不能为空")
     @Schema(description = "用户ID", required = true)

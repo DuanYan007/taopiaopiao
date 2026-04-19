@@ -5,15 +5,15 @@ This repository is the backend for a ticketing system built as Spring Boot micro
 
 ## Core Modules
 - `taopiaopiao-gateway`: unified entry, routes `/seckill/**` and `/client/**`, port `8080`.
-- `taopiaopiao-seckill-service`: lock seat, read seat layout, manage Redis seat state, port `8086`.
-- `taopiaopiao-order-service`: create pending orders, handle cancel and paid events, port `8087`.
+- `taopiaopiao-seckill-service`: lock seat, manage Redis seat state and Redis lock-order aggregates, port `8086`.
+- `taopiaopiao-order-service`: consume `LOCK_ACCEPTED`, create formal unpaid orders, and handle timeout / paid / cancel convergence, port `8087`.
 - `taopiaopiao-session-service`: session and seat data, port `8084`.
 - `taopiaopiao-user-service`, `venue-service`, `event-service`, `seat-template-service`: supporting read/write services for the rest of the domain.
 
 ## Shared Infrastructure
 - MySQL: business persistence, database `taopiaopiao`.
-- Redis: seat lock state and Lua scripts in `taopiaopiao-common-redis/src/main/resources/lua`.
-- RocketMQ: payment success and cancel events.
+- Redis: seat lock state, lock-order aggregates, processing cache, and Lua scripts in `taopiaopiao-common-redis/src/main/resources/lua`.
+- RocketMQ: `LOCK_ACCEPTED`, `ORDER_CREATED_INTERNAL`, `ORDER_PAID`, and timeout / cancel events.
 - Nacos: service discovery.
 - OpenResty: frontend entry and traffic gate at `/usr/local/openresty/nginx`.
 

@@ -1,6 +1,5 @@
 package com.duanyan.taopiaopiao.orderservice.application.service;
 
-import com.duanyan.taopiaopiao.orderservice.api.dto.CreatePendingOrderRequest;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderPageRequest;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderPageResponse;
 import com.duanyan.taopiaopiao.orderservice.api.dto.OrderResponse;
@@ -9,11 +8,6 @@ import com.duanyan.taopiaopiao.orderservice.api.dto.OrderResponse;
  * 订单服务接口
  */
 public interface OrderService {
-
-    /**
-     * 创建待支付订单。
-     */
-    OrderResponse createPendingOrder(CreatePendingOrderRequest request, String requestId);
 
     /**
      * 订单分页查询

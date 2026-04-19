@@ -7,6 +7,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 ROCKETMQ_DIR="/home/duanyan/rocketmq-all-5.4.0-bin-release"
 NAMESRV_BIN="${ROCKETMQ_DIR}/bin/mqnamesrv"
 BROKER_BIN="${ROCKETMQ_DIR}/bin/mqbroker"
+BROKER_CONF="${ROCKETMQ_DIR}/conf/broker.conf"
 
 NAMESRV_LOG="${LOG_DIR}/rocketmq-namesrv.log"
 BROKER_LOG="${LOG_DIR}/rocketmq-broker.log"
@@ -50,13 +51,24 @@ start_process() {
     local binary_path="$2"
     local log_file="$3"
     local pid_file="$4"
+    local listen_port="$5"
+    shift 5
+    local -a extra_args=("$@")
+    local existing_pid
 
     if is_running "${pid_file}"; then
         echo "${service_name} already started, pid=$(read_pid "${pid_file}")"
         return 0
     fi
 
-    nohup "${binary_path}" >"${log_file}" 2>&1 &
+    existing_pid="$(read_listen_pid_by_port "${listen_port}")"
+    if [[ -n "${existing_pid}" ]] && kill -0 "${existing_pid}" 2>/dev/null; then
+        echo "${existing_pid}" >"${pid_file}"
+        echo "${service_name} already started, pid=${existing_pid}, port=${listen_port}"
+        return 0
+    fi
+
+    nohup "${binary_path}" "${extra_args[@]}" >"${log_file}" 2>&1 &
     local pid=$!
     echo "${pid}" >"${pid_file}"
     sleep 5
@@ -73,6 +85,10 @@ start_process() {
 
 require_file "${NAMESRV_BIN}"
 require_file "${BROKER_BIN}"
+require_file "${BROKER_CONF}"
 
-start_process "rocketmq-namesrv" "${NAMESRV_BIN}" "${NAMESRV_LOG}" "${NAMESRV_PID_FILE}"
-start_process "rocketmq-broker" "${BROKER_BIN}" "${BROKER_LOG}" "${BROKER_PID_FILE}"
+start_process "rocketmq-namesrv" "${NAMESRV_BIN}" "${NAMESRV_LOG}" "${NAMESRV_PID_FILE}" 9876
+start_process "rocketmq-broker" "${BROKER_BIN}" "${BROKER_LOG}" "${BROKER_PID_FILE}" \
+    10911 \
+    -n "127.0.0.1:9876" \
+    -c "${BROKER_CONF}"

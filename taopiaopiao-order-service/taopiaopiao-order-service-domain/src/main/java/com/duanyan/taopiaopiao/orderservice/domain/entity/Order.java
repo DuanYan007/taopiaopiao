@@ -1,6 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 订单实体
@@ -41,9 +43,9 @@ public class Order {
     @Schema(description = "演出ID")
     private Long eventId;
 
-    @Schema(description = "座位ID列表(JSON)")
-    @TableField(typeHandler = org.apache.ibatis.type.StringTypeHandler.class, jdbcType = JdbcType.VARCHAR)
-    private String seatIds;
+    @Schema(description = "座位ID列表(JSON数组)")
+    @TableField(value = "seat_ids", typeHandler = JacksonTypeHandler.class, jdbcType = JdbcType.VARCHAR)
+    private List<String> seatIds;
 
     @Schema(description = "座位数量")
     private Integer seatCount;

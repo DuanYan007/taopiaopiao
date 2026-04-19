@@ -7,6 +7,7 @@ import lombok.Getter;
  */
 @Getter
 public enum OrderStatus {
+    PROCESSING(0, "处理中"),
     UNPAID(1, "未支付"),
     PAID(2, "已支付"),
     CANCELLED(3, "已取消"),

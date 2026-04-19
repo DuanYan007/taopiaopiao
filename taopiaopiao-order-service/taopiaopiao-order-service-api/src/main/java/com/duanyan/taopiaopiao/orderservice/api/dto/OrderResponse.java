@@ -53,6 +53,15 @@ public class OrderResponse {
     @Schema(description = "状态描述")
     private String statusDesc;
 
+    @Schema(description = "支付状态，如 NOT_READY/READY/SUCCESS/PENDING")
+    private String paymentStatus;
+
+    @Schema(description = "建议前端下次轮询间隔，单位毫秒；0 表示无需继续轮询")
+    private Long nextPollMs;
+
+    @Schema(description = "支付页面地址")
+    private String payUrl;
+
     @Schema(description = "支付时间")
     private LocalDateTime payTime;
 

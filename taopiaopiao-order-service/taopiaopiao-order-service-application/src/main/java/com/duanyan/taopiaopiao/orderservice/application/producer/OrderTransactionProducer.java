@@ -2,7 +2,7 @@ package com.duanyan.taopiaopiao.orderservice.application.producer;
 
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
-import com.duanyan.taopiaopiao.orderservice.api.dto.CreatePendingOrderRequest;
+import com.duanyan.taopiaopiao.orderservice.api.dto.FormalOrderCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -28,18 +28,15 @@ public class OrderTransactionProducer {
     private final RocketMQTemplate rocketMQTemplate;
 
     /**
-     * 发送订单支付成功事务半消息。
+     * 发送建单事务半消息。
      * <p>
-     * 流程：
-     * 1. 发送半消息到 RocketMQ
-     * 2. 在 executeLocalTransaction 中创建订单并发送延时超时检查消息
-     * 3. 在支付成功窗口内由事务回查决定是否提交 ORDER_PAID
+     * 该半消息最终仍使用 `ORDER_PAID` 标签，由事务监听器完成本地建单，并在支付确认后再提交给下游。
      *
      * @param orderNo 订单号
-     * @param request 创建订单请求参数
+     * @param request 正式订单创建参数
      * @return 是否发送成功
      */
-    public boolean sendOrderPaidMessage(String orderNo, CreatePendingOrderRequest request) {
+    public boolean sendCreateOrderTransaction(String orderNo, FormalOrderCreateRequest request) {
         String destination = MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_ORDER_PAID;
 
         try {
@@ -66,11 +63,11 @@ public class OrderTransactionProducer {
             // message 作为 arg 参数传递给 executeLocalTransaction
             rocketMQTemplate.sendMessageInTransaction(destination, msg, message);
 
-            log.info("发送订单支付成功事务消息成功: orderNo={}", orderNo);
+            log.info("发送建单事务半消息成功: orderNo={}", orderNo);
             return true;
 
         } catch (Exception e) {
-            log.error("发送订单支付成功事务消息失败: orderNo={}", orderNo, e);
+            log.error("发送建单事务半消息失败: orderNo={}", orderNo, e);
             return false;
         }
     }

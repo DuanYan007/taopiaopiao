@@ -2,11 +2,13 @@ package com.duanyan.taopiaopiao.orderservice.application.listener;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
+import com.duanyan.taopiaopiao.common.mq.message.OrderCreatedInternalMessage;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.taopiaopiao.orderservice.application.client.PaymentClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentResult;
 import com.duanyan.taopiaopiao.orderservice.application.producer.OrderCancelProducer;
+import com.duanyan.taopiaopiao.orderservice.application.producer.OrderCreatedInternalProducer;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
@@ -46,6 +48,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
 
     private final OrderMapper orderMapper;
     private final OrderCancelProducer orderCancelProducer;
+    private final OrderCreatedInternalProducer orderCreatedInternalProducer;
     private final PaymentClient paymentClient;
 
     /**
@@ -72,15 +75,23 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             }
 
             OrderPaidMessage message = (OrderPaidMessage) arg;
+            Order existingOrder = orderMapper.selectOne(
+                    new LambdaQueryWrapper<Order>()
+                            .eq(Order::getOrderNo, orderNo)
+            );
+            if (existingOrder != null) {
+                publishOrderCreated(existingOrder);
+                log.info("本地事务命中已存在订单，回滚重复半消息: orderNo={}", orderNo);
+                return RocketMQLocalTransactionState.ROLLBACK;
+            }
 
-            // 创建订单
             Order order = Order.builder()
                     .orderNo(orderNo)
                     .userId(message.getUserId())
                     .lockId(message.getLockId())
                     .sessionId(message.getSessionId())
                     .eventId(message.getEventId())
-                    .seatIds(String.join(",", message.getSeatIds()))
+                    .seatIds(message.getSeatIds())
                     .seatCount(message.getSeatCount())
                     .unitPrice(message.getUnitPrice())
                     .totalAmount(message.getTotalAmount())
@@ -90,6 +101,7 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
                     .build();
 
             orderMapper.insert(order);
+            publishOrderCreated(order);
 
             log.info("本地事务成功，订单已创建: orderNo={}, userId={}, amount={}",
                     orderNo, message.getUserId(), message.getTotalAmount());
@@ -215,5 +227,15 @@ public class OrderTransactionListener implements RocketMQLocalTransactionListene
             }
         }
         return DELAY_SECONDS.length;
+    }
+
+    private void publishOrderCreated(Order order) {
+        orderCreatedInternalProducer.send(OrderCreatedInternalMessage.builder()
+                .orderNo(order.getOrderNo())
+                .lockId(order.getLockId())
+                .userId(order.getUserId())
+                .sessionId(order.getSessionId())
+                .createdAt(order.getCreatedAt())
+                .build());
     }
 }

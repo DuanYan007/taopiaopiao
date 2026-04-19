@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "抢票系统架构设计文档-方案A.md",
+                "file": "manual-test-seckill-observation.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "抢票系统架构设计文档-方案A"
+              "title": "manual-test-seckill-observation"
             }
           }
         ]
@@ -185,6 +185,31 @@
   },
   "active": "e4e41f5cee0a52cb",
   "lastOpenFiles": [
+    "business-flow/redis-structures-and-operations.md",
+    "runbook-local.md",
+    "skill-standard.md",
+    "manual-test-seckill-observation.md",
+    "local-private.example.md",
+    "invariants.md",
+    "codex-workflow.md",
+    "business-flow/lock-order-payment-full.md",
+    "system-map.md",
+    "skill-template.md",
+    "business-flow/seckill.md",
+    "business-flow/retry-and-idempotency.md",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis/src/main/resources/lua/update_lock_order_status.lua.md",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis/src/main/resources/lua",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis/src/main/resources",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis/src/main",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis/src",
+    "home/duanyan/project/taopiaopiao-backend/taopiaopiao-common-redis",
+    "home/duanyan/project/taopiaopiao-backend",
+    "home/duanyan/project",
+    "home/duanyan",
+    "home",
+    "seckill-phase-3.md",
+    "seckill-phase-2.md",
+    "session_1_init.json~",
     "场次开售全流程设计.md"
   ]
 }

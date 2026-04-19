@@ -1,4 +1,4 @@
-package com.duanyan.taopiaopiao.seckillservice.application.client.dto;
+package com.duanyan.taopiaopiao.orderservice.application.client.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * 创建支付请求
+ * 支付创建请求
  */
 @Data
 @Builder
@@ -16,23 +16,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PaymentCreateRequest {
 
-    /**
-     * 业务订单号
-     */
     private String orderNo;
 
-    /**
-     * 支付金额
-     */
     private BigDecimal amount;
 
-    /**
-     * 支付方式
-     */
     private String payMethod;
 
-    /**
-     * 商品描述
-     */
     private String body;
 }

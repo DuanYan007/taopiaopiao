@@ -27,6 +27,10 @@ public class SessionInitRequest {
     @Schema(description = "场次ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long sessionId;
 
+    @NotNull(message = "演出ID不能为空")
+    @Schema(description = "演出ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long eventId;
+
     @NotEmpty(message = "区域名称不能为空")
     @Schema(description = "区域名称列表", requiredMode = Schema.RequiredMode.REQUIRED, example = "[\"VIP区\", \"A区\", \"B区\"]")
     private List<String> areaNames;

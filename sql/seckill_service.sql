@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS seat_locks (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     session_id BIGINT NOT NULL COMMENT '场次ID',
     user_id BIGINT NOT NULL COMMENT '用户ID',
-    seat_id VARCHAR(50) NOT NULL COMMENT '座位ID (格式: row:col)',
+    seat_id VARCHAR(50) NOT NULL COMMENT '座位ID（seats 表主键ID的字符串形式）',
     lock_id VARCHAR(64) NOT NULL COMMENT '锁ID',
     seat_row INT NOT NULL COMMENT '座位行号',
     seat_col INT NOT NULL COMMENT '座位列号',

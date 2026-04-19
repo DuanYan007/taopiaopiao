@@ -32,6 +32,32 @@ docker run --rm --network host -v "$(pwd)/scripts/loadtest:/scripts" grafana/k6 
 - Current real pressure-test target is `sessionId=1`.
 - OpenResty gate is only enabled for this hotspot session.
 - Watch `/usr/local/openresty/nginx/logs/tpp_access.log`, `seckill-service` logs, `order-service` logs, and system resource usage during tests.
+- Before pressure tests, ensure the session cache is initialized with both `sessionId` and `eventId`; lock-seat hot path now depends on the Redis session snapshot instead of a runtime `session-service` RPC.
+
+## OpenResty Gate Tuning
+Use these localhost-only endpoints after OpenResty reload:
+
+```bash
+curl http://127.0.0.1/internal/seckill/gate/status?sessionId=1
+
+curl -X POST http://127.0.0.1/internal/seckill/gate/config \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "sessionId": 1,
+    "token_rate": 120,
+    "bucket_capacity": 180,
+    "max_inflight": 48,
+    "queue_timeout_ms": 100
+  }'
+
+curl -X POST http://127.0.0.1/internal/seckill/gate/reset \
+  -H 'Content-Type: application/json' \
+  -d '{"sessionId":1}'
+```
+
+- `status` 会返回当前生效配置、运行中 `inflight/tokens`、以及 `allow/reject/upstream_*` 计数。
+- `config` 支持局部更新；未传的字段保留当前 override 值。
+- `reset` 会清除该场次的 override、token/inflight 运行态和计数器，适合每轮压测前做一次。
 
 ## Lock Only Burst Example
 ```bash
@@ -54,6 +80,7 @@ docker run --rm --network host \
 
 ## Verification Checklist
 - `nginx -t` passes after OpenResty edits.
-- Seat lock returns `orderNo` and `payUrl`.
+- Seat lock returns `lockId`, `orderNo`, `expireTime`, `orderStatus=PROCESSING`, and `paymentStatus=NOT_READY`.
+- Frontend or manual polling of `/client/orders/{orderNo}` can obtain `paymentStatus=READY` and `payUrl`.
 - Paid event updates order and sold-seat state.
 - Timeout or user cancel releases unpaid locked seats.

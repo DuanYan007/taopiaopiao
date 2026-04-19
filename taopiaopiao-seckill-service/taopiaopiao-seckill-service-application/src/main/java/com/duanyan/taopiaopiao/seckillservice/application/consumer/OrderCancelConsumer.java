@@ -3,6 +3,7 @@ package com.duanyan.taopiaopiao.seckillservice.application.consumer;
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
 import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
+import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockOrderStatus;
 import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,11 @@ public class OrderCancelConsumer implements RocketMQListener<OrderCancelMessage>
                     : LockStatus.RELEASED;
             seckillService.releaseSeats(message.getSessionId(), message.getUserId(),
                     message.getLockId(), message.getSeatIds(), releaseStatus);
+            seckillService.markLockOrderReleased(
+                    message.getOrderNo(),
+                    "TIMEOUT".equals(message.getReason()) ? LockOrderStatus.TIMEOUT : LockOrderStatus.CANCELLED,
+                    message.getReason()
+            );
 
             log.info("处理订单取消消息成功: orderNo={}, reason={}", message.getOrderNo(), message.getReason());
 

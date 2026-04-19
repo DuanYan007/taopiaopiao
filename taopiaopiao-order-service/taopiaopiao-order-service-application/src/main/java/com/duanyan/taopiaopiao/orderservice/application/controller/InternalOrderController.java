@@ -1,33 +1,32 @@
 package com.duanyan.taopiaopiao.orderservice.application.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.orderservice.api.dto.CreatePendingOrderRequest;
-import com.duanyan.taopiaopiao.orderservice.api.dto.OrderResponse;
-import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
+import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
+import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 内部订单控制器。
- */
-@Slf4j
 @Tag(name = "内部订单管理", description = "内部订单接口")
 @RestController
 @RequestMapping("/internal/orders")
 @RequiredArgsConstructor
 public class InternalOrderController {
 
-    private final OrderService orderService;
+    private final OrderMapper orderMapper;
 
-    @PostMapping("/create-pending")
-    @Operation(summary = "创建待支付订单")
-    public Result<OrderResponse> createPendingOrder(@RequestHeader(value = "X-Request-Id", required = false) String requestId,
-                                                    @Valid @RequestBody CreatePendingOrderRequest request) {
-        OrderResponse response = orderService.createPendingOrder(request, requestId);
-        return Result.success(response);
+    @GetMapping("/{orderNo}/exists")
+    @Operation(summary = "判断正式订单是否存在")
+    public Result<Boolean> exists(@PathVariable String orderNo) {
+        Long count = orderMapper.selectCount(
+                new LambdaQueryWrapper<Order>()
+                        .eq(Order::getOrderNo, orderNo)
+        );
+        return Result.success(count != null && count > 0);
     }
 }

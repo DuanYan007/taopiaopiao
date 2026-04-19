@@ -5,6 +5,7 @@ import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.taopiaopiao.common.redis.service.RedisService;
 import com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper;
+import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
 import com.duanyan.taopiaopiao.seckillservice.domain.entity.SeatLock;
 import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
 
     private final RedisService redisService;
     private final SeatLockMapper seatLockMapper;
+    private final SeckillServiceImpl seckillService;
 
     @Override
     public void onMessage(OrderPaidMessage message) {
@@ -59,6 +61,14 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
                 return;
             }
 
+            Long lockRowCount = seatLockMapper.selectCount(
+                    new LambdaQueryWrapper<SeatLock>()
+                            .eq(SeatLock::getSessionId, message.getSessionId())
+                            .eq(SeatLock::getUserId, message.getUserId())
+                            .in(SeatLock::getSeatId, seatIds)
+                            .eq(SeatLock::getOrderNo, message.getOrderNo())
+            );
+
             boolean confirmed = redisService.confirmPurchase(
                     message.getSessionId(),
                     message.getUserId(),
@@ -74,18 +84,23 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
                         message.getLockId(), message.getOrderNo());
             }
 
-            Long finalPaidCount = seatLockMapper.selectCount(
-                    new LambdaQueryWrapper<SeatLock>()
-                            .eq(SeatLock::getSessionId, message.getSessionId())
-                            .eq(SeatLock::getUserId, message.getUserId())
-                            .in(SeatLock::getSeatId, seatIds)
-                            .eq(SeatLock::getStatus, LockStatus.PAID.getCode())
-                            .eq(SeatLock::getOrderNo, message.getOrderNo())
-            );
-            if (finalPaidCount == null || finalPaidCount != seatIds.size()) {
-                throw new RuntimeException("seat_locks 未全部标记为已支付: " + message.getOrderNo());
+            if (lockRowCount != null && lockRowCount > 0) {
+                Long finalPaidCount = seatLockMapper.selectCount(
+                        new LambdaQueryWrapper<SeatLock>()
+                                .eq(SeatLock::getSessionId, message.getSessionId())
+                                .eq(SeatLock::getUserId, message.getUserId())
+                                .in(SeatLock::getSeatId, seatIds)
+                                .eq(SeatLock::getStatus, LockStatus.PAID.getCode())
+                                .eq(SeatLock::getOrderNo, message.getOrderNo())
+                );
+                if (finalPaidCount == null || finalPaidCount != seatIds.size()) {
+                    throw new RuntimeException("seat_locks 未全部标记为已支付: " + message.getOrderNo());
+                }
+            } else {
+                log.info("seat_locks 审计明细尚未落盘，跳过支付态 DB 校验: orderNo={}", message.getOrderNo());
             }
 
+            seckillService.markLockOrderPaid(message.getOrderNo());
             log.info("支付成功副作用处理完成: orderNo={}, seatCount={}", message.getOrderNo(), seatIds.size());
         } catch (Exception e) {
             log.error("处理支付成功消息异常: orderNo={}", message.getOrderNo(), e);

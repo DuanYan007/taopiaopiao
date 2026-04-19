@@ -29,6 +29,11 @@
             <artifactId>mybatis-plus-core</artifactId>
             <version>3.5.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>3.5.7</version>
+        </dependency>
 
         <!-- Jackson for JSON processing -->
         <dependency>

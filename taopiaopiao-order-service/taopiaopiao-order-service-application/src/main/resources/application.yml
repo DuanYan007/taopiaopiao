@@ -5,6 +5,14 @@ spring:
   application:
     name: order-service
 
+  data:
+    redis:
+      host: localhost
+      port: 6349
+      password: 7566
+      database: 0
+      timeout: 5000
+
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -47,10 +55,13 @@ rocketmq:
     group: order-service-producer-group
     send-message-timeout: 3000
     retry-times-when-send-failed: 2
-    # 开发环境：允许自动创建 Topic（生产环境建议手动创建）
-    auto-create-topic-enable: true
   consumer:
     group: order-service-consumer-group
+
+tpp:
+  rocketmq:
+    topic-bootstrap:
+      enabled: true
 
 logging:
   level:

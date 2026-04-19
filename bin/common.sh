@@ -10,6 +10,13 @@ MVN_BIN="${MVN_BIN:-mvn}"
 
 mkdir -p "${LOG_DIR}" "${RUN_DIR}"
 
+read_listen_pid_by_port() {
+    local port="$1"
+    ss -ltnp "( sport = :${port} )" 2>/dev/null \
+        | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' \
+        | head -n 1
+}
+
 run_service_foreground() {
     local module_path="$1"
     cd "${ROOT_DIR}/${module_path}"
@@ -45,4 +52,24 @@ stop_service_by_pid_file() {
         echo "${service_name}: process not running"
     fi
     rm -f "${pid_file}"
+}
+
+stop_service_by_port() {
+    local service_name="$1"
+    local port="$2"
+    local pid
+    pid="$(read_listen_pid_by_port "${port}")"
+
+    if [[ -z "${pid}" ]]; then
+        echo "${service_name}: no process listening on port ${port}"
+        return 0
+    fi
+
+    if kill -0 "${pid}" 2>/dev/null; then
+        kill "${pid}"
+        echo "${service_name}: stopped pid=${pid} via port ${port}"
+        return 0
+    fi
+
+    echo "${service_name}: pid=${pid} on port ${port} is not running"
 }

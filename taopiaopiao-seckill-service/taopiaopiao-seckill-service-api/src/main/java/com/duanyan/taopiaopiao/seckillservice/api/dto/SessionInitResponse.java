@@ -22,6 +22,9 @@ public class SessionInitResponse {
     @Schema(description = "场次ID")
     private Long sessionId;
 
+    @Schema(description = "演出ID")
+    private Long eventId;
+
     @Schema(description = "是否成功")
     private Boolean success;
 

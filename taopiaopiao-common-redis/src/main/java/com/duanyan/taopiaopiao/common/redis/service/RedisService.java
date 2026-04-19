@@ -1,6 +1,7 @@
 package com.duanyan.taopiaopiao.common.redis.service;
 
-import com.duanyan.taopiaopiao.common.redis.constants.SeatStatus;
+import com.duanyan.taopiaopiao.common.redis.model.RedisLockOrderData;
+import com.duanyan.taopiaopiao.common.redis.model.OrderProcessingCacheData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,20 +19,25 @@ public interface RedisService {
      * 初始化场次座位数据
      *
      * @param sessionId 场次ID
-     * @param seatIds   座位ID列表 (格式: "row:col")
+     * @param seatIds   座位ID列表（seats 表主键ID的字符串形式）
      */
     List<BigDecimal> getSeatsPrice(Long sessionId, List<String> seatIds);
 
-    /**
-     * 锁定座位
-     *
-     * @param sessionId    场次ID
-     * @param userId       用户ID
-     * @param seatIds      座位ID列表
-     * @param expireSeconds 过期时间（秒）
-     * @return 锁座结果码: 0=成功, 1=座位不存在, 2=座位不可用, 3=重复购票
-     */
-    int lockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, int expireSeconds);
+    int lockSeatsAndRecordOrder(Long sessionId,
+                                Long eventId,
+                                Long userId,
+                                String lockId,
+                                String orderNo,
+                                List<String> seatIds,
+                                BigDecimal unitPrice,
+                                BigDecimal totalAmount,
+                                int seatLockExpireSeconds,
+                                int userLockExpireSeconds,
+                                long lockOrderTtlSeconds,
+                                long expireTimeMillis,
+                                long createdAtMillis,
+                                String requestId,
+                                String payloadJson);
 
     /**
      * 释放座位
@@ -89,6 +95,22 @@ public interface RedisService {
     void saveSessionLayout(Long sessionId, String metaJson, java.util.Map<String, String> areaJsonMap);
 
     /**
+     * 保存场次快照元数据
+     *
+     * @param sessionId 场次ID
+     * @param eventId 演出ID
+     */
+    void saveSessionMeta(Long sessionId, Long eventId);
+
+    /**
+     * 获取场次快照元数据
+     *
+     * @param sessionId 场次ID
+     * @return 包含 eventId 的元数据，缓存不存在时返回 null
+     */
+    Map<String, Object> getSessionMeta(Long sessionId);
+
+    /**
      * 批量获取座位当前有效状态。
      * 优先级：已售出(2) > 已锁定(1) > 可选(0)
      *
@@ -97,4 +119,20 @@ public interface RedisService {
      * @return key=seatId, value=当前有效状态码
      */
     Map<String, Integer> getEffectiveSeatStatuses(Long sessionId, List<String> seatIds);
+
+    void saveOrderProcessing(OrderProcessingCacheData data, long ttlSeconds);
+
+    OrderProcessingCacheData getOrderProcessing(String orderNo);
+
+    void deleteOrderProcessing(String orderNo);
+
+    RedisLockOrderData getLockOrder(String orderNo);
+
+    boolean transitionLockOrderStatus(String orderNo,
+                                      List<Integer> expectedStatuses,
+                                      Integer targetStatus,
+                                      String paymentStatus,
+                                      String failReason,
+                                      boolean clearUserLockIndex,
+                                      long ttlSeconds);
 }

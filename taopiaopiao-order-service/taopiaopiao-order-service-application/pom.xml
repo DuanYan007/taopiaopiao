@@ -31,6 +31,10 @@
             <groupId>com.duanyan</groupId>
             <artifactId>taopiaopiao-common-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.duanyan</groupId>
+            <artifactId>taopiaopiao-common-redis</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>

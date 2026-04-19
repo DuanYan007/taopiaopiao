@@ -14,7 +14,6 @@ import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -116,9 +115,7 @@ public class OrderTimeoutCheckConsumer implements RocketMQListener<OrderCancelMe
     }
 
     private OrderPaidMessage buildPaidMessage(Order order) {
-        List<String> seatIds = StringUtils.isBlank(order.getSeatIds())
-                ? List.of()
-                : List.of(order.getSeatIds().split(","));
+        List<String> seatIds = order.getSeatIds() == null ? List.of() : order.getSeatIds();
         return OrderPaidMessage.builder()
                 .orderNo(order.getOrderNo())
                 .userId(order.getUserId())
