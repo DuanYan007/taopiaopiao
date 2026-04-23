@@ -31,7 +31,6 @@ skill-name/
 
 ## Writing Rules
 - Keep `SKILL.md` concise and operational.
-- Do not repeat repository basics already covered in `docs/`.
 - Use references for long examples or variant-specific details.
 - One skill should serve one workflow, not an entire subsystem.
 - Do not place secrets, host passwords, or machine-only data in skills.
@@ -40,13 +39,3 @@ skill-name/
 - One session should primarily use one main skill.
 - If the task changes from payment to load testing or OpenResty, open a new session and switch skills.
 - Only combine skills when the workflows truly overlap.
-
-## Current Recommended Skill Set
-- `tpp-create-skill`: create or update repository-specific skills from user-described workflows.
-- `tpp-bootstrap-repo`: initial repository reading and task scoping.
-- `tpp-review-seckill-flow`: lock-seat hot path review.
-- `tpp-review-payment-chain`: paid-event producer and consumer review.
-- `tpp-review-cancel-chain`: timeout and cancel flow review.
-- `tpp-change-openresty-gate`: OpenResty and Lua gate work.
-- `tpp-analysis-loadtest`: k6 test execution and result analysis.
-- `tpp-write-interview-docs`: interview storytelling and architecture write-up.

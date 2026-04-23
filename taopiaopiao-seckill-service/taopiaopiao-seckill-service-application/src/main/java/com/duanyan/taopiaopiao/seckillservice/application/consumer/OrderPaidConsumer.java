@@ -1,13 +1,9 @@
 package com.duanyan.taopiaopiao.seckillservice.application.consumer;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.taopiaopiao.common.redis.service.RedisService;
-import com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper;
 import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
-import com.duanyan.taopiaopiao.seckillservice.domain.entity.SeatLock;
-import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
@@ -21,9 +17,7 @@ import java.util.List;
 /**
  * 支付成功事件消费者（秒杀服务）
  *
- * 负责：
- * 1. Redis 座位确认购买（写入已售并删除临时锁）
- * 2. seat_locks 标记为已支付
+ * 负责 Redis 座位确认购买并推进 Redis 锁单终态。
  */
 @Slf4j
 @Component
@@ -38,7 +32,6 @@ import java.util.List;
 public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
 
     private final RedisService redisService;
-    private final SeatLockMapper seatLockMapper;
     private final SeckillServiceImpl seckillService;
 
     @Override
@@ -48,27 +41,6 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
                     message.getOrderNo(), message.getUserId(), message.getSessionId());
 
             List<String> seatIds = message.getSeatIds();
-            Long paidCount = seatLockMapper.selectCount(
-                    new LambdaQueryWrapper<SeatLock>()
-                            .eq(SeatLock::getSessionId, message.getSessionId())
-                            .eq(SeatLock::getUserId, message.getUserId())
-                            .in(SeatLock::getSeatId, seatIds)
-                            .eq(SeatLock::getStatus, LockStatus.PAID.getCode())
-                            .eq(SeatLock::getOrderNo, message.getOrderNo())
-            );
-            if (paidCount != null && paidCount == seatIds.size()) {
-                log.info("seat_locks 已全部支付，跳过: orderNo={}", message.getOrderNo());
-                return;
-            }
-
-            Long lockRowCount = seatLockMapper.selectCount(
-                    new LambdaQueryWrapper<SeatLock>()
-                            .eq(SeatLock::getSessionId, message.getSessionId())
-                            .eq(SeatLock::getUserId, message.getUserId())
-                            .in(SeatLock::getSeatId, seatIds)
-                            .eq(SeatLock::getOrderNo, message.getOrderNo())
-            );
-
             boolean confirmed = redisService.confirmPurchase(
                     message.getSessionId(),
                     message.getUserId(),
@@ -77,27 +49,6 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
             );
             if (!confirmed) {
                 throw new RuntimeException("Redis 确认购买失败: " + message.getOrderNo());
-            }
-
-            for (String seatId : seatIds) {
-                seatLockMapper.markAsPaid(message.getSessionId(), message.getUserId(), seatId,
-                        message.getLockId(), message.getOrderNo());
-            }
-
-            if (lockRowCount != null && lockRowCount > 0) {
-                Long finalPaidCount = seatLockMapper.selectCount(
-                        new LambdaQueryWrapper<SeatLock>()
-                                .eq(SeatLock::getSessionId, message.getSessionId())
-                                .eq(SeatLock::getUserId, message.getUserId())
-                                .in(SeatLock::getSeatId, seatIds)
-                                .eq(SeatLock::getStatus, LockStatus.PAID.getCode())
-                                .eq(SeatLock::getOrderNo, message.getOrderNo())
-                );
-                if (finalPaidCount == null || finalPaidCount != seatIds.size()) {
-                    throw new RuntimeException("seat_locks 未全部标记为已支付: " + message.getOrderNo());
-                }
-            } else {
-                log.info("seat_locks 审计明细尚未落盘，跳过支付态 DB 校验: orderNo={}", message.getOrderNo());
             }
 
             seckillService.markLockOrderPaid(message.getOrderNo());

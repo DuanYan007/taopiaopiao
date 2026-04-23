@@ -11,13 +11,13 @@ description: Use when the task is about <domain> and needs the fixed workflow fo
 - Use this skill when:
 
 # Read First
-- `docs/...`
+- `README.md`
 - `path/to/controller`
 - `path/to/service`
 - `path/to/consumer`
 
 # Workflow
-1. Read the required docs and code before proposing changes.
+1. Read the required code and entry references before proposing changes.
 2. Restate the current flow and assumptions.
 3. List findings, risks, and change boundaries.
 4. Wait for confirmation before implementation, if the task is not already implementation-ready.

@@ -5,7 +5,7 @@ description: Use when Codex enters this repository for the first time in a sessi
 
 # Scope
 - Handles: first-entry repository bootstrap for this project.
-- Handles: loading the minimum necessary docs, structure, runtime facts, and high-risk flow context into working context.
+- Handles: loading the minimum necessary repository entry points, structure, runtime facts, and high-risk flow context into working context.
 - Does not handle: detailed review or implementation of a specific business change.
 
 # Trigger
@@ -15,22 +15,20 @@ description: Use when Codex enters this repository for the first time in a sessi
 
 # Read First
 - `AGENTS.md`
-- `docs/system-map.md`
-- `docs/business-flow/seckill.md`
-- `docs/invariants.md`
-- `docs/runbook-local.md`
-- `docs/codex-workflow.md`
+- `README.md`
+- `/home/duanyan/.codex/memories/taopiaopiao-backend/stable-context.md`
+- `/home/duanyan/.codex/memories/taopiaopiao-backend/active-context.md`
 - root `pom.xml`
 - `scripts/loadtest/README.md` when the task involves pressure testing
 
 # Workflow
-1. Read the repository docs first instead of scanning the whole codebase.
+1. Read the repository entry points and memory first instead of scanning the whole codebase.
 2. Summarize the project in a few concrete points: architecture, hot path, core services, infrastructure, and current focus.
 3. Identify the task domain: seckill flow, payment chain, cancel chain, OpenResty gate, load testing, or interview docs.
 4. Read only the code entry points needed for that domain, usually controller, service, consumer, listener, mapper, and relevant config.
 5. Restate assumptions before proposing changes if the business semantics are not yet explicit.
 6. Keep context lean; do not load unrelated modules into context.
-7. If stable project knowledge is missing from docs, suggest or add doc updates after the main task.
+7. If stable project knowledge is missing from repository entry points or memory, suggest or add the right update after the main task.
 
 # Guardrails
 - Do not start by reading random files across all modules.

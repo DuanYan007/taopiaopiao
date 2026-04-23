@@ -15,6 +15,7 @@ import com.duanyan.taopiaopiao.orderservice.application.client.SeatTemplateClien
 import com.duanyan.taopiaopiao.orderservice.application.client.SessionClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.VenueClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.InternalLockOrderResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentCreateRequest;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentCreateResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
@@ -28,7 +29,6 @@ import com.duanyan.taopiaopiao.orderservice.application.producer.OrderTransactio
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
-import com.duanyan.taopiaopiao.seckillservice.api.dto.InternalLockOrderResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;

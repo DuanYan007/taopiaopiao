@@ -60,24 +60,6 @@
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
-        <!-- 依赖其他服务的 API 模块 -->
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-seckill-service-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-event-service-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-session-service-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-user-service-api</artifactId>
-        </dependency>
-
         <!-- MyBatis-Plus -->
         <dependency>
             <groupId>com.baomidou</groupId>

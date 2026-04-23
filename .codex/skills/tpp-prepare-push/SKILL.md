@@ -17,16 +17,15 @@ description: Use when the task is to separate valid repository changes from loca
 
 # Read First
 - `AGENTS.md`
-- `docs/codex-workflow.md`
-- `docs/skill-standard.md`
-- `docs/runbook-local.md`
+- `README.md`
+- `/home/duanyan/.codex/memories/taopiaopiao-backend/stable-context.md`
 - `.gitignore`
 - `git status --short --branch`
 - `git log --oneline -n 10`
 
 # Workflow
 1. Inspect branch status, recent commits, and current worktree before touching history.
-2. Classify changed files into three groups: valid source/docs/scripts, runtime artifacts, and permission-only noise.
+2. Classify changed files into three groups: valid versioned changes, runtime artifacts, and permission-only noise.
 3. If recent local commits contain invalid files, roll them back to local changes without deleting user work.
 4. Update `.gitignore` for stable local artifacts such as `.run/`, `.tmp/`, `logs/`, `nohup.out`, and similar generated files.
 5. Restore or discard chmod-only noise unless executable permission is intentionally required.

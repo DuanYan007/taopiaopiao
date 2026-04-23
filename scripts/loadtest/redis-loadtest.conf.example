@@ -1,0 +1,34 @@
+# Local Redis profile for large pressure tests only.
+# This is intended for local burst testing such as 16000 users / 16000 seats.
+# Do not copy this file to production unchanged.
+
+bind 0.0.0.0
+protected-mode yes
+port 6379
+requirepass 7566
+
+dir /data
+dbfilename dump.rdb
+
+# Avoid background-save fork pressure during the burst window.
+save ""
+appendonly no
+
+tcp-backlog 4096
+timeout 0
+tcp-keepalive 60
+maxclients 20000
+
+# Keep memory bounded so Redis fails predictably instead of competing with the host.
+maxmemory 6gb
+maxmemory-policy noeviction
+
+# Expiration-heavy hot-path tuning.
+hz 50
+dynamic-hz yes
+lazyfree-lazy-expire yes
+lazyfree-lazy-server-del yes
+
+# Enable threaded network I/O on multicore hosts.
+io-threads 4
+io-threads-do-reads yes

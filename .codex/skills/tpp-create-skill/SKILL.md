@@ -14,10 +14,10 @@ description: Use when the user wants to create or update a repository-specific C
 - Use this skill when a repeated workflow should be extracted into a reusable skill.
 
 # Read First
-- `docs/skill-standard.md`
-- `docs/skill-template.md`
-- `docs/codex-workflow.md`
 - `AGENTS.md`
+- `README.md`
+- `references/skill-standard.md`
+- `references/skill-template.md`
 
 # Workflow
 1. Restate the target workflow the new skill should support.
@@ -26,7 +26,7 @@ description: Use when the user wants to create or update a repository-specific C
 4. Create the skill under `.codex/skills/<skill-name>/`.
 5. Write `SKILL.md` using the repository template and fill `Scope`, `Trigger`, `Read First`, `Workflow`, `Guardrails`, `Verification`, and `Output`.
 6. Add `references/` only when the skill needs longer, variant-specific material.
-7. Keep the skill concise and operational; point back to `docs/` instead of duplicating repository context.
+7. Keep the skill concise and operational; point back to `README.md`, `AGENTS.md`, or existing memory/skills instead of duplicating repository context.
 8. After creation, summarize when the new skill should be used and what session type it fits.
 
 # Guardrails
@@ -38,7 +38,7 @@ description: Use when the user wants to create or update a repository-specific C
 
 # Verification
 - Check the name matches `tpp-<action>-<domain>`.
-- Check `SKILL.md` contains all required sections from `docs/skill-standard.md`.
+- Check `SKILL.md` contains all required sections from `references/skill-standard.md`.
 - Check referenced docs and code paths are real.
 - Check the skill is narrow enough to fit one stable workflow.
 

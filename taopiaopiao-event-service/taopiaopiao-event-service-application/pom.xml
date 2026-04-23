@@ -101,22 +101,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.duanyan</groupId>
-            <artifactId>taopiaopiao-common</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

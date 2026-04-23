@@ -22,9 +22,6 @@ public class LockSeatRequest {
     @Schema(description = "演出ID（由前端透传，后端会基于场次快照校验）")
     private Long eventId;
 
-    @Schema(description = "用户ID（兼容旧请求体字段，实际以请求头 X-User-Id 为准）")
-    private Long userId;
-
     @Schema(description = "座位ID列表（seats表主键ID，前端以字符串形式传递）", required = true)
     @NotEmpty(message = "座位号不能为空")
     private List<String> seatIds;

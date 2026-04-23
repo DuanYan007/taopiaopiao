@@ -1,7 +1,7 @@
 package com.duanyan.taopiaopiao.orderservice.application.client;
 
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.seckillservice.api.dto.InternalLockOrderResponse;
+import com.duanyan.taopiaopiao.orderservice.application.client.dto.InternalLockOrderResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

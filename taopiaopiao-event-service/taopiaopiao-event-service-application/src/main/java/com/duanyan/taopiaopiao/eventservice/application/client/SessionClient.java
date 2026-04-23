@@ -1,7 +1,8 @@
 package com.duanyan.taopiaopiao.eventservice.application.client;
 
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.eventservice.api.dto.SessionBriefPageResponse;
+import com.duanyan.taopiaopiao.eventservice.application.client.dto.SessionPageResponse;
+import com.duanyan.taopiaopiao.eventservice.application.client.dto.SessionResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,10 +19,9 @@ public interface SessionClient {
 
     /**
      * 分页查询场次列表（客户端）
-     * 返回JSON，由Service层转换为SessionBriefPageResponse
      */
     @GetMapping
-    Result<Object> getSessionPage(
+    Result<SessionPageResponse> getSessionPage(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long eventId,
             @RequestParam(required = false) String status,
@@ -30,8 +30,7 @@ public interface SessionClient {
 
     /**
      * 根据ID查询场次详情（客户端）
-     * 返回JSON，由Service层转换为SessionBriefResponse
      */
     @GetMapping("/{id}")
-    Result<Object> getSessionById(@PathVariable("id") Long id);
+    Result<SessionResponse> getSessionById(@PathVariable("id") Long id);
 }

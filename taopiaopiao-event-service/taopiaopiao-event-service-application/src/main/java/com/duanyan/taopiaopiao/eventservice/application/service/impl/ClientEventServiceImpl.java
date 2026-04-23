@@ -2,22 +2,24 @@ package com.duanyan.taopiaopiao.eventservice.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.exception.BusinessException;
+import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.eventservice.api.dto.EventPageResponse;
 import com.duanyan.taopiaopiao.eventservice.api.dto.EventQueryRequest;
 import com.duanyan.taopiaopiao.eventservice.api.dto.EventResponse;
 import com.duanyan.taopiaopiao.eventservice.api.dto.SessionBriefPageResponse;
 import com.duanyan.taopiaopiao.eventservice.api.dto.SessionBriefResponse;
 import com.duanyan.taopiaopiao.eventservice.application.client.SessionClient;
+import com.duanyan.taopiaopiao.eventservice.application.client.dto.SessionPageResponse;
+import com.duanyan.taopiaopiao.eventservice.application.client.dto.SessionResponse;
 import com.duanyan.taopiaopiao.eventservice.application.mapper.EventMapper;
 import com.duanyan.taopiaopiao.eventservice.application.service.ClientEventService;
 import com.duanyan.taopiaopiao.eventservice.domain.entity.Event;
-import com.duanyan.taopiaopiao.common.response.Result;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 /**
  * 演出客户端服务实现
@@ -33,7 +35,6 @@ public class ClientEventServiceImpl implements ClientEventService {
     private final EventMapper eventMapper;
     private final SessionClient sessionClient;
     private final EventServiceImpl eventService; // 复用管理端的转换逻辑
-    private final ObjectMapper objectMapper;
 
     @Override
     public EventPageResponse getEventPage(EventQueryRequest request) {
@@ -112,16 +113,64 @@ public class ClientEventServiceImpl implements ClientEventService {
         }
 
         try {
-            // 调用场次服务获取数据
-            Result<Object> response = sessionClient.getSessionPage(null, eventId, status, page, pageSize);
+            Result<SessionPageResponse> response = sessionClient.getSessionPage(null, eventId, status, page, pageSize);
             if (response != null && response.getData() != null) {
-                // 将返回的Object转换为SessionBriefPageResponse
-                return objectMapper.convertValue(response.getData(), new TypeReference<SessionBriefPageResponse>() {});
+                return toSessionBriefPageResponse(response.getData());
             }
             throw new BusinessException(500, "查询场次失败");
         } catch (Exception e) {
             log.error("调用场次服务失败, eventId: {}, error: {}", eventId, e.getMessage());
             throw new BusinessException(500, "查询场次失败: " + e.getMessage());
         }
+    }
+
+    private SessionBriefPageResponse toSessionBriefPageResponse(SessionPageResponse response) {
+        List<SessionBriefResponse> list = response.getList() == null
+                ? List.of()
+                : response.getList().stream().map(this::toSessionBriefResponse).toList();
+
+        return SessionBriefPageResponse.builder()
+                .list(list)
+                .total(response.getTotal())
+                .page(response.getPage())
+                .pageSize(response.getPageSize())
+                .totalPages(response.getTotalPages())
+                .build();
+    }
+
+    private SessionBriefResponse toSessionBriefResponse(SessionResponse response) {
+        return SessionBriefResponse.builder()
+                .id(response.getId())
+                .eventId(response.getEventId())
+                .sessionName(response.getSessionName())
+                .startTime(response.getStartTime())
+                .endTime(response.getEndTime())
+                .seatTemplateId(response.getSeatTemplateId())
+                .address(response.getAddress())
+                .availableSeats(response.getAvailableSeats())
+                .soldSeats(response.getSoldSeats())
+                .lockedSeats(response.getLockedSeats())
+                .status(response.getStatus())
+                .metadata(toSessionMetadata(response.getMetadata()))
+                .createdAt(response.getCreatedAt())
+                .updatedAt(response.getUpdatedAt())
+                .build();
+    }
+
+    private SessionBriefResponse.SessionMetadata toSessionMetadata(SessionResponse.SessionMetadata metadata) {
+        if (metadata == null) {
+            return null;
+        }
+        return SessionBriefResponse.SessionMetadata.builder()
+                .duration(metadata.getDuration())
+                .saleStartTime(metadata.getSaleStartTime())
+                .saleEndTime(metadata.getSaleEndTime())
+                .seatSelectionMode(metadata.getSeatSelectionMode())
+                .requireRealName(metadata.getRequireRealName())
+                .limitOnePerPerson(metadata.getLimitOnePerPerson())
+                .noRefund(metadata.getNoRefund())
+                .sortOrder(metadata.getSortOrder())
+                .remark(metadata.getRemark())
+                .build();
     }
 }

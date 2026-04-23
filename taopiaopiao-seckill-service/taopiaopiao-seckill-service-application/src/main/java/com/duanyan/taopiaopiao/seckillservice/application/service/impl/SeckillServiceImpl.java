@@ -1,6 +1,5 @@
 package com.duanyan.taopiaopiao.seckillservice.application.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.duanyan.taopiaopiao.common.exception.BusinessException;
 import com.duanyan.taopiaopiao.common.mq.message.LockAcceptedMessage;
 import com.duanyan.taopiaopiao.common.redis.model.OrderProcessingCacheData;
@@ -16,12 +15,7 @@ import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitRequest;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitResponse;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionLayoutResponse;
 import com.duanyan.taopiaopiao.seckillservice.application.config.LockOrderNoGenerator;
-import com.duanyan.taopiaopiao.seckillservice.application.mapper.LockOrderMapper;
-import com.duanyan.taopiaopiao.seckillservice.application.mapper.SeatLockMapper;
-import com.duanyan.taopiaopiao.seckillservice.application.producer.LockAcceptedProducer;
 import com.duanyan.taopiaopiao.seckillservice.application.service.SeckillService;
-import com.duanyan.taopiaopiao.seckillservice.domain.entity.LockOrder;
-import com.duanyan.taopiaopiao.seckillservice.domain.entity.SeatLock;
 import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockOrderStatus;
 import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -54,11 +48,8 @@ public class SeckillServiceImpl implements SeckillService {
     private static final long LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS = 7200L;
 
     private final RedisService redisService;
-    private final SeatLockMapper seatLockMapper;
-    private final LockOrderMapper lockOrderMapper;
     private final LockOrderNoGenerator lockOrderNoGenerator;
     private final ObjectMapper objectMapper;
-    private final LockAcceptedProducer lockAcceptedProducer;
 
     @Override
     public LockSeatResponse lockSeats(LockSeatRequest request, Long userId, String requestId) {
@@ -161,129 +152,48 @@ public class SeckillServiceImpl implements SeckillService {
      */
     public void releaseSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, LockStatus releaseStatus) {
         redisService.unlockSeats(sessionId, userId, lockId, seatIds);
-        for (String seatId : seatIds) {
-            seatLockMapper.updateStatusByLock(sessionId, userId, seatId, lockId,
-                    LockStatus.LOCKED.getCode(), releaseStatus.getCode());
-        }
         log.info("释放座位成功: sessionId={}, userId={}, lockId={}, status={}, count={}",
                 sessionId, userId, lockId, releaseStatus, seatIds.size());
     }
 
     public InternalLockOrderResponse getLockOrder(String orderNo, Long userId) {
         RedisLockOrderData redisLockOrder = redisService.getLockOrder(orderNo);
-        if (redisLockOrder != null && userId.equals(redisLockOrder.getUserId())) {
-            return buildInternalLockOrderResponse(redisLockOrder);
-        }
-
-        LockOrder lockOrder = lockOrderMapper.selectOne(
-                new LambdaQueryWrapper<LockOrder>()
-                        .eq(LockOrder::getOrderNo, orderNo)
-                        .eq(LockOrder::getUserId, userId)
-        );
-        if (lockOrder == null) {
+        if (redisLockOrder == null || !userId.equals(redisLockOrder.getUserId())) {
             return null;
         }
-
-        LockOrderStatus status = resolveLockOrderStatus(lockOrder.getStatus());
-        return InternalLockOrderResponse.builder()
-                .lockId(lockOrder.getLockId())
-                .orderNo(lockOrder.getOrderNo())
-                .requestId(lockOrder.getRequestId())
-                .userId(lockOrder.getUserId())
-                .sessionId(lockOrder.getSessionId())
-                .eventId(lockOrder.getEventId())
-                .seatIds(resolveSeatIds(lockOrder.getSeatIds()))
-                .seatCount(lockOrder.getSeatCount())
-                .unitPrice(lockOrder.getUnitPrice())
-                .totalAmount(lockOrder.getTotalAmount())
-                .status(lockOrder.getStatus())
-                .statusDesc(status == null ? null : status.getDesc())
-                .failReason(lockOrder.getFailReason())
-                .expireTime(lockOrder.getExpireTime())
-                .createdAt(lockOrder.getCreatedAt())
-                .build();
+        return buildInternalLockOrderResponse(redisLockOrder);
     }
 
     public boolean markLockOrderOrderCreated(String orderNo) {
         RedisLockOrderData redisLockOrder = redisService.getLockOrder(orderNo);
-        if (redisLockOrder != null) {
-            Integer status = redisLockOrder.getStatus();
-            if (LockOrderStatus.ORDER_CREATED.getCode().equals(status)
-                    || LockOrderStatus.PAID.getCode().equals(status)) {
-                redisService.deleteOrderProcessing(orderNo);
-                return true;
-            }
-            boolean redisUpdated = redisService.transitionLockOrderStatus(
-                    orderNo,
-                    List.of(LockOrderStatus.LOCKED.getCode(), LockOrderStatus.ORDER_CREATING.getCode()),
-                    LockOrderStatus.ORDER_CREATED.getCode(),
-                    "NOT_READY",
-                    null,
-                    false,
-                    LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
-            );
-            if (redisUpdated) {
-                redisService.deleteOrderProcessing(orderNo);
-            }
-            if (redisUpdated && findLockOrder(orderNo) == null) {
-                return true;
-            }
-        }
-
-        LockOrder lockOrder = findLockOrder(orderNo);
-        if (lockOrder == null) {
+        if (redisLockOrder == null) {
             return false;
         }
-        if (LockOrderStatus.ORDER_CREATED.getCode().equals(lockOrder.getStatus())
-                || LockOrderStatus.PAID.getCode().equals(lockOrder.getStatus())) {
+
+        Integer status = redisLockOrder.getStatus();
+        if (LockOrderStatus.ORDER_CREATED.getCode().equals(status)
+                || LockOrderStatus.PAID.getCode().equals(status)) {
             redisService.deleteOrderProcessing(orderNo);
             return true;
         }
-        boolean updated = lockOrderMapper.markOrderCreated(
+
+        boolean updated = redisService.transitionLockOrderStatus(
                 orderNo,
                 List.of(LockOrderStatus.LOCKED.getCode(), LockOrderStatus.ORDER_CREATING.getCode()),
-                LockOrderStatus.ORDER_CREATED.getCode()
-        ) > 0;
+                LockOrderStatus.ORDER_CREATED.getCode(),
+                "NOT_READY",
+                null,
+                false,
+                LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
+        );
         if (updated) {
             redisService.deleteOrderProcessing(orderNo);
         }
         return updated;
     }
 
-    public void requeueLockOrder(LockOrder lockOrder, String reason) {
-        int updated = lockOrderMapper.updateStatus(
-                lockOrder.getOrderNo(),
-                List.of(LockOrderStatus.LOCKED.getCode(), LockOrderStatus.ORDER_CREATING.getCode()),
-                LockOrderStatus.ORDER_CREATING.getCode(),
-                reason
-        );
-        if (updated == 0) {
-            LockOrder latest = findLockOrder(lockOrder.getOrderNo());
-            if (latest == null || LockOrderStatus.ORDER_CREATED.getCode().equals(latest.getStatus())
-                    || LockOrderStatus.PAID.getCode().equals(latest.getStatus())) {
-                return;
-            }
-        }
-
-        lockAcceptedProducer.send(createLockAcceptedMessage(
-                lockOrder.getLockId(),
-                lockOrder.getOrderNo(),
-                lockOrder.getRequestId(),
-                lockOrder.getUserId(),
-                lockOrder.getSessionId(),
-                lockOrder.getEventId(),
-                resolveSeatIds(lockOrder.getSeatIds()),
-                lockOrder.getUnitPrice(),
-                lockOrder.getTotalAmount(),
-                lockOrder.getExpireTime()
-        ));
-        saveProcessingCache(lockOrder.getOrderNo(), lockOrder.getUserId(), lockOrder.getSessionId(),
-                lockOrder.getEventId(), resolveSeatIds(lockOrder.getSeatIds()), lockOrder.getUnitPrice(),
-                lockOrder.getTotalAmount(), lockOrder.getExpireTime(), lockOrder.getCreatedAt());
-    }
-
     public void markLockOrderPaid(String orderNo) {
-        redisService.transitionLockOrderStatus(
+        boolean updated = redisService.transitionLockOrderStatus(
                 orderNo,
                 List.of(
                         LockOrderStatus.LOCKED.getCode(),
@@ -296,29 +206,14 @@ public class SeckillServiceImpl implements SeckillService {
                 true,
                 LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
         );
-
-        int updated = lockOrderMapper.updateStatus(
-                orderNo,
-                List.of(
-                        LockOrderStatus.LOCKED.getCode(),
-                        LockOrderStatus.ORDER_CREATING.getCode(),
-                        LockOrderStatus.ORDER_CREATED.getCode()
-                ),
-                LockOrderStatus.PAID.getCode(),
-                null
-        );
-        if (updated == 0) {
-            LockOrder latest = findLockOrder(orderNo);
-            if (latest == null || !LockOrderStatus.PAID.getCode().equals(latest.getStatus())) {
-                log.warn("锁单未更新为已支付: orderNo={}, currentStatus={}",
-                        orderNo, latest == null ? null : latest.getStatus());
-            }
+        if (!updated) {
+            log.debug("Redis 锁单未更新为已支付: orderNo={}", orderNo);
         }
         redisService.deleteOrderProcessing(orderNo);
     }
 
     public void markLockOrderReleased(String orderNo, LockOrderStatus targetStatus, String failReason) {
-        redisService.transitionLockOrderStatus(
+        boolean updated = redisService.transitionLockOrderStatus(
                 orderNo,
                 List.of(
                         LockOrderStatus.LOCKED.getCode(),
@@ -331,36 +226,10 @@ public class SeckillServiceImpl implements SeckillService {
                 true,
                 LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
         );
-
-        int updated = lockOrderMapper.updateStatus(
-                orderNo,
-                List.of(
-                        LockOrderStatus.LOCKED.getCode(),
-                        LockOrderStatus.ORDER_CREATING.getCode(),
-                        LockOrderStatus.ORDER_CREATED.getCode()
-                ),
-                targetStatus.getCode(),
-                failReason
-        );
-        if (updated == 0) {
-            LockOrder latest = findLockOrder(orderNo);
-            if (latest == null || !targetStatus.getCode().equals(latest.getStatus())) {
-                log.warn("锁单未更新为目标状态: orderNo={}, targetStatus={}, currentStatus={}",
-                        orderNo, targetStatus, latest == null ? null : latest.getStatus());
-            }
+        if (!updated) {
+            log.debug("Redis 锁单未更新为目标状态: orderNo={}, targetStatus={}", orderNo, targetStatus);
         }
         redisService.deleteOrderProcessing(orderNo);
-    }
-
-    public void timeoutLockOrder(LockOrder lockOrder, String failReason) {
-        releaseSeats(
-                lockOrder.getSessionId(),
-                lockOrder.getUserId(),
-                lockOrder.getLockId(),
-                resolveSeatIds(lockOrder.getSeatIds()),
-                LockStatus.EXPIRED
-        );
-        markLockOrderReleased(lockOrder.getOrderNo(), LockOrderStatus.TIMEOUT, failReason);
     }
 
     @Override
@@ -613,13 +482,6 @@ public class SeckillServiceImpl implements SeckillService {
         return Math.max(30L, java.time.Duration.between(LocalDateTime.now(), expireTime).getSeconds() + 30L);
     }
 
-    private LockOrder findLockOrder(String orderNo) {
-        return lockOrderMapper.selectOne(
-                new LambdaQueryWrapper<LockOrder>()
-                        .eq(LockOrder::getOrderNo, orderNo)
-        );
-    }
-
     private LockOrderStatus resolveLockOrderStatus(Integer statusCode) {
         if (statusCode == null) {
             return null;
@@ -630,10 +492,6 @@ public class SeckillServiceImpl implements SeckillService {
             }
         }
         return null;
-    }
-
-    private List<String> resolveSeatIds(List<String> seatIds) {
-        return seatIds == null ? List.of() : seatIds;
     }
 
     private InternalLockOrderResponse buildInternalLockOrderResponse(RedisLockOrderData redisLockOrder) {

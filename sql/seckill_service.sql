@@ -1,4 +1,6 @@
--- 秒杀服务 - 座位锁定表
+-- Legacy compatibility DDL.
+-- Current runtime no longer depends on `seat_locks`; keep this file only for
+-- historical reference / old local environments.
 CREATE TABLE IF NOT EXISTS seat_locks (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     session_id BIGINT NOT NULL COMMENT '场次ID',
