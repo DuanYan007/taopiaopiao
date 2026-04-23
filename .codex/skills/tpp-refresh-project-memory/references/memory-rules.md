@@ -21,7 +21,7 @@ Use this checklist when updating `/home/duanyan/.codex/memories/taopiaopiao-back
 - machine-only details, secrets, passwords, and personal shell knowledge
 
 ## Promote From Active To Stable Only If
-- the fact now matches current code and current docs
+- the fact now matches current code and current repository guidance
 - it is likely to remain true across multiple future sessions
 - future work would start from the wrong assumption without it
 

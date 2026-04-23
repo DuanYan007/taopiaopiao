@@ -27,6 +27,7 @@ Microservice backend for a ticketing system focused on high-concurrency seat loc
 - OpenResty gate Lua: `/usr/local/openresty/nginx/lua/seckill_gate.lua`
 - Deployed frontend assets: `/usr/local/openresty/nginx/html`
 - Load-test scripts: `scripts/loadtest/`
+- Local component inventory: `conf/local-components.yml`
 
 OpenResty gate logic applies to all valid `sessionId`; `sessionId=1` has an extra static hotspot override. Current local `lock_only_burst` tuning uses `sessionId=2`.
 
@@ -60,6 +61,7 @@ For load testing, use [scripts/loadtest/README.md](/home/duanyan/project/taopiao
 ## Repository Context
 
 - [AGENTS.md](/home/duanyan/project/taopiaopiao-backend/AGENTS.md): repository rules and collaboration guardrails.
+- [conf/README.md](/home/duanyan/project/taopiaopiao-backend/conf/README.md): local component configuration index.
 - [stable-context.md](/home/duanyan/.codex/memories/taopiaopiao-backend/stable-context.md): stable Codex project memory.
 - [active-context.md](/home/duanyan/.codex/memories/taopiaopiao-backend/active-context.md): dated recent project context.
 - `.codex/skills/`: repository-specific Codex workflows.

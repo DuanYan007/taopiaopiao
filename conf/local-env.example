@@ -1,0 +1,25 @@
+# Optional local environment template.
+# Copy to a private, untracked shell profile or export values manually.
+# Do not commit real production secrets.
+
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=taopiaopiao
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=<local-mysql-password>
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6349
+REDIS_PASSWORD=<local-redis-password>
+
+NACOS_ADDR=127.0.0.1:8848
+ROCKETMQ_NAMESRV_ADDR=127.0.0.1:9876
+
+OPENRESTY_ROOT=/usr/local/openresty/nginx
+OPENRESTY_APP_CONF=/usr/local/openresty/nginx/conf/app.conf
+OPENRESTY_GATE_LUA=/usr/local/openresty/nginx/lua/seckill_gate.lua
+OPENRESTY_HTML_ROOT=/usr/local/openresty/nginx/html
+
+FRONTEND_REPO=/home/duanyan/project/taopiaopiao-frontend
+MOCK_PAYMENT_REPO=/home/duanyan/project/taopiaopiao-payment-system
+

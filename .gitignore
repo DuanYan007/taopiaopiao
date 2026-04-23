@@ -43,3 +43,4 @@ build/
 
 # Local private notes for this machine only
 docs/local-private.md
+conf/local-secrets.env
