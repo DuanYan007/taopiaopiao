@@ -1,4 +1,4 @@
-# TaoPiaoPiao Backend
+# TaoPiaoPiao
 
 Microservice backend for a ticketing system focused on high-concurrency seat locking, formal order creation, payment confirmation, timeout/cancel convergence, and eventual consistency.
 
