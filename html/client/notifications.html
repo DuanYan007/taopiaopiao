@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息通知 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link active">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">消息通知</h1>
+
+            <!-- 分类筛选 -->
+            <div style="margin-bottom: 32px; display: flex; gap: 16px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+                <button class="btn btn-primary btn-small">全部消息</button>
+                <button class="btn btn-secondary btn-small">订单通知</button>
+                <button class="btn btn-secondary btn-small">系统通知</button>
+                <button class="btn btn-secondary btn-small">活动消息</button>
+            </div>
+
+            <!-- 消息列表 -->
+            <div class="list">
+                <!-- 消息 1 - 未读 -->
+                <div class="list-item" style="background: #f0f7ff; padding: 20px; border-radius: 8px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">🎉</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">开售提醒</span>
+                                <span class="text-small text-muted">10分钟前</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">您关注的【林俊杰JJ20世界巡回演唱会-上海站】将于2月20日12:00正式开售，敬请期待！</div>
+                            <div>
+                                <a href="event-detail.html" class="btn btn-secondary btn-small">查看详情</a>
+                            </div>
+                        </div>
+                        <div style="width: 8px; height: 8px; background: #d32f2f; border-radius: 50%; flex-shrink: 0;"></div>
+                    </div>
+                </div>
+
+                <!-- 消息 2 -->
+                <div class="list-item" style="padding: 20px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">✅</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">订单确认成功</span>
+                                <span class="text-small text-muted">3小时前</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">您的订单【ORD202501201450002】已确认成功！演出时间：4月12日 19:30</div>
+                            <div>
+                                <a href="order-detail.html" class="btn btn-secondary btn-small">查看订单</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息 3 -->
+                <div class="list-item" style="padding: 20px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #fff3e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">⏰</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">演出提醒</span>
+                                <span class="text-small text-muted">昨天 18:00</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">温馨提示：您购买的【NBA季前赛：湖人vs勇士】将于明天19:00在梅赛德斯-奔驰文化中心举行，请提前90分钟入场。</div>
+                            <div>
+                                <a href="order-detail.html" class="btn btn-secondary btn-small">查看电子票</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息 4 -->
+                <div class="list-item" style="padding: 20px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #f3e5f5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">🎁</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">优惠活动</span>
+                                <span class="text-small text-muted">2天前</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">恭喜您获得一张¥50优惠券！使用范围：全场演出通用。有效期至：2025年3月31日。</div>
+                            <div>
+                                <a href="#" class="btn btn-secondary btn-small">立即使用</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息 5 -->
+                <div class="list-item" style="padding: 20px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #ffebee; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">⚠️</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">余票提醒</span>
+                                <span class="text-small text-muted">3天前</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">您关注的【经典音乐剧《剧院魅影》中文版】3月20日场次有余票释放，数量有限，先到先得！</div>
+                            <div>
+                                <a href="session-list.html" class="btn btn-secondary btn-small">立即抢购</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息 6 -->
+                <div class="list-item" style="padding: 20px;">
+                    <div class="flex" style="gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px;">📢</div>
+                        <div style="flex: 1;">
+                            <div class="flex-between" style="margin-bottom: 8px;">
+                                <span style="font-weight: 600;">系统通知</span>
+                                <span class="text-small text-muted">5天前</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">为了提供更好的服务，我们将于1月28日凌晨2:00-4:00进行系统维护，届时部分功能可能暂时无法使用，敬请谅解。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG配置 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">RAG配置</div>
+                <div class="admin-header-actions">
+                    <button class="btn btn-secondary btn-small">重置默认</button>
+                    <button class="btn btn-primary btn-small">保存全部配置</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 数据源配置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">数据源配置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">演出信息同步</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">自动同步演出基本信息、演员、海报等数据</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">场次数据同步</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">同步场次时间、场馆、座位等信息</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">票价规则同步</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">同步各区域票价、优惠规则等</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">订单历史数据</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">用于分析用户购买行为和偏好</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">数据更新频率</label>
+                                <select class="form-select">
+                                    <option>实时</option>
+                                    <option selected>每5分钟</option>
+                                    <option>每15分钟</option>
+                                    <option>每小时</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">数据保留期限</label>
+                                <select class="form-select">
+                                    <option>30天</option>
+                                    <option selected>90天</option>
+                                    <option>180天</option>
+                                    <option>365天</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 检索策略配置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">检索策略配置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">相似度阈值</label>
+                                <input type="number" class="form-input" value="0.75" step="0.01" min="0" max="1">
+                                <div class="text-small text-muted mt-8">检索结果的最小相似度要求（0-1）</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">返回结果数量</label>
+                                <input type="number" class="form-input" value="5" min="1" max="20">
+                                <div class="text-small text-muted mt-8">每次检索返回的最大结果数</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">检索模式</label>
+                                <select class="form-select">
+                                    <option selected>语义检索</option>
+                                    <option>关键词检索</option>
+                                    <option>混合检索</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">超时时间（秒）</label>
+                                <input type="number" class="form-input" value="10" min="1" max="60">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">启用缓存</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">缓存时长（分钟）</label>
+                                <input type="number" class="form-input" value="30" min="1" max="1440">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 知识库配置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">知识库配置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">FAQ知识库</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">常见问题解答知识库</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">公告信息</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">系统公告、演出通知等</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">规则文档</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">购票规则、退换票政策等</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">演出介绍</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">演出详情、演员信息、剧情介绍</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">场馆信息</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">场馆位置、交通指南、座位图等</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">历史对话</label>
+                                <select class="form-select">
+                                    <option>启用</option>
+                                    <option selected>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">用户历史对话记录（需注意隐私）</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模型配置 -->
+                <div class="dashboard-chart">
+                    <div class="dashboard-chart-title">模型配置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">嵌入模型</label>
+                                <select class="form-select">
+                                    <option selected>text-embedding-ada-002</option>
+                                    <option>text-embedding-3-small</option>
+                                    <option>text-embedding-3-large</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">聊天模型</label>
+                                <select class="form-select">
+                                    <option selected>GPT-4</option>
+                                    <option>GPT-4-turbo</option>
+                                    <option>GPT-3.5-turbo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">温度参数</label>
+                                <input type="number" class="form-input" value="0.7" step="0.1" min="0" max="2">
+                                <div class="text-small text-muted mt-8">控制回复的随机性和创造性</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">最大Token数</label>
+                                <input type="number" class="form-input" value="2000" min="100" max="8000">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">系统提示词</label>
+                                <textarea class="form-textarea" rows="4">你是一个专业的票务系统客服助手，负责为用户提供演出信息查询、购票咨询、订单处理等服务。请始终保持友好、专业、耐心的态度，准确回答用户问题。</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; padding-top: 16px; border-top: 1px solid #eee;">
+                        <button class="btn btn-secondary">取消</button>
+                        <button class="btn btn-primary">保存配置</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

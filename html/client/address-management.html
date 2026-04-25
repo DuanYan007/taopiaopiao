@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地址管理 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link active">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <div class="flex" style="gap: 24px;">
+                <!-- 侧边栏 -->
+                <div style="width: 240px;">
+                    <div class="card">
+                        <div class="card-body text-center" style="padding: 32px 20px;">
+                            <!-- 用户头像 -->
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">
+                                张
+                            </div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">张三</div>
+                            <div class="text-muted text-small">138****8888</div>
+
+                            <div class="divider"></div>
+
+                            <div class="flex-between text-small" style="margin-top: 16px;">
+                                <span class="text-muted">积分</span>
+                                <span style="font-weight: 600;">2,580</span>
+                            </div>
+                            <div class="flex-between text-small" style="margin-top: 8px;">
+                                <span class="text-muted">优惠券</span>
+                                <span style="font-weight: 600;">3张</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 导航菜单 -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="list">
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="profile.html" style="color: #333;">个人资料</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="attendee-management.html" style="color: #333;">观演人管理</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer; background: #e3f2fd; border-left: 3px solid #1976d2;">
+                                <a href="address-management.html" style="color: #1976d2; font-weight: 500;">地址管理</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="account-security.html" style="color: #333;">账户安全</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer; border-top: 1px solid #eee;">
+                                <a href="index.html" style="color: #d32f2f;">退出登录</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 主内容 -->
+                <div style="flex: 1;">
+                    <div class="flex-between" style="margin-bottom: 24px;">
+                        <h1 class="page-title" style="margin-bottom: 0;">地址管理</h1>
+                        <button class="btn btn-primary">+ 添加地址</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-small text-muted" style="margin-bottom: 16px;">
+                                管理您的收货地址，用于实体票配送
+                            </div>
+
+                            <!-- 地址列表 -->
+                            <div class="grid-2" style="gap: 20px;">
+                                <!-- 地址卡片1 -->
+                                <div class="card" style="border: 2px solid #1976d2;">
+                                    <div class="card-body">
+                                        <div class="flex-between" style="margin-bottom: 12px;">
+                                            <span style="font-weight: 600;">张三</span>
+                                            <span class="badge badge-primary">默认</span>
+                                        </div>
+                                        <div class="text-muted" style="margin-bottom: 8px;">138****8888</div>
+                                        <div class="text-small" style="line-height: 1.6;">上海市徐汇区天钥桥路666号徐家汇体育公园1号楼1001室</div>
+                                        <div class="flex" style="gap: 8px; margin-top: 16px;">
+                                            <button class="btn btn-secondary btn-small">编辑</button>
+                                            <button class="btn btn-outline btn-small">删除</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 地址卡片2 -->
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div style="font-weight: 600; margin-bottom: 12px;">李四</div>
+                                        <div class="text-muted" style="margin-bottom: 8px;">139****9999</div>
+                                        <div class="text-small" style="line-height: 1.6;">北京市朝阳区建国路93号万达广场8号楼808室</div>
+                                        <div class="flex" style="gap: 8px; margin-top: 16px;">
+                                            <button class="btn btn-secondary btn-small">编辑</button>
+                                            <button class="btn btn-outline btn-small">删除</button>
+                                            <button class="btn btn-outline btn-small">设为默认</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 地址卡片3 -->
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div style="font-weight: 600; margin-bottom: 12px;">张三</div>
+                                        <div class="text-muted" style="margin-bottom: 8px;">138****8888</div>
+                                        <div class="text-small" style="line-height: 1.6;">上海市浦东新区世纪大道100号上海环球金融中心50层</div>
+                                        <div class="flex" style="gap: 8px; margin-top: 16px;">
+                                            <button class="btn btn-secondary btn-small">编辑</button>
+                                            <button class="btn btn-outline btn-small">删除</button>
+                                            <button class="btn btn-outline btn-small">设为默认</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 温馨提示 -->
+                    <div class="card" style="margin-top: 24px; background: #fff3e0;">
+                        <div class="card-body">
+                            <div style="font-weight: 600; margin-bottom: 12px;">温馨提示</div>
+                            <div class="text-small" style="line-height: 1.8; color: #666;">
+                                <p style="margin-bottom: 8px;">• 每个账号最多可添加10个收货地址</p>
+                                <p style="margin-bottom: 8px;">• 实体票将通过快递配送至您选择的地址</p>
+                                <p>• 请确保地址信息准确，以免影响票品配送</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

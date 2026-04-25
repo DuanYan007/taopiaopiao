@@ -21,5 +21,4 @@ OPENRESTY_GATE_LUA=/usr/local/openresty/nginx/lua/seckill_gate.lua
 OPENRESTY_HTML_ROOT=/usr/local/openresty/nginx/html
 
 FRONTEND_REPO=/home/duanyan/project/taopiaopiao-frontend
-MOCK_PAYMENT_REPO=/home/duanyan/project/taopiaopiao-payment-system
-
+MOCK_PAYMENT_REPO=/home/duanyan/project/taopiaopiao-backend/taopiaopiao-payment-system

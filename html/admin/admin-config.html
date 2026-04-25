@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营配置 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">运营配置</div>
+                <div class="admin-header-actions">
+                    <button class="btn btn-secondary btn-small">重置默认</button>
+                    <button class="btn btn-primary btn-small">保存全部</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 占用超时设置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">占用超时设置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">座位占用时长（分钟）</label>
+                                <input type="number" class="form-input" value="15" min="5" max="60">
+                                <div class="text-small text-muted mt-8">用户选定座位后的支付倒计时时间</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">提前提醒时间（分钟）</label>
+                                <input type="number" class="form-input" value="5" min="1" max="10">
+                                <div class="text-small text-muted mt-8">在超时前多少分钟提醒用户</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">超时后自动释放</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">超时未支付自动释放座位</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">允许重新占用</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">释放后允许用户立即重新占用</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 支付配置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">支付配置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">支付宝支付</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">支持支付宝扫码和APP支付</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">微信支付</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">支持微信扫码和APP支付</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">银行卡支付</label>
+                                <select class="form-select">
+                                    <option selected>启用</option>
+                                    <option>禁用</option>
+                                </select>
+                                <div class="text-small text-muted mt-8">支持各大银行储蓄卡和信用卡</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">支付超时时间（分钟）</label>
+                                <input type="number" class="form-input" value="30" min="15" max="120">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">最低支付金额（元）</label>
+                                <input type="number" class="form-input" value="1" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">单笔最大支付金额（元）</label>
+                                <input type="number" class="form-input" value="50000" min="1000" max="200000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通知设置 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">通知设置</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">短信通知</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">启用短信订单通知和验证码</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">APP推送通知</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">启用APP内推送通知</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">邮件通知</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">发送电子票据和订单邮件</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">微信公众号通知</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">通过微信公众号发送通知</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 实名制规则 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">实名制规则</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">启用实名制购票</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">购买时需填写真实身份信息</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">一人一票制</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">每个身份证限购一张票</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">需身份证验证</label>
+                                <select class="form-select">
+                                    <option selected>全部演出</option>
+                                    <option>仅部分演出</option>
+                                    <option>不需要</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">入场验证方式</label>
+                                <select class="form-select">
+                                    <option selected>身份证+二维码</option>
+                                    <option>仅身份证</option>
+                                    <option>仅二维码</option>
+                                    <option>人脸识别</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 退换票政策 -->
+                <div class="dashboard-chart" style="margin-bottom: 24px;">
+                    <div class="dashboard-chart-title">退换票政策</div>
+                    <div class="admin-form-section">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">允许退票</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">允许用户申请退票</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">允许换票</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">允许用户申请更换场次</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">退票手续费率（%）</label>
+                                <input type="number" class="form-input" value="10" min="0" max="100">
+                                <div class="text-small text-muted mt-8">退票时收取的手续费比例</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">退票截止时间（演出前小时）</label>
+                                <input type="number" class="form-input" value="24" min="1" max="168">
+                                <div class="text-small text-muted mt-8">演出前多少小时不允许退票</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">退款处理时间（天）</label>
+                                <input type="number" class="form-input" value="3" min="1" max="15">
+                                <div class="text-small text-muted mt-8">退款到账的工作日天数</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">特殊演出不可退</label>
+                                <div style="margin-top: 8px;">
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="text-small text-muted mt-8">部分特殊演出不支持退票</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; padding-top: 16px; border-top: 1px solid #eee;">
+                        <button class="btn btn-secondary">取消</button>
+                        <button class="btn btn-primary">保存配置</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

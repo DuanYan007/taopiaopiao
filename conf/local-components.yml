@@ -60,7 +60,7 @@ components:
 
   mock_payment:
     role: local payment creation, query, and simulated success
-    repository: /home/duanyan/project/taopiaopiao-payment-system
+    repository: /home/duanyan/project/taopiaopiao-backend/taopiaopiao-payment-system
     notes:
       - Required for end-to-end payment flow verification.
 
@@ -82,4 +82,3 @@ tools:
     commands:
       compile_all: mvn -q -DskipTests compile
       validate_boundaries: mvn -q validate
-

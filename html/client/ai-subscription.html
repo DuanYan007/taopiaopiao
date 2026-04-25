@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI订阅与推送 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 面包屑 -->
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                <li class="breadcrumb-item"><a href="ai-qa.html">AI助手</a></li>
+                <li class="breadcrumb-item">订阅与推送设置</li>
+            </ul>
+
+            <h1 class="page-title">AI订阅与推送</h1>
+
+            <div class="flex" style="gap: 24px; margin-top: 32px;">
+                <div style="flex: 1;">
+                    <!-- 功能介绍 -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">什么是AI订阅？</div>
+                        </div>
+                        <div class="card-body">
+                            <p style="line-height: 1.8; margin-bottom: 16px;">
+                                AI订阅是淘票票提供的智能推送服务。您可以根据自己的兴趣订阅演出、艺人、城市或类目，
+                                当有相关新演出、开售提醒、余票变化等信息时，我们的AI助手会第一时间通过消息通知推送给您。
+                            </p>
+                            <p style="line-height: 1.8;">
+                                通过智能算法分析您的偏好，AI会为您推荐可能感兴趣的演出，让您不错过任何精彩演出！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 可订阅对象 -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">您可以订阅以下内容</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid-2" style="gap: 24px;">
+                                <div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎤</div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">艺人订阅</div>
+                                    <div class="text-small text-muted">订阅喜欢的艺人，有新演出时第一时间通知</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎭</div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">演出订阅</div>
+                                    <div class="text-small text-muted">订阅具体演出，获取开售、余票等实时动态</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;">📍</div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">城市订阅</div>
+                                    <div class="text-small text-muted">关注特定城市，不错过本地精彩演出</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎪</div>
+                                    <div style="font-weight: 600; margin-bottom: 8px;">类目订阅</div>
+                                    <div class="text-small text-muted">订阅演出类型（演唱会、话剧、展览等）</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 推送类型说明 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">推送类型说明</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="list">
+                                <div class="list-item" style="border-bottom: 1px solid #eee;">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">🔔 开售提醒</div>
+                                            <div class="text-small text-muted">订阅的演出即将开售时，提前30分钟推送提醒</div>
+                                        </div>
+                                        <span class="badge badge-success">已开启</span>
+                                    </div>
+                                </div>
+                                <div class="list-item" style="border-bottom: 1px solid #eee;">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">🎫 余票提醒</div>
+                                            <div class="text-small text-muted">已售罄的演出有余票释放时，立即通知您抢购</div>
+                                        </div>
+                                        <span class="badge badge-success">已开启</span>
+                                    </div>
+                                </div>
+                                <div class="list-item" style="border-bottom: 1px solid #eee;">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">⏰ 占用即将过期</div>
+                                            <div class="text-small text-muted">座位占用后，在支付截止前15分钟提醒您尽快支付</div>
+                                        </div>
+                                        <span class="badge badge-success">已开启</span>
+                                    </div>
+                                </div>
+                                <div class="list-item" style="border-bottom: 1px solid #eee;">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">📋 订单状态变化</div>
+                                            <div class="text-small text-muted">订单确认、演出提醒等关键状态变化时推送通知</div>
+                                        </div>
+                                        <span class="badge badge-success">已开启</span>
+                                    </div>
+                                </div>
+                                <div class="list-item">
+                                    <div class="flex-between">
+                                        <div>
+                                            <div style="font-weight: 600; margin-bottom: 4px;">✨ 智能推荐</div>
+                                            <div class="text-small text-muted">基于您的兴趣和订阅，AI推荐可能喜欢的演出</div>
+                                        </div>
+                                        <span class="badge badge-success">已开启</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订阅管理侧边栏 -->
+                <div style="width: 380px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">我的订阅</div>
+                        </div>
+                        <div class="card-body">
+                            <!-- 艺人订阅 -->
+                            <div style="margin-bottom: 24px;">
+                                <div style="font-weight: 600; margin-bottom: 12px;">艺人订阅</div>
+                                <div class="flex" style="flex-wrap: wrap; gap: 8px;">
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        周杰伦 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        林俊杰 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <button class="btn btn-outline btn-small">+ 添加</button>
+                                </div>
+                            </div>
+
+                            <!-- 城市订阅 -->
+                            <div style="margin-bottom: 24px;">
+                                <div style="font-weight: 600; margin-bottom: 12px;">城市订阅</div>
+                                <div class="flex" style="flex-wrap: wrap; gap: 8px;">
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        上海 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        北京 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <button class="btn btn-outline btn-small">+ 添加</button>
+                                </div>
+                            </div>
+
+                            <!-- 类目订阅 -->
+                            <div style="margin-bottom: 24px;">
+                                <div style="font-weight: 600; margin-bottom: 12px;">类目订阅</div>
+                                <div class="flex" style="flex-wrap: wrap; gap: 8px;">
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        演唱会 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <span class="badge badge-primary" style="padding: 8px 16px; font-size: 14px;">
+                                        话剧歌剧 <button style="background: none; border: none; color: inherit; margin-left: 4px; cursor: pointer;">×</button>
+                                    </span>
+                                    <button class="btn btn-outline btn-small">+ 添加</button>
+                                </div>
+                            </div>
+
+                            <!-- 推送设置 -->
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 12px;">推送设置</div>
+                                <div class="list">
+                                    <div class="list-item" style="padding: 8px 0;">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" checked style="margin-right: 12px;">
+                                            <span>允许APP推送通知</span>
+                                        </label>
+                                    </div>
+                                    <div class="list-item" style="padding: 8px 0;">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" checked style="margin-right: 12px;">
+                                            <span>允许短信通知</span>
+                                        </label>
+                                    </div>
+                                    <div class="list-item" style="padding: 8px 0;">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" style="margin-right: 12px;">
+                                            <span>允许邮件通知</span>
+                                        </label>
+                                    </div>
+                                    <div class="list-item" style="padding: 8px 0;">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" checked style="margin-right: 12px;">
+                                            <span>允许智能推荐</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary" style="width: 100%;">保存设置</button>
+                        </div>
+                    </div>
+
+                    <!-- 温馨提示 -->
+                    <div class="card" style="margin-top: 24px; background: #fff3e0;">
+                        <div class="card-body">
+                            <div style="font-weight: 600; margin-bottom: 12px;">温馨提示</div>
+                            <div class="text-small" style="line-height: 1.8; color: #666;">
+                                <p style="margin-bottom: 8px;">• 您可以随时取消订阅，不会影响已购票订单</p>
+                                <p style="margin-bottom: 8px;">• 为避免错过重要通知，建议至少保留一种推送方式</p>
+                                <p>• AI推荐基于您的订阅和历史行为，数据仅用于个性化推荐</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

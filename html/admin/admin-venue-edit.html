@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新建场馆 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">新建场馆</div>
+                <div class="admin-header-actions">
+                    <a href="admin-venues.html" class="btn btn-secondary">返回列表</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <form id="venueForm" class="admin-form">
+                    <!-- 基本信息 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">基本信息</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">场馆名称 <span style="color: #d32f2f;">*</span></label>
+                                <input type="text" class="form-input" name="name" placeholder="请输入场馆名称" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">所在城市 <span style="color: #d32f2f;">*</span></label>
+                                <input type="text" class="form-input" name="city" placeholder="请输入所在城市" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">所在区域</label>
+                                <input type="text" class="form-input" name="district" placeholder="如：朝阳区、徐汇区">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">容纳人数 <span style="color: #d32f2f;">*</span></label>
+                                <input type="number" class="form-input" name="capacity" placeholder="请输入容纳人数" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">详细地址 <span style="color: #d32f2f;">*</span></label>
+                            <input type="text" class="form-input" name="address" placeholder="请输入详细地址" required>
+                        </div>
+                    </div>
+
+                    <!-- 地理坐标 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">地理坐标</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">纬度</label>
+                                <input type="number" class="form-input" name="latitude" placeholder="如：39.9929" step="0.000001" min="-90" max="90">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">经度</label>
+                                <input type="number" class="form-input" name="longitude" placeholder="如：116.3967" step="0.000001" min="-180" max="180">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 场馆介绍 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">场馆介绍</div>
+                        <div class="form-group">
+                            <label class="form-label">场馆图片</label>
+                            <input type="url" class="form-input" name="images" placeholder="请输入场馆图片URL，多个用逗号分隔">
+                            <div class="text-small text-muted" style="margin-top: 4px;">多图URL用英文逗号分隔</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">场馆介绍</label>
+                            <textarea class="form-textarea" name="description" placeholder="请输入场馆详细介绍" rows="6"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">设施标签</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="facilities[]" value="停车场"> 停车场
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="facilities[]" value="地铁"> 地铁
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="facilities[]" value="公交"> 公交
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="checkbox" name="facilities[]" value="餐厅"> 餐厅
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表单操作按钮 -->
+                    <div class="admin-form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">保存场馆</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/venue-edit.js"></script>
+</body>
+</html>

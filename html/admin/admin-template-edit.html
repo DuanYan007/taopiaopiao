@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新建推送模板 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">新建推送模板</div>
+                <div class="admin-header-actions">
+                    <a href="admin-templates.html" class="btn btn-secondary">返回列表</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <form class="admin-form">
+                    <!-- 基本信息 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">基本信息</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">模板名称 <span style="color: #d32f2f;">*</span></label>
+                                <input type="text" class="form-input" placeholder="如：开售提醒、余票提醒" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">模板类型 <span style="color: #d32f2f;">*</span></label>
+                                <select class="form-select" required>
+                                    <option value="">请选择类型</option>
+                                    <option value="onsale">开售提醒</option>
+                                    <option value="available">余票提醒</option>
+                                    <option value="expire">占用即将过期</option>
+                                    <option value="order">订单状态变化</option>
+                                    <option value="event">演出提醒</option>
+                                    <option value="refund">退款通知</option>
+                                    <option value="custom">自定义</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">模板描述</label>
+                            <textarea class="form-textarea" placeholder="请简要描述该模板的用途和触发场景" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 推送内容 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">推送内容</div>
+
+                        <!-- APP推送 -->
+                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 20px; margin-bottom: 16px;">
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">APP推送</div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">标题 <span style="color: #d32f2f;">*</span></label>
+                                <input type="text" class="form-input" placeholder="请输入推送标题" value="【开售提醒】" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">内容 <span style="color: #d32f2f;">*</span></label>
+                                <textarea class="form-textarea" placeholder="请输入推送内容，支持变量：{演出名称}、{演出时间}等" rows="4" required>您关注的《{演出名称}》即将开售！演出时间：{演出时间}，敬请期待！点击立即抢购热门座位。</textarea>
+                                <div class="text-small text-muted" style="margin-top: 4px;">
+                                    支持的变量：{演出名称}、{演出时间}、{场馆}、{艺人}、{场次信息}、{票价}等
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">跳转链接</label>
+                                <input type="url" class="form-input" placeholder="https://...">
+                                <div class="text-small text-muted" style="margin-top: 4px;">用户点击推送后跳转的页面地址</div>
+                            </div>
+                        </div>
+
+                        <!-- 短信推送 -->
+                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 20px; margin-bottom: 16px;">
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">短信推送</div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">短信内容 <span style="color: #d32f2f;">*</span></label>
+                                <textarea class="form-textarea" placeholder="请输入短信内容" rows="4" required>【淘票票】您关注的《{演出名称}》即将开售！演出时间：{演出时间}，敬请期待！点击 {短链接} 立即抢购。</textarea>
+                                <div class="text-small text-muted" style="margin-top: 4px;">
+                                    短信签名【淘票票】会自动添加，内容请在70字以内
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 微信推送 -->
+                        <div style="border: 1px solid #ddd; border-radius: 4px; padding: 20px;">
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <div style="font-weight: 600;">微信推送</div>
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">模板ID</label>
+                                <input type="text" class="form-input" placeholder="请输入微信模板消息ID">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">跳转小程序</label>
+                                <input type="text" class="form-input" placeholder="请输入小程序页面路径">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 变量说明 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">可用变量</div>
+                        <div class="card" style="padding: 16px;">
+                            <div class="text-small text-muted" style="margin-bottom: 12px;">点击复制变量，粘贴到内容中使用</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{演出名称}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{演出时间}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{场馆}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{艺人}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{场次信息}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{票价}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{订单号}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{金额}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{座位信息}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{分钟}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{天数}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{座位数}</span>
+                                <span class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;">{短链接}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 触发条件 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">触发条件</div>
+                        <div class="form-group">
+                            <label class="form-label">触发时机 <span style="color: #d32f2f;">*</span></label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="trigger" value="immediate"> 立即触发
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="trigger" value="scheduled"> 定时触发
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="trigger" value="condition"> 条件触发
+                                </label>
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">提前时间（分钟）</label>
+                                <input type="number" class="form-input" placeholder="如：30表示提前30分钟" value="30" min="0">
+                                <div class="text-small text-muted" style="margin-top: 4px;">相对于事件发生时间</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">优先级</label>
+                                <select class="form-select">
+                                    <option value="high">高</option>
+                                    <option value="medium" selected>中</option>
+                                    <option value="low">低</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">频率限制</label>
+                            <div class="flex" style="align-items: center; gap: 12px;">
+                                <input type="number" class="form-input" style="width: 150px;" placeholder="数量" value="1" min="1">
+                                <span>次 /</span>
+                                <select class="form-select" style="width: 150px;">
+                                    <option value="hour">每小时</option>
+                                    <option value="day" selected>每天</option>
+                                    <option value="week">每周</option>
+                                </select>
+                                <span class="text-small text-muted">同一用户接收频率上限</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 推送对象 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">推送对象</div>
+                        <div class="form-group">
+                            <label class="form-label">用户群体</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="target" value="all" checked> 全部用户
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="target" value="subscribed"> 订阅用户
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="target" value="favorited"> 收藏用户
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="target" value="custom"> 自定义
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">推送时段</label>
+                            <div class="flex" style="align-items: center; gap: 12px;">
+                                <input type="time" class="form-input" style="width: 150px;" value="08:00">
+                                <span>至</span>
+                                <input type="time" class="form-input" style="width: 150px;" value="22:00">
+                                <span class="text-small text-muted">仅在此时段内推送</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 预览 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">预览</div>
+
+                        <!-- APP推送预览 -->
+                        <div style="margin-bottom: 24px;">
+                            <div class="text-small text-muted" style="margin-bottom: 8px;">APP推送效果预览：</div>
+                            <div style="max-width: 375px; background: white; border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <div class="flex" style="align-items: flex-start; gap: 12px;">
+                                    <div style="width: 48px; height: 48px; border-radius: 8px; background: linear-gradient(135deg, #1976d2, #42a5f5); display: flex; align-items: center; justify-content: center; font-size: 24px;">🎫</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; margin-bottom: 4px; color: #333;">【开售提醒】淘票票</div>
+                                        <div style="font-size: 13px; color: #666; line-height: 1.5;">您关注的《周杰伦演唱会》即将开售！演出时间：2025-03-15 19:30...</div>
+                                        <div class="text-small text-muted" style="margin-top: 8px;">刚刚</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 短信预览 -->
+                        <div>
+                            <div class="text-small text-muted" style="margin-bottom: 8px;">短信效果预览：</div>
+                            <div style="max-width: 375px; background: #f5f5f5; border-radius: 8px; padding: 16px; border-left: 4px solid #1976d2;">
+                                <div style="font-size: 13px; line-height: 1.6; color: #333;">
+                                    【淘票票】您关注的《周杰伦演唱会》即将开售！演出时间：2025-03-15 19:30，敬请期待！点击 https://t.cn/xxx 立即抢购。
+                                </div>
+                                <div class="text-small text-muted" style="margin-top: 8px;">回T退订</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 状态设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">状态设置</div>
+                        <div class="form-group">
+                            <label class="form-label">启用状态</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="status" value="enabled"> 立即启用
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="status" value="disabled" checked> 暂不启用
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-textarea" placeholder="内部备注信息" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 表单操作按钮 -->
+                    <div class="admin-form-actions">
+                        <button type="button" class="btn btn-secondary">保存草稿</button>
+                        <button type="button" class="btn btn-secondary">发送测试</button>
+                        <button type="submit" class="btn btn-primary">发布模板</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

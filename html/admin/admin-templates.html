@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>推送模板管理 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">推送模板管理</div>
+                <div class="admin-header-actions">
+                    <a href="admin-template-edit.html" class="btn btn-primary btn-small">+ 新建模板</a>
+                    <button class="btn btn-secondary btn-small">批量操作</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 筛选区 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="搜索模板名称...">
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部类型</option>
+                        <option>开售提醒</option>
+                        <option>余票提醒</option>
+                        <option>占用即将过期</option>
+                        <option>订单状态变化</option>
+                        <option>演出提醒</option>
+                    </select>
+                    <select class="form-select" style="width: 120px;">
+                        <option>全部状态</option>
+                        <option>已启用</option>
+                        <option>已禁用</option>
+                    </select>
+                    <button class="btn btn-secondary">筛选</button>
+                </div>
+
+                <!-- 模板列表 -->
+                <div class="dashboard-grid">
+                    <!-- 模板卡片 1 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">开售提醒</div>
+                                    <div class="text-small text-muted mt-8">演出开始售票时推送</div>
+                                </div>
+                                <span class="badge badge-success">已启用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【开售提醒】您关注的《{演出名称》即将开售！演出时间：{演出时间}，敬请期待！点击立即抢购热门座位。
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送、短信</div>
+                                <div style="margin-top: 4px;">推送时机：开售前30分钟</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：12,456</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-delete">禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模板卡片 2 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">余票提醒</div>
+                                    <div class="text-small text-muted mt-8">有余票时推送通知</div>
+                                </div>
+                                <span class="badge badge-success">已启用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【余票提醒】好消息！您关注的《{演出名称》有余票啦！{场次信息} 等级座位还有{座位数}个座位，快来抢购吧！
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送</div>
+                                <div style="margin-top: 4px;">推送时机：实时</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：8,234</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-delete">禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模板卡片 3 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">占用即将过期</div>
+                                    <div class="text-small text-muted mt-8">座位占用快到期时提醒</div>
+                                </div>
+                                <span class="badge badge-success">已启用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【支付提醒】您选择的座位将在{分钟}分钟后释放，请尽快完成支付。订单号：{订单号}，金额：{金额}元。
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送、短信</div>
+                                <div style="margin-top: 4px;">推送时机：过期前5分钟</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：15,678</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-delete">禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模板卡片 4 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">订单状态变化</div>
+                                    <div class="text-small text-muted mt-8">订单状态更新时推送</div>
+                                </div>
+                                <span class="badge badge-success">已启用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【订单通知】您的订单{订单号}已{状态}。演出：{演出名称}，时间：{演出时间}，座位：{座位信息}。
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送、微信、短信</div>
+                                <div style="margin-top: 4px;">推送时机：状态变化时</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：45,123</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-delete">禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模板卡片 5 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">演出提醒</div>
+                                    <div class="text-small text-muted mt-8">演出开始前提醒用户</div>
+                                </div>
+                                <span class="badge badge-success">已启用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【演出提醒】您购买的《{演出名称》将于{天数}天后开始演出！演出时间：{演出时间}，场馆：{场馆名称}。请提前安排行程，祝您观演愉快！
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送、微信</div>
+                                <div style="margin-top: 4px;">推送时机：演出前1天、前3天</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：23,456</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-delete">禁用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模板卡片 6 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="flex-between">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 16px;">退款成功通知</div>
+                                    <div class="text-small text-muted mt-8">退款完成时推送</div>
+                                </div>
+                                <span class="badge badge-gray">已禁用</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+                                <div class="text-small text-muted" style="margin-bottom: 4px;">内容预览：</div>
+                                <div style="font-size: 13px; line-height: 1.6;">
+                                    【退款通知】您的订单{订单号}退款成功。退款金额：{金额}元，将在3-5个工作日原路退回。如有疑问请联系客服。
+                                </div>
+                            </div>
+                            <div class="text-small text-muted">
+                                <div>推送渠道：APP推送、微信、短信</div>
+                                <div style="margin-top: 4px;">推送时机：退款完成时</div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="flex-between">
+                                <div class="text-small text-muted">使用次数：3,567</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="action-btn action-btn-view">查看</button>
+                                    <button class="action-btn action-btn-edit">编辑</button>
+                                    <button class="action-btn action-btn-edit">启用</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分页 -->
+                <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px;">
+                    <span class="text-muted">显示 1-6 条，共 12 条</span>
+                    <div style="flex: 1;"></div>
+                    <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                    <button class="btn btn-primary btn-small">1</button>
+                    <button class="btn btn-secondary btn-small">2</button>
+                    <button class="btn btn-secondary btn-small">下一页</button>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

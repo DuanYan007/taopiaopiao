@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link active">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <div class="flex" style="gap: 24px;">
+                <!-- 侧边栏 -->
+                <div style="width: 240px;">
+                    <div class="card">
+                        <div class="card-body text-center" style="padding: 32px 20px;">
+                            <!-- 用户头像 -->
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">
+                                张
+                            </div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">张三</div>
+                            <div class="text-muted text-small">138****8888</div>
+
+                            <div class="divider"></div>
+
+                            <div class="flex-between text-small" style="margin-top: 16px;">
+                                <span class="text-muted">积分</span>
+                                <span style="font-weight: 600;">2,580</span>
+                            </div>
+                            <div class="flex-between text-small" style="margin-top: 8px;">
+                                <span class="text-muted">优惠券</span>
+                                <span style="font-weight: 600;">3张</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 导航菜单 -->
+                    <div class="card" style="margin-top: 16px;">
+                        <div class="list">
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer; background: #e3f2fd; border-left: 3px solid #1976d2;">
+                                <a href="profile.html" style="color: #1976d2; font-weight: 500;">个人资料</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="attendee-management.html" style="color: #333;">观演人管理</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="address-management.html" style="color: #333;">地址管理</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer;">
+                                <a href="account-security.html" style="color: #333;">账户安全</a>
+                            </div>
+                            <div class="list-item" style="padding: 12px 20px; cursor: pointer; border-top: 1px solid #eee;">
+                                <a href="index.html" style="color: #d32f2f;">退出登录</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 主内容 -->
+                <div style="flex: 1;">
+                    <h1 class="page-title">个人资料</h1>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">基本信息</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">昵称</label>
+                                <input type="text" class="form-input" value="张三">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">真实姓名</label>
+                                <input type="text" class="form-input" value="张三">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">手机号</label>
+                                <input type="tel" class="form-input" value="138****8888" readonly>
+                                <a href="#" style="color: #1976d2; font-size: 14px; margin-top: 8px; display: inline-block;">修改手机号</a>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">邮箱</label>
+                                <input type="email" class="form-input" placeholder="请输入邮箱地址">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">性别</label>
+                                <div class="flex" style="gap: 24px;">
+                                    <label style="cursor: pointer;">
+                                        <input type="radio" name="gender" checked style="margin-right: 8px;">男
+                                    </label>
+                                    <label style="cursor: pointer;">
+                                        <input type="radio" name="gender" style="margin-right: 8px;">女
+                                    </label>
+                                    <label style="cursor: pointer;">
+                                        <input type="radio" name="gender" style="margin-right: 8px;">保密
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">生日</label>
+                                <input type="date" class="form-input" value="1990-01-01">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">所在城市</label>
+                                <select class="form-select">
+                                    <option>上海</option>
+                                    <option>北京</option>
+                                    <option>广州</option>
+                                    <option>深圳</option>
+                                    <option>杭州</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">个人简介</label>
+                                <textarea class="form-textarea" placeholder="介绍一下自己吧..."></textarea>
+                            </div>
+
+                            <button class="btn btn-primary" style="margin-top: 16px;">保存修改</button>
+                            <a href="index.html" class="btn btn-outline" style="margin-top: 16px; margin-left: 12px;">去逛逛</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库管理 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">知识库管理</div>
+                <div class="admin-header-actions">
+                    <a href="admin-knowledge-edit.html" class="btn btn-primary">+ 新增知识</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 标签页 -->
+                <div class="tabs">
+                    <div class="tab-item active">FAQ</div>
+                    <div class="tab-item">公告</div>
+                    <div class="tab-item">规则</div>
+                    <div class="tab-item">演出信息</div>
+                </div>
+
+                <!-- 知识库列表 -->
+                <div class="admin-table">
+                    <div class="admin-table-header">
+                        <div class="admin-table-title">FAQ列表</div>
+                        <div class="text-muted">共 12 条记录</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>问题</th>
+                                <th>分类</th>
+                                <th>点击次数</th>
+                                <th>是否启用</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>FAQ001</td>
+                                <td>如何购票？</td>
+                                <td><span class="badge badge-primary">购票指南</span></td>
+                                <td>3,456</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-20 14:30</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAQ002</td>
+                                <td>支持哪些支付方式？</td>
+                                <td><span class="badge badge-primary">支付问题</span></td>
+                                <td>2,134</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-18 10:20</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAQ003</td>
+                                <td>购票后如何取票？</td>
+                                <td><span class="badge badge-primary">取票入场</span></td>
+                                <td>1,876</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-15 16:45</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAQ004</td>
+                                <td>可以退票或换票吗？</td>
+                                <td><span class="badge badge-warning">退换票</span></td>
+                                <td>4,521</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-12 09:15</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAQ005</td>
+                                <td>什么是实名制购票？</td>
+                                <td><span class="badge badge-info">实名制</span></td>
+                                <td>2,987</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-10 11:30</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FAQ006</td>
+                                <td>每个账号最多能买几张票？</td>
+                                <td><span class="badge badge-primary">购票限制</span></td>
+                                <td>1,654</td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" checked>
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </td>
+                                <td>2025-01-08 14:20</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- AI使用统计 -->
+                <div class="dashboard-grid" style="margin-top: 32px;">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">知识库使用统计</div>
+                        <div style="padding: 16px;">
+                            <div class="flex-between mb-16">
+                                <span>总知识条目</span>
+                                <span style="font-size: 24px; font-weight: 600; color: #1976d2;">156</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>本月新增</span>
+                                <span style="font-size: 24px; font-weight: 600; color: #388e3c;">+23</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>总访问次数</span>
+                                <span style="font-size: 24px; font-weight: 600; color: #1976d2;">45,678</span>
+                            </div>
+                            <div class="flex-between">
+                                <span>AI回答准确率</span>
+                                <span style="font-size: 24px; font-weight: 600; color: #388e3c;">94.5%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">热门问题 TOP 5</div>
+                        <div style="padding: 16px;">
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>1. 可以退票或换票吗？</span>
+                                <span class="badge badge-primary">4,521次</span>
+                            </div>
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>2. 如何购票？</span>
+                                <span class="badge badge-primary">3,456次</span>
+                            </div>
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>3. 每个账号最多能买几张票？</span>
+                                <span class="badge badge-primary">2,987次</span>
+                            </div>
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>4. 支持哪些支付方式？</span>
+                                <span class="badge badge-primary">2,134次</span>
+                            </div>
+                            <div class="flex-between">
+                                <span>5. 购票后如何取票？</span>
+                                <span class="badge badge-primary">1,876次</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

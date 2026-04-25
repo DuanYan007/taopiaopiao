@@ -1,0 +1,157 @@
+/* ==========================================
+   场馆管理页面 - 表格样式
+   ========================================== */
+
+/* 表格容器 */
+.admin-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-table-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.admin-table-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.admin-table table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.admin-table thead {
+    display: block;
+    width: 100%;
+    flex-shrink: 0;
+    overflow-y: scroll;
+}
+
+.admin-table tbody {
+    display: block;
+    width: 100%;
+    height: 600px;
+    overflow-y: scroll;
+    flex-shrink: 0;
+}
+
+.admin-table tr {
+    display: flex;
+    width: 100%;
+}
+
+.admin-table th,
+.admin-table td {
+    flex: 1;
+    padding: 16px 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.admin-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.admin-table-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
+}
+
+/* 场馆表格列宽 */
+.admin-table .col-id {
+    flex: 0 0 20px;
+    justify-content: center;
+}
+
+.admin-table .col-name {
+    flex: 3;
+    min-width: 200px;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.admin-table .col-city {
+    flex: 0 0 70px;
+}
+
+.admin-table .col-district {
+    flex: 0 0 70px;
+}
+
+.admin-table .col-address {
+    flex: 2;
+    min-width: 150px;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.admin-table .col-capacity {
+    flex: 0 0 90px;
+}
+
+.admin-table .col-created {
+    flex: 0 0 160px;
+}
+
+.admin-table .col-action {
+    flex: 0 0 240px;
+}
+
+/* 操作列样式 */
+.admin-table td.col-action,
+.admin-table th.col-action {
+    white-space: nowrap;
+    padding: 16px 8px;
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.admin-table th.col-action {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+/* 名称和地址列左对齐 */
+.admin-table th.col-name,
+.admin-table td.col-name,
+.admin-table th.col-address,
+.admin-table td.col-address {
+    text-align: left;
+    justify-content: flex-start;
+    padding-left: 16px;
+}

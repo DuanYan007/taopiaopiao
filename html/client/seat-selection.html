@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选座购票 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+    <style>
+        /* 选座画布容器 - 固定尺寸 */
+        .seat-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 座位画布 - 可缩放、可拖拽 */
+        .seat-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            transform-origin: center center;
+        }
+
+        .seat-canvas.dragging {
+            cursor: grabbing;
+        }
+
+        /* 座位内容层 */
+        .seat-canvas-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 40px;
+            min-width: 200px;
+            min-height: 200px;
+        }
+
+        /* 缩放控制工具栏 */
+        .zoom-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 8px;
+            z-index: 10;
+        }
+
+        .zoom-controls-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: #f5f5f5;
+            color: #1976d2;
+            border-color: #1976d2;
+        }
+
+        .zoom-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .zoom-level {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            padding: 4px 0;
+        }
+
+        /* 缩放提示 */
+        .zoom-hint {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .zoom-hint.show {
+            opacity: 1;
+        }
+
+        /* 侧边栏固定 */
+        .seat-sidebar {
+            width: 360px;
+            flex-shrink: 0;
+        }
+
+        /* 座位区域样式调整 */
+        .seat-area-title {
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1024px) {
+            .seat-canvas-wrapper {
+                height: 400px;
+            }
+
+            .seat-sidebar {
+                width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div class="user-info" id="userInfo" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- 动态填充用户信息 -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 加载状态 -->
+            <div class="loading-state" id="loadingState" style="padding: 60px 0;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">加载中...</div>
+            </div>
+
+            <!-- 错误状态 -->
+            <div class="empty-state" id="errorState" style="display: none;">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-text error-state-text">加载失败</div>
+                <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 16px;">重新加载</button>
+            </div>
+
+            <!-- 主内容 -->
+            <div id="mainContent" style="display: none;">
+                <!-- 面包屑 -->
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                    <li class="breadcrumb-item" id="breadcrumbEvent"><a href="event-detail.html">演出详情</a></li>
+                    <li class="breadcrumb-item"><a href="session-list.html">选择场次</a></li>
+                    <li class="breadcrumb-item">选座购票</li>
+                </ul>
+
+                <h1 class="page-title">选座购票</h1>
+
+                <p class="page-subtitle">
+                    <span id="eventName">演出名称</span><br>
+                    <span class="text-muted" id="sessionInfo">时间 | 地址</span>
+                </p>
+
+                <div class="flex" style="gap: 24px; margin-top: 32px; align-items: flex-start;">
+                    <!-- 座位图区域 -->
+                    <div style="flex: 1;">
+                        <div class="seat-map" style="padding: 16px;">
+                            <!-- 舞台 -->
+                            <div class="stage" style="margin-bottom: 16px;">舞台</div>
+
+                            <!-- 座位画布容器 -->
+                            <div class="seat-canvas-wrapper" id="canvasWrapper">
+                                <!-- 缩放提示 -->
+                                <div class="zoom-hint" id="zoomHint">鼠标滚轮缩放，拖拽移动</div>
+
+                                <!-- 座位画布 -->
+                                <div class="seat-canvas" id="seatCanvas">
+                                    <div class="seat-canvas-content" id="seatsContent">
+                                        <!-- 座位图将通过 JavaScript 动态生成 -->
+                                    </div>
+                                </div>
+
+                                <!-- 缩放控制 -->
+                                <div class="zoom-controls">
+                                    <div class="zoom-controls-row">
+                                        <button class="zoom-btn" id="zoomInBtn" title="放大">+</button>
+                                    </div>
+                                    <div class="zoom-level" id="zoomLevel">100%</div>
+                                    <div class="zoom-controls-row">
+                                        <button class="zoom-btn" id="zoomOutBtn" title="缩小">−</button>
+                                    </div>
+                                    <div class="zoom-controls-row">
+                                        <button class="zoom-btn" id="zoomResetBtn" title="重置">⟲</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 座位图例 -->
+                            <div class="seat-legend" style="margin-top: 16px;">
+                                <div class="seat-legend-item">
+                                    <div class="seat-legend-icon seat-available" style="margin: 0;"></div>
+                                    <span>可售</span>
+                                </div>
+                                <div class="seat-legend-item">
+                                    <div class="seat-legend-icon seat-selected" style="margin: 0;"></div>
+                                    <span>已选</span>
+                                </div>
+                                <div class="seat-legend-item">
+                                    <div class="seat-legend-icon seat-locked" style="margin: 0;"></div>
+                                    <span>已占用</span>
+                                </div>
+                                <div class="seat-legend-item">
+                                    <div class="seat-legend-icon seat-sold" style="margin: 0;"></div>
+                                    <span>已售</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 选座侧边栏 - 固定 -->
+                    <div class="seat-sidebar">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">已选座位</div>
+                            </div>
+                            <div class="card-body">
+                                <div id="selectedSeatsContainer">
+                                    <div class="text-muted text-small text-center" style="padding: 20px;">请点击座位图选择座位</div>
+                                </div>
+
+                                <div class="divider"></div>
+
+                                <div class="flex-between mb-8">
+                                    <span class="text-muted">已选座位</span>
+                                    <span style="font-weight: 600;" id="selectedCount">0个</span>
+                                </div>
+
+                                <div class="flex-between mb-16">
+                                    <span class="text-muted">座位总价</span>
+                                    <div class="price price-large" id="totalPrice">¥0</div>
+                                </div>
+
+                                <div class="flex-between mb-16">
+                                    <span class="text-muted">服务费</span>
+                                    <span>¥0</span>
+                                </div>
+
+                                <div class="divider"></div>
+
+                                <div class="flex-between">
+                                    <span style="font-weight: 600;">合计</span>
+                                    <div class="price price-large" id="totalAmount" style="font-size: 28px;">¥0</div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div style="margin-bottom: 12px;">
+                                    <span class="text-small text-muted">观演人</span>
+                                    <div style="margin-top: 8px;">
+                                        <span class="badge badge-primary" id="attendeeName">待填写</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="submitBtn" style="width: 100%;">创建订单并锁定座位</button>
+                                <div class="text-small text-muted text-center mt-8">
+                                    请在15分钟内完成支付
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选座说明 -->
+                <div class="detail-section" style="margin-top: 32px;">
+                    <h2 class="detail-section-title">选座说明</h2>
+                    <div class="detail-section-content">
+                        <p style="margin-bottom: 12px;"><strong>操作说明：</strong></p>
+                        <ul style="list-style: disc; padding-left: 24px; line-height: 1.8;">
+                            <li>鼠标滚轮或点击 +/- 按钮缩放座位图</li>
+                            <li>按住鼠标拖拽移动座位图</li>
+                            <li>点击座位进行选择/取消</li>
+                        </ul>
+
+                        <p style="margin: 16px 0 12px;"><strong>温馨提示：</strong></p>
+                        <ul style="list-style: disc; padding-left: 24px; line-height: 1.8;">
+                            <li>座位图仅供参考，实际座位以现场为准</li>
+                            <li>每单最多购买4张门票，需选择连续座位</li>
+                            <li>选中座位后请在15分钟内完成支付，超时座位将自动释放</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-seats.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script src="/assets/js/client-orders.js"></script>
+    <script src="/assets/js/client-seat-selection.js"></script>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

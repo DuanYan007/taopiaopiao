@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确认订单 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link active">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 面包屑 -->
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                <li class="breadcrumb-item"><a href="event-detail.html">演出详情</a></li>
+                <li class="breadcrumb-item"><a href="session-list.html">选择场次</a></li>
+                <li class="breadcrumb-item"><a href="seat-selection.html">选座购票</a></li>
+                <li class="breadcrumb-item">确认订单</li>
+            </ul>
+
+            <h1 class="page-title">确认订单</h1>
+
+            <div class="flex" style="gap: 24px; margin-top: 32px;">
+                <div style="flex: 1;">
+                    <!-- 订单摘要 -->
+                    <div class="order-summary">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">订单信息</h2>
+
+                        <div class="order-item">
+                            <div class="order-item-cover" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                            <div class="order-item-info">
+                                <div class="order-item-title">周杰伦2025嘉年华世界巡回演唱会-上海站</div>
+                                <div class="order-item-meta">2025年3月15日 周六 19:30</div>
+                                <div class="order-item-meta">上海体育场（徐家汇体育公园）</div>
+                                <div class="order-item-meta">VIP内场 B排3号 × 1张</div>
+                            </div>
+                            <div class="price price-large">¥2580</div>
+                        </div>
+                    </div>
+
+                    <!-- 观演人信息 -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">观演人信息</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">姓名</label>
+                                <input type="text" class="form-input" value="张三" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">身份证号</label>
+                                <input type="text" class="form-input" value="310101199001011234" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">手机号</label>
+                                <input type="text" class="form-input" value="138****8888" readonly>
+                            </div>
+                            <div class="text-small text-muted" style="margin-top: 12px;">
+                                注：本场演出实行实名制，入场时需出示身份证原件
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 联系方式 -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">联系方式</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">联系人</label>
+                                <input type="text" class="form-input" value="张三">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">手机号</label>
+                                <input type="text" class="form-input" value="138****8888">
+                            </div>
+                            <div class="text-small text-muted">
+                                订单相关信息将通过短信通知
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 购票须知 -->
+                    <div class="detail-section" style="margin-top: 24px;">
+                        <h2 class="detail-section-title">购票须知</h2>
+                        <div class="detail-section-content">
+                            <div class="text-small" style="line-height: 1.8;">
+                                <p style="margin-bottom: 12px;">1. 购买成功后，订单不可取消，不可更改场次</p>
+                                <p style="margin-bottom: 12px;">2. 本场演出限购4张，需要实名制购票</p>
+                                <p style="margin-bottom: 12px;">3. 演出当天请提前90分钟入场</p>
+                                <p style="margin-bottom: 12px;">4. 1.2米以下儿童谢绝入场，1.2米以上儿童需凭票入场</p>
+                                <p>5. 禁止携带专业摄影器材、饮料、食品、打火机等物品入场</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 支付信息侧边栏 -->
+                <div style="width: 400px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">支付信息</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="price-row">
+                                <span class="text-muted">票价总计</span>
+                                <span>¥2580.00</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="text-muted">服务费</span>
+                                <span>¥0.00</span>
+                            </div>
+                            <div class="price-row">
+                                <span class="text-muted">优惠</span>
+                                <span class="text-danger">- ¥0.00</span>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="price-row price-row-total">
+                                <span>应付金额</span>
+                                <div class="price price-large" style="font-size: 32px;">¥2580.00</div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" checked style="margin-right: 8px;">
+                                    <span class="text-small">我已阅读并同意《购票服务协议》</span>
+                                </label>
+                            </div>
+
+                            <!-- 倒计时提示 -->
+                            <div style="text-align: center; margin-bottom: 12px;">
+                                <span class="text-small text-muted">请在 </span>
+                                <span id="countdown" style="font-weight: 600; color: #1976d2;">15:00</span>
+                                <span class="text-small text-muted"> 内完成支付</span>
+                            </div>
+
+                            <div id="paymentHint" class="text-small text-muted" style="text-align: center; margin-bottom: 12px;">
+                                正在准备支付信息...
+                            </div>
+
+                            <button id="payBtn" class="btn btn-primary" style="width: 100%; font-size: 18px; padding: 14px;" disabled>
+                                确认支付 ¥2580.00
+                            </button>
+
+                            <div class="text-small text-muted text-center mt-16">
+                                支付即代表您同意<br>
+                                <a href="#" style="color: #1976d2;">《购票服务协议》</a> 和
+                                <a href="#" style="color: #1976d2;">《隐私政策》</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-seats.js"></script>
+    <script src="/assets/js/client-orders.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script src="/assets/js/client-order-confirm.js"></script>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,144 @@
+/* ==========================================
+   场次管理页面 - 表格样式
+   ========================================== */
+
+/* 表格容器 */
+.admin-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-table-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.admin-table-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.admin-table table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.admin-table thead {
+    display: block;
+    width: 100%;
+    flex-shrink: 0;
+    overflow-y: scroll;
+}
+
+.admin-table tbody {
+    display: block;
+    width: 100%;
+    height: 600px;
+    overflow-y: scroll;
+    flex-shrink: 0;
+}
+
+.admin-table tr {
+    display: flex;
+    width: 100%;
+}
+
+.admin-table th,
+.admin-table td {
+    flex: 1;
+    padding: 16px 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.admin-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.admin-table-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
+}
+
+/* 场次表格列宽 - 7列对应：ID, 演出名称, 场次名称, 场次时间, 座位情况, 状态, 操作 */
+.admin-table th:nth-child(1),
+.admin-table td:nth-child(1) {
+    flex: 0 0 60px;
+}
+
+.admin-table th:nth-child(2),
+.admin-table td:nth-child(2) {
+    flex: 3;
+    min-width: 200px;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3) {
+    flex: 0 0 120px;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.admin-table th:nth-child(4),
+.admin-table td:nth-child(4) {
+    flex: 0 0 160px;
+}
+
+.admin-table th:nth-child(5),
+.admin-table td:nth-child(5) {
+    flex: 0 0 100px;
+}
+
+.admin-table th:nth-child(6),
+.admin-table td:nth-child(6) {
+    flex: 0 0 80px;
+}
+
+.admin-table th:nth-child(7),
+.admin-table td:nth-child(7) {
+    flex: 0 0 240px;
+}
+
+/* 左对齐的列：演出名称、场次名称 */
+.admin-table th:nth-child(2),
+.admin-table td:nth-child(2),
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3) {
+    text-align: left;
+    justify-content: flex-start;
+    padding-left: 16px;
+}

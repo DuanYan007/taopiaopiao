@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的订单 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+    <style>
+        /* 订单中心页专用样式 */
+        .order-filter-tabs {
+            display: flex;
+            gap: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-tab {
+            padding: 8px 20px;
+            border-radius: 20px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-tab:hover {
+            color: #1976d2;
+        }
+
+        .filter-tab.active {
+            background: #1976d2;
+            color: white;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+        }
+
+        .pagination-page {
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination-page:hover {
+            background: #f5f5f5;
+        }
+
+        .pagination-page.active {
+            background: #1976d2;
+            color: white;
+        }
+
+        .pagination-page.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination-ellipsis {
+            color: #999;
+            padding: 0 4px;
+        }
+
+        /* 订单卡片操作按钮 */
+        .order-action-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .order-action-btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link active">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div class="user-info" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- 动态填充用户信息 -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">我的订单</h1>
+
+            <!-- 订单状态筛选 -->
+            <div class="order-filter-tabs" id="orderFilterTabs">
+                <button class="filter-tab active" data-status="">全部订单</button>
+                <button class="filter-tab" data-status="1">未支付</button>
+                <button class="filter-tab" data-status="2">已支付</button>
+                <button class="filter-tab" data-status="3">已取消</button>
+            </div>
+
+            <!-- 加载状态 -->
+            <div class="loading-state" id="loadingState" style="padding: 60px 0; display: flex;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">加载中...</div>
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">暂无订单</div>
+            </div>
+
+            <!-- 订单列表容器 -->
+            <div class="order-list" id="orderList" style="display: none;"></div>
+
+            <!-- 分页 -->
+            <div class="pagination" id="pagination" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script src="/assets/js/client-orders.js"></script>
+    <script src="/assets/js/client-order-center.js"></script>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

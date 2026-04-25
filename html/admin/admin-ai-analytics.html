@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI分析 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">AI问答分析</div>
+                <div class="admin-header-actions">
+                    <select class="form-select" style="width: 150px;">
+                        <option>最近7天</option>
+                        <option>最近30天</option>
+                        <option>最近90天</option>
+                    </select>
+                    <button class="btn btn-secondary btn-small">导出报告</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 统计概览 -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-value">12,456</div>
+                        <div class="stat-card-label">总问答次数</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 23.5%</span> 较上周
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">94.5%</div>
+                        <div class="stat-card-label">回答准确率</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 2.3%</span> 较上周
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">3.2秒</div>
+                        <div class="stat-card-label">平均响应时间</div>
+                        <div class="stat-card-trend down">
+                            <span>↓ 0.5秒</span> 较上周
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">87.3%</div>
+                        <div class="stat-card-label">用户满意度</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 5.2%</span> 较上周
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表 -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">问答趋势</div>
+                        <div class="dashboard-chart-placeholder">
+                            📊 折线图：每日问答次数变化
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">问题类型分布</div>
+                        <div class="dashboard-chart-placeholder">
+                            📊 饼图：各类问题占比
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题列表 -->
+                <div class="admin-table">
+                    <div class="admin-table-header">
+                        <div class="admin-table-title">近期问答记录</div>
+                        <button class="btn btn-secondary btn-small">查看全部</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>用户问题</th>
+                                <th>AI回答</th>
+                                <th>置信度</th>
+                                <th>用户反馈</th>
+                                <th>响应时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-01-25 21:28:45</td>
+                                <td>怎么抢票？有什么技巧吗？</td>
+                                <td>您好！抢票确实需要一些技巧...</td>
+                                <td>
+                                    <div class="progress-bar" style="width: 100px;">
+                                        <div class="progress-fill" style="width: 95%;"></div>
+                                    </div>
+                                    <span class="text-small">95%</span>
+                                </td>
+                                <td><span class="badge badge-success">👍 满意</span></td>
+                                <td>2.3秒</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-25 21:25:32</td>
+                                <td>为什么我选座的时候提示占用失败？</td>
+                                <td>占用失败通常有以下几种原因...</td>
+                                <td>
+                                    <div class="progress-bar" style="width: 100px;">
+                                        <div class="progress-fill" style="width: 92%;"></div>
+                                    </div>
+                                    <span class="text-small">92%</span>
+                                </td>
+                                <td><span class="badge badge-success">👍 满意</span></td>
+                                <td>2.8秒</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-25 21:20:15</td>
+                                <td>周杰伦的演唱会什么时候开售？</td>
+                                <td>根据我的查询，周杰伦2025嘉年华...</td>
+                                <td>
+                                    <div class="progress-bar" style="width: 100px;">
+                                        <div class="progress-fill" style="width: 98%;"></div>
+                                    </div>
+                                    <span class="text-small">98%</span>
+                                </td>
+                                <td><span class="badge badge-success">👍 满意</span></td>
+                                <td>3.1秒</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-25 21:15:48</td>
+                                <td>如何退票？</td>
+                                <td>票品为有价证券，非演出质量问题...</td>
+                                <td>
+                                    <div class="progress-bar" style="width: 100px;">
+                                        <div class="progress-fill" style="width: 88%;"></div>
+                                    </div>
+                                    <span class="text-small">88%</span>
+                                </td>
+                                <td><span class="badge badge-warning">👎 需改进</span></td>
+                                <td>2.5秒</td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-25 21:10:22</td>
+                                <td>1.2米儿童需要购票吗？</td>
+                                <td>不同演出对儿童的要求不同...</td>
+                                <td>
+                                    <div class="progress-bar" style="width: 100px;">
+                                        <div class="progress-fill" style="width: 91%;"></div>
+                                    </div>
+                                    <span class="text-small">91%</span>
+                                </td>
+                                <td><span class="badge badge-success">👍 满意</span></td>
+                                <td>2.1秒</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 模型性能监控 -->
+                <div class="dashboard-grid" style="margin-top: 32px;">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">RAG检索性能</div>
+                        <div style="padding: 16px;">
+                            <div class="flex-between mb-16">
+                                <span>平均检索时间</span>
+                                <span style="font-size: 20px; font-weight: 600;">0.8秒</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>检索命中率</span>
+                                <span style="font-size: 20px; font-weight: 600; color: #388e3c;">92.3%</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>平均检索结果数</span>
+                                <span style="font-size: 20px; font-weight: 600;">3.2条</span>
+                            </div>
+                            <div class="flex-between">
+                                <span>零结果率</span>
+                                <span style="font-size: 20px; font-weight: 600; color: #d32f2f;">7.7%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">模型状态</div>
+                        <div style="padding: 16px;">
+                            <div class="flex-between mb-16">
+                                <span>模型版本</span>
+                                <span class="badge badge-info">GPT-4-turbo</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>API调用量</span>
+                                <span>12,456次</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>Token消耗</span>
+                                <span>2,345,678</span>
+                            </div>
+                            <div class="flex-between mb-16">
+                                <span>错误率</span>
+                                <span style="color: #388e3c;">0.05%</span>
+                            </div>
+                            <div class="flex-between">
+                                <span>模型状态</span>
+                                <span class="badge badge-success">正常运行</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 优化建议 -->
+                <div class="card" style="margin-top: 32px; background: #e3f2fd;">
+                    <div class="card-header" style="background: transparent;">
+                        <div class="card-title">💡 优化建议</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="list">
+                            <div class="list-item" style="border-bottom: 1px solid #bbdefb;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">增加"退票"相关知识</div>
+                                <div class="text-small" style="color: #666;">用户反馈中，退票问题满意度较低，建议补充更详细的退票政策和流程说明</div>
+                            </div>
+                            <div class="list-item" style="border-bottom: 1px solid #bbdefb;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">优化抢票技巧回答</div>
+                                <div class="text-small" style="color: #666;">"怎么抢票"是最热门问题，建议增加更多实用的抢票技巧和成功案例</div>
+                            </div>
+                            <div class="list-item">
+                                <div style="font-weight: 600; margin-bottom: 4px;">降低零结果率</div>
+                                <div class="text-small" style="color: #666;">当前零结果率为7.7%，建议扩充知识库，增加更多常见问题的覆盖面</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

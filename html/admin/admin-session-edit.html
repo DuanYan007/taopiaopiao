@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新建场次 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">新建场次</div>
+                <div class="admin-header-actions">
+                    <a href="admin-sessions.html" class="btn btn-secondary">返回列表</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 关联演出信息卡片 -->
+                <div class="card" style="margin-bottom: 24px; padding: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">所属演出 <span style="color: #d32f2f;">*</span></label>
+                        <select class="form-select" id="eventSelect" required>
+                            <option value="">请选择演出</option>
+                        </select>
+                        <div class="text-small text-muted" style="margin-top: 4px;">选择演出后，系统将自动加载演出信息</div>
+                    </div>
+                    <!-- 演出详细信息展示区域（选择后显示） -->
+                    <div id="eventDetails" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <div class="text-small text-muted" style="margin-bottom: 8px;">演出信息</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;" id="eventName"></div>
+                        <div class="text-small" style="color: #666;" id="eventInfo"></div>
+                    </div>
+                </div>
+
+                <form id="sessionForm" class="admin-form">
+                    <!-- 隐藏字段：演出ID -->
+                    <input type="hidden" name="eventId" id="eventId">
+
+                    <!-- 基本信息 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">场次基本信息</div>
+                        <div class="form-group">
+                            <label class="form-label">场次名称 <span style="color: #d32f2f;">*</span></label>
+                            <input type="text" class="form-input" name="sessionName" id="sessionName" placeholder="如：2025-03-15 19:30场" required>
+                            <div class="text-small text-muted" style="margin-top: 4px;">用于区分同一演出的不同场次</div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">场次开始时间 <span style="color: #d32f2f;">*</span></label>
+                                <input type="datetime-local" class="form-input" name="startTime" id="startTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">场次结束时间 <span style="color: #d32f2f;">*</span></label>
+                                <input type="datetime-local" class="form-input" name="endTime" id="endTime" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">详细地址</label>
+                            <input type="text" class="form-input" name="address" id="address" placeholder="演出举办地址">
+                        </div>
+                    </div>
+
+                    <!-- 座位设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">座位设置</div>
+                        <div class="form-group">
+                            <label class="form-label">座位模板 <span style="color: #d32f2f;">*</span></label>
+                            <select class="form-select" name="seatTemplateId" id="seatTemplateId" required>
+                                <option value="">请选择座位模板</option>
+                            </select>
+                            <div class="text-small text-muted" style="margin-top: 4px;">选择座位模板后，座位数将自动从模板中获取</div>
+                        </div>
+                        <div id="seatTemplateInfo" style="display: none; margin-top: 12px; padding: 12px; background: #f5f5f5; border-radius: 4px;">
+                            <div class="text-small text-muted">模板信息</div>
+                            <div id="templateName" style="font-weight: 500;"></div>
+                            <div class="text-small" style="color: #666;">
+                                总座位数：<span id="totalSeats">0</span> 座
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">选座方式</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="seatSelectionMode" value="online" checked> 在线选座
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="seatSelectionMode" value="auto"> 系统自动分配
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 销售设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">销售设置</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">开售时间</label>
+                                <input type="datetime-local" class="form-input" name="saleStartTime" id="saleStartTime">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">停售时间</label>
+                                <input type="datetime-local" class="form-input" name="saleEndTime" id="saleEndTime">
+                                <div class="text-small text-muted" style="margin-top: 4px;">默认为场次开始时间</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">特殊购票限制</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="requireRealName" id="requireRealName"> 实名制购票
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="limitOnePerPerson" id="limitOnePerPerson"> 每人限购1张
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="checkbox" name="noRefund" id="noRefund"> 禁止退票
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 扩展设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">扩展设置</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">演出时长（分钟）</label>
+                                <input type="number" class="form-input" name="duration" id="duration" placeholder="请输入演出时长" min="1" value="120">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">排序权重</label>
+                                <input type="number" class="form-input" name="sortOrder" id="sortOrder" placeholder="数字越大排序越靠前" value="100">
+                                <div class="text-small text-muted" style="margin-top: 4px;">用于在场次列表中排序显示</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-textarea" name="remark" id="remark" placeholder="内部备注信息" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 状态设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">状态设置</div>
+                        <div class="form-group">
+                            <label class="form-label">场次状态</label>
+                            <div style="padding: 8px 0;">
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="status" value="not_started" checked> 未开始
+                                </label>
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="status" value="on_sale"> 立即开售
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="status" value="off_sale"> 下架
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表单操作按钮 -->
+                    <div class="admin-form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">发布场次</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+<script src="/assets/js/auth.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/session-edit.js"></script>
+</body>
+</html>

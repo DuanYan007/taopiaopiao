@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据概览 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <!-- 顶部导航 -->
+            <header class="admin-header">
+                <div class="admin-header-title">数据概览</div>
+                <div class="admin-header-actions">
+                    <span class="badge badge-success"><span class="status-dot online"></span>系统正常</span>
+                    <button class="btn btn-secondary btn-small">刷新数据</button>
+                    <span class="text-muted">最后更新：2025-01-25 21:30:00</span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 统计卡片 -->
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-value">1,234</div>
+                        <div class="stat-card-label">今日订单数</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 12.5%</span> 较昨日
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">¥328,450</div>
+                        <div class="stat-card-label">今日交易额</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 8.3%</span> 较昨日
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">8,567</div>
+                        <div class="stat-card-label">活跃用户数</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 15.2%</span> 较昨日
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">156</div>
+                        <div class="stat-card-label">进行中演出</div>
+                        <div class="stat-card-trend">
+                            <span>-</span> 持平
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">234</div>
+                        <div class="stat-card-label">待处理订单</div>
+                        <div class="stat-card-trend down">
+                            <span>↓ 5.8%</span> 较昨日
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">12</div>
+                        <div class="stat-card-label">占用即将过期</div>
+                        <div class="stat-card-trend warning">
+                            <span>⚠️</span> 需关注
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">近7日订单趋势</div>
+                        <div class="dashboard-chart-placeholder">
+                            📊 折线图：订单数量随时间变化
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">演出类型分布</div>
+                        <div class="dashboard-chart-placeholder">
+                            📊 饼图：各类演出占比
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 待处理事项 -->
+                <div class="admin-table">
+                    <div class="admin-table-header">
+                        <div class="admin-table-title">待处理事项</div>
+                        <button class="btn btn-secondary btn-small">查看全部</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>类型</th>
+                                <th>内容</th>
+                                <th>优先级</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-warning">占用即将过期</span></td>
+                                <td>订单 ORD202501251930001 占用即将过期</td>
+                                <td><span style="color: #d32f2f;">高</span></td>
+                                <td>2025-01-25 19:30</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">处理</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-info">用户投诉</span></td>
+                                <td>用户反馈无法选座</td>
+                                <td><span style="color: #f57c00;">中</span></td>
+                                <td>2025-01-25 18:45</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">处理</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-primary">新演出待审核</span></td>
+                                <td>《张惠妹ASMR世界巡回演唱会》待上架审核</td>
+                                <td><span style="color: #1976d2;">普通</span></td>
+                                <td>2025-01-25 16:20</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">审核</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-success">数据同步</span></td>
+                                <td>座位数据同步完成</td>
+                                <td><span style="color: #388e3c;">低</span></td>
+                                <td>2025-01-25 15:00</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 实时活动 -->
+                <div class="dashboard-grid" style="margin-top: 32px;">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">实时订单</div>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-time">21:29:45</div>
+                                    <div class="timeline-content">
+                                        <div>新订单 ORD202501252129001</div>
+                                        <div class="text-small text-muted" style="margin-top: 4px;">用户 购买《周杰伦演唱会》VIP内场×1</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">21:29:32</div>
+                                    <div class="timeline-content">
+                                        <div>订单 ORD202501251930001 支付成功</div>
+                                        <div class="text-small text-muted" style="margin-top: 4px;">金额：¥2580</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">21:28:56</div>
+                                    <div class="timeline-content">
+                                        <div>占用释放</div>
+                                        <div class="text-small text-muted" style="margin-top: 4px;">订单 ORD202501251820003 超时未支付</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">21:28:12</div>
+                                    <div class="timeline-content">
+                                        <div>新用户注册</div>
+                                        <div class="text-small text-muted" style="margin-top: 4px;">用户 138****9999 完成注册</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">21:27:45</div>
+                                    <div class="timeline-content">
+                                        <div>座位占用</div>
+                                        <div class="text-small text-muted" style="margin-top: 4px;">用户 占用《林俊杰演唱会》看台一等1排5号</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">系统状态</div>
+                        <div>
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>服务器CPU使用率</span>
+                                <span>45%</span>
+                            </div>
+                            <div class="progress-bar" style="margin-bottom: 24px;">
+                                <div class="progress-fill" style="width: 45%;"></div>
+                            </div>
+
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>内存使用率</span>
+                                <span>68%</span>
+                            </div>
+                            <div class="progress-bar" style="margin-bottom: 24px;">
+                                <div class="progress-fill" style="width: 68%;"></div>
+                            </div>
+
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>数据库连接</span>
+                                <span class="badge badge-success">正常</span>
+                            </div>
+
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>Redis缓存</span>
+                                <span class="badge badge-success">正常</span>
+                            </div>
+
+                            <div class="flex-between" style="margin-bottom: 16px;">
+                                <span>API响应时间</span>
+                                <span>平均 120ms</span>
+                            </div>
+
+                            <div class="flex-between">
+                                <span>今日错误率</span>
+                                <span class="text-success">0.02%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/api.js"></script>
+    <script>
+        // 页面加载时检查登录状态
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!isAuthenticated()) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            // 显示用户信息
+            const userInfo = getUserInfo();
+            if (userInfo) {
+                const userNameEl = document.querySelector('.admin-sidebar-footer .flex div div');
+                if (userNameEl) {
+                    userNameEl.textContent = userInfo.realName || userInfo.username;
+                }
+            }
+
+            // 绑定登出按钮
+            const logoutBtn = document.querySelector('.logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计看板 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">统计看板</div>
+                <div class="admin-header-actions">
+                    <select class="form-select btn-small">
+                        <option>最近7天</option>
+                        <option selected>最近30天</option>
+                        <option>最近90天</option>
+                        <option>自定义</option>
+                    </select>
+                    <button class="btn btn-secondary btn-small">导出报表</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 核心指标 -->
+                <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-card-value">¥12,345,678</div>
+                        <div class="stat-card-label">总交易额</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 23.5%</span> 较上期
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">45,678</div>
+                        <div class="stat-card-label">订单总数</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 18.2%</span> 较上期
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">¥271</div>
+                        <div class="stat-card-label">客单价</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 4.5%</span> 较上期
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-value">98.5%</div>
+                        <div class="stat-card-label">支付成功率</div>
+                        <div class="stat-card-trend up">
+                            <span>↑ 2.1%</span> 较上期
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 销售趋势图 -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-chart" style="grid-column: span 2;">
+                        <div class="dashboard-chart-title">销售趋势（近30天）</div>
+                        <div style="height: 300px; display: flex; align-items: flex-end; gap: 12px; padding: 20px 0;">
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 60%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">1日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 75%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">5日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 45%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">10日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 85%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">15日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 70%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">20日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 90%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">25日</div>
+                            </div>
+                            <div style="flex: 1; background: linear-gradient(to top, #1976d2, #42a5f5); border-radius: 4px 4px 0 0; position: relative; height: 65%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #666;">30日</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">用户增长</div>
+                        <div style="height: 300px; display: flex; align-items: flex-end; gap: 8px; padding: 20px 0;">
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 40%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周一</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 55%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周二</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 48%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周三</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 62%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周四</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 85%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周五</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 95%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周六</div>
+                            </div>
+                            <div style="flex: 1; background: #388e3c; border-radius: 4px 4px 0 0; position: relative; height: 78%;">
+                                <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #666;">周日</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 热门演出排行 -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">热门演出 TOP10</div>
+                        <div style="padding: 12px 0;">
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 32px; height: 32px; background: #d32f2f; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 12px;">1</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">周杰伦演唱会</div>
+                                    <div class="text-small text-muted">销售额：¥3,456,789</div>
+                                </div>
+                                <div class="text-success" style="font-weight: 600;">12,345票</div>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 32px; height: 32px; background: #f57c00; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 12px;">2</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">林俊杰演唱会</div>
+                                    <div class="text-small text-muted">销售额：¥2,345,678</div>
+                                </div>
+                                <div class="text-success" style="font-weight: 600;">9,876票</div>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 32px; height: 32px; background: #1976d2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 12px;">3</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">五月天演唱会</div>
+                                    <div class="text-small text-muted">销售额：¥1,987,654</div>
+                                </div>
+                                <div class="text-success" style="font-weight: 600;">8,765票</div>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 32px; height: 32px; background: #e0e0e0; color: #666; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 12px;">4</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">张惠妹演唱会</div>
+                                    <div class="text-small text-muted">销售额：¥1,654,321</div>
+                                </div>
+                                <div class="text-success" style="font-weight: 600;">7,234票</div>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <div style="width: 32px; height: 32px; background: #e0e0e0; color: #666; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; margin-right: 12px;">5</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">邓紫棋演唱会</div>
+                                    <div class="text-small text-muted">销售额：¥1,456,789</div>
+                                </div>
+                                <div class="text-success" style="font-weight: 600;">6,543票</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">演出类型分布</div>
+                        <div style="padding: 20px;">
+                            <div style="margin-bottom: 20px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>演唱会</span>
+                                    <span style="font-weight: 600;">65%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>话剧歌剧</span>
+                                    <span style="font-weight: 600;">18%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 18%; background: #388e3c;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>音乐剧</span>
+                                    <span style="font-weight: 600;">10%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 10%; background: #f57c00;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>体育赛事</span>
+                                    <span style="font-weight: 600;">5%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 5%; background: #d32f2f;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>其他</span>
+                                    <span style="font-weight: 600;">2%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 2%; background: #9e9e9e;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 地区分布和支付方式 -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">地区分布（TOP5）</div>
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 8px; text-align: left;">城市</th>
+                                    <th style="padding: 8px; text-align: right;">订单数</th>
+                                    <th style="padding: 8px; text-align: right;">占比</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 12px 8px;">北京</td>
+                                    <td style="padding: 12px 8px; text-align: right; font-weight: 600;">12,345</td>
+                                    <td style="padding: 12px 8px; text-align: right;">28.5%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 8px;">上海</td>
+                                    <td style="padding: 12px 8px; text-align: right; font-weight: 600;">10,234</td>
+                                    <td style="padding: 12px 8px; text-align: right;">23.6%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 8px;">广州</td>
+                                    <td style="padding: 12px 8px; text-align: right; font-weight: 600;">7,890</td>
+                                    <td style="padding: 12px 8px; text-align: right;">18.2%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 8px;">深圳</td>
+                                    <td style="padding: 12px 8px; text-align: right; font-weight: 600;">6,543</td>
+                                    <td style="padding: 12px 8px; text-align: right;">15.1%</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 8px;">杭州</td>
+                                    <td style="padding: 12px 8px; text-align: right; font-weight: 600;">4,567</td>
+                                    <td style="padding: 12px 8px; text-align: right;">10.5%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="dashboard-chart">
+                        <div class="dashboard-chart-title">支付方式分布</div>
+                        <div style="padding: 20px;">
+                            <div style="margin-bottom: 24px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>支付宝</span>
+                                    <span style="font-weight: 600;">42%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 42%; background: #1976d2;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>微信支付</span>
+                                    <span style="font-weight: 600;">38%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 38%; background: #388e3c;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>银行卡</span>
+                                    <span style="font-weight: 600;">15%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 15%; background: #f57c00;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex-between" style="margin-bottom: 8px;">
+                                    <span>其他</span>
+                                    <span style="font-weight: 600;">5%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 5%; background: #9e9e9e;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

@@ -8,6 +8,7 @@ target/
 *.iws
 *.iml
 *.ipr
+.obsidian/
 .run/
 .tmp/
 logs/

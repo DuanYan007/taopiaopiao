@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演出详情 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div class="user-info" id="userInfo" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <!-- 动态填充用户信息 -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 面包屑 -->
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                <li class="breadcrumb-item" id="breadcrumbType"><a href="index.html">演唱会</a></li>
+                <li class="breadcrumb-item" id="breadcrumbName">演出名称</li>
+            </ul>
+
+            <!-- 演出详情头部 -->
+            <div class="detail-header">
+                <div class="detail-main">
+                    <div class="detail-cover" id="detailCover" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+
+                    <div class="detail-content">
+                        <h1 class="detail-title" id="detailTitle">演出名称</h1>
+
+                        <!-- 标签 -->
+                        <div class="detail-tags" id="detailTags"></div>
+
+                        <div class="detail-info">
+                            <div class="detail-info-item">
+                                <span class="detail-info-label">艺人/主办方：</span>
+                                <span class="detail-info-value" id="detailArtist">-</span>
+                            </div>
+                            <div class="detail-info-item">
+                                <span class="detail-info-label">类型：</span>
+                                <span class="detail-info-value" id="detailType">-</span>
+                            </div>
+                            <div class="detail-info-item">
+                                <span class="detail-info-label">城市：</span>
+                                <span class="detail-info-value" id="detailCity">-</span>
+                            </div>
+                            <div class="detail-info-item">
+                                <span class="detail-info-label">演出时间：</span>
+                                <span class="detail-info-value" id="detailTime">-</span>
+                            </div>
+                            <div class="detail-info-item">
+                                <span class="detail-info-label">演出时长：</span>
+                                <span class="detail-info-value" id="detailDuration">-</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-actions">
+                            <a href="session-list.html" id="buyButton" class="btn btn-primary btn-large">立即购票</a>
+                            <button class="btn btn-outline btn-large" onclick="addToFavorites()">收藏演出</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 演出介绍 -->
+            <div class="detail-section">
+                <h2 class="detail-section-title">演出介绍</h2>
+                <div class="detail-section-content" id="detailDescription">
+                    <p>暂无介绍</p>
+                </div>
+            </div>
+
+            <!-- 温馨提示 -->
+            <div class="detail-section" id="tipsSection">
+                <h2 class="detail-section-title">购票须知</h2>
+                <div class="detail-section-content" id="detailTips">
+                    <p style="margin-bottom: 12px;">1. 演出时长：约120分钟（以现场为准）</p>
+                    <p style="margin-bottom: 12px;">2. 入场时间：请提前60-90分钟入场</p>
+                    <p style="margin-bottom: 12px;">3. 付款时效：下单后15分钟内完成支付</p>
+                    <p style="margin-bottom: 12px;">4. 退换政策：票品为有价证券，非质量问题不支持退换</p>
+                    <p>5. 禁止携带物品：专业摄影器材、饮料、食品等</p>
+                </div>
+            </div>
+
+            <!-- 相关推荐 -->
+            <div class="detail-section">
+                <h2 class="detail-section-title">相关推荐</h2>
+                <div class="event-grid" id="recommendEvents" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                    <!-- 动态加载推荐演出 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script>
+        // 获取URL参数中的演出ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        // 页面加载时获取演出详情
+        window.addEventListener('DOMContentLoaded', () => {
+            // 更新用户信息显示
+            updateUserInfo();
+
+            if (eventId) {
+                loadEventDetail(eventId);
+                loadRecommendEvents(eventId);
+            } else {
+                showErrorMessage('缺少演出ID参数');
+            }
+        });
+
+        /**
+         * 更新用户信息显示
+         */
+        function updateUserInfo() {
+            const userInfo = document.getElementById('userInfo');
+            const user = getCurrentUser();
+
+            if (user) {
+                userInfo.innerHTML = `
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">
+                        ${user.nickname ? user.nickname.charAt(0) : '用'}
+                    </div>
+                    <span>${user.nickname || '用户'}</span>
+                `;
+            } else {
+                userInfo.innerHTML = `
+                    <a href="login.html" class="btn btn-outline btn-small">登录</a>
+                `;
+            }
+        }
+
+        /**
+         * 加载演出详情
+         */
+        async function loadEventDetail(id) {
+            try {
+                const event = await getEventDetail(id);
+                console.log('演出详情:', event);
+                renderEventDetail(event);
+            } catch (error) {
+                console.error('加载演出详情失败:', error);
+                showErrorMessage('加载演出详情失败: ' + error.message);
+            }
+        }
+
+        /**
+         * 渲染演出详情
+         */
+        function renderEventDetail(event) {
+            // 更新页面标题
+            document.title = `${event.name} - 淘票票`;
+
+            // 更新面包屑
+            const breadcrumbType = document.getElementById('breadcrumbType');
+            const breadcrumbName = document.getElementById('breadcrumbName');
+
+            if (breadcrumbType && EVENT_TYPE_MAP[event.type]) {
+                breadcrumbType.innerHTML = `<a href="index.html?type=${event.type}">${EVENT_TYPE_MAP[event.type]}</a>`;
+            }
+
+            if (breadcrumbName) {
+                breadcrumbName.textContent = event.name;
+            }
+
+            // 更新演出标题
+            const detailTitle = document.getElementById('detailTitle');
+            if (detailTitle) {
+                detailTitle.textContent = event.name;
+            }
+
+            // 更新封面图
+            const detailCover = document.getElementById('detailCover');
+            if (detailCover && event.coverImage) {
+                detailCover.style.backgroundImage = `url(${event.coverImage})`;
+                detailCover.style.backgroundSize = 'cover';
+                detailCover.style.backgroundPosition = 'center';
+            }
+
+            // 更新标签
+            const detailTags = document.getElementById('detailTags');
+            if (detailTags && event.tags && event.tags.length > 0) {
+                detailTags.innerHTML = event.tags.map(tag =>
+                    `<span class="badge badge-info">${tag}</span>`
+                ).join(' ');
+            }
+
+            // 更新演出信息
+            if (document.getElementById('detailArtist')) {
+                document.getElementById('detailArtist').textContent = event.artist || '-';
+            }
+
+            if (document.getElementById('detailType')) {
+                document.getElementById('detailType').textContent = EVENT_TYPE_MAP[event.type] || event.type || '-';
+            }
+
+            if (document.getElementById('detailCity')) {
+                document.getElementById('detailCity').textContent = event.city || '-';
+            }
+
+            // 更新演出时间
+            if (document.getElementById('detailTime')) {
+                const timeText = (event.eventStartDate && event.eventEndDate)
+                    ? `${event.eventStartDate} ~ ${event.eventEndDate}`
+                    : '待定';
+                document.getElementById('detailTime').textContent = timeText;
+            }
+
+            // 更新演出时长
+            if (document.getElementById('detailDuration')) {
+                document.getElementById('detailDuration').textContent = event.duration ? `${event.duration}分钟` : '-';
+            }
+
+            // 更新购票按钮链接
+            const buyButton = document.getElementById('buyButton');
+            if (buyButton) {
+                buyButton.href = `session-list.html?eventId=${event.id}`;
+            }
+
+            // 更新演出介绍
+            const detailDescription = document.getElementById('detailDescription');
+            if (detailDescription && event.description) {
+                // 将换行符转换为HTML段落
+                const paragraphs = event.description.split('\n').filter(p => p.trim());
+                detailDescription.innerHTML = paragraphs.map(p => `<p style="margin-bottom: 12px;">${p}</p>`).join('');
+            }
+
+            // 更新温馨提示
+            if (event.tips || event.refundPolicy) {
+                const detailTips = document.getElementById('detailTips');
+                if (detailTips) {
+                    let tipsHtml = '';
+
+                    if (event.tips) {
+                        tipsHtml += `<p style="margin-bottom: 12px;">${event.tips}</p>`;
+                    }
+
+                    if (event.refundPolicy) {
+                        tipsHtml += `<p style="margin-bottom: 12px;"><strong>退换票政策：</strong>${event.refundPolicy}</p>`;
+                    }
+
+                    if (tipsHtml) {
+                        detailTips.innerHTML = tipsHtml;
+                    }
+                }
+            }
+        }
+
+        /**
+         * 加载推荐演出
+         */
+        async function loadRecommendEvents(eventId) {
+            try {
+                const result = await getEventList({ page: 1, pageSize: 4 });
+                const events = (result.list || result.data || []).filter(e => e.id !== parseInt(eventId)).slice(0, 4);
+
+                renderRecommendEvents(events);
+            } catch (error) {
+                console.error('加载推荐演出失败:', error);
+            }
+        }
+
+        /**
+         * 渲染推荐演出
+         */
+        function renderRecommendEvents(events) {
+            const container = document.getElementById('recommendEvents');
+
+            if (!events || events.length === 0) {
+                container.innerHTML = '<p class="text-muted">暂无推荐演出</p>';
+                return;
+            }
+
+            container.innerHTML = events.map(event => {
+                const priceRange = getPriceRangeFromEvent(event);
+
+                return `
+                    <div class="event-card" onclick="location.href='event-detail.html?id=${event.id}'">
+                        <div class="event-cover" ${event.coverImage ? `style="background-image: url(${event.coverImage}); background-size: cover; background-position: center;"` : 'style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"'}></div>
+                        <div class="event-info">
+                            <div class="event-title" style="font-size: 14px;">${event.name}</div>
+                            <div class="event-price" style="font-size: 14px;">${priceRange}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * 从演出对象获取价格区间（如果有座位模板数据）
+         */
+        function getPriceRangeFromEvent(event) {
+            // 如果有座位模板信息，计算价格区间
+            if (event.seatTemplates && event.seatTemplates.length > 0) {
+                let allPrices = [];
+                event.seatTemplates.forEach(template => {
+                    if (template.areas) {
+                        template.areas.forEach(area => {
+                            if (area.price) {
+                                allPrices.push(area.price);
+                            }
+                        });
+                    }
+                });
+
+                if (allPrices.length > 0) {
+                    const minPrice = Math.min(...allPrices);
+                    const maxPrice = Math.max(...allPrices);
+                    return minPrice === maxPrice ? `¥${minPrice}` : `¥${minPrice}起`;
+                }
+            }
+
+            return '价格待定';
+        }
+
+        /**
+         * 添加到收藏
+         */
+        function addToFavorites() {
+            const user = getCurrentUser();
+
+            if (!user) {
+                alert('请先登录');
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            // TODO: 调用收藏API
+            alert('收藏功能开发中，敬请期待！');
+        }
+
+        /**
+         * 显示错误信息
+         */
+        function showErrorMessage(message) {
+            const mainContent = document.querySelector('.main-content .container');
+            mainContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">${message}</div>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">返回首页</a>
+                </div>
+            `;
+        }
+    </script>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

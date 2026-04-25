@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作日志 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">操作日志</div>
+                <div class="admin-header-actions">
+                    <button class="btn btn-secondary btn-small">导出日志</button>
+                    <button class="btn btn-danger btn-small">清理历史日志</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 筛选区 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="搜索操作人、操作内容...">
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部类型</option>
+                        <option>创建演出</option>
+                        <option>修改订单</option>
+                        <option>上下架</option>
+                        <option>配置修改</option>
+                        <option>删除数据</option>
+                        <option>用户管理</option>
+                    </select>
+                    <select class="form-select" style="width: 120px;">
+                        <option>全部状态</option>
+                        <option>成功</option>
+                        <option>失败</option>
+                    </select>
+                    <input type="date" class="form-select" style="width: 160px;" value="2025-01-25">
+                    <span style="padding: 10px;">至</span>
+                    <input type="date" class="form-select" style="width: 160px;" value="2025-01-26">
+                    <button class="btn btn-secondary">筛选</button>
+                    <button class="btn btn-outline btn-small">重置</button>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-card-value" style="color: #1976d2;">15,678</div>
+                        <div class="stat-card-label">今日操作总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-value" style="color: #388e3c;">15,234</div>
+                        <div class="stat-card-label">成功操作</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-value" style="color: #d32f2f;">444</div>
+                        <div class="stat-card-label">失败操作</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-value" style="color: #f57c00;">12</div>
+                        <div class="stat-card-label">活跃管理员</div>
+                    </div>
+                </div>
+
+                <!-- 日志列表 -->
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>操作人</th>
+                                <th>操作类型</th>
+                                <th>操作内容</th>
+                                <th>IP地址</th>
+                                <th>状态</th>
+                                <th>详情</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-01-26 14:32:15</td>
+                                <td>
+                                    <div>admin@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">管理员</div>
+                                </td>
+                                <td><span class="badge badge-primary">创建演出</span></td>
+                                <td>创建演出《张惠妹ASMR世界巡回演唱会》，演出时间：2025-04-01 19:30</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:28:45</td>
+                                <td>
+                                    <div>editor@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">编辑员</div>
+                                </td>
+                                <td><span class="badge badge-warning">修改订单</span></td>
+                                <td>修改订单 ORD202501261430001 状态：从待支付改为已支付</td>
+                                <td>192.168.1.101</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:25:30</td>
+                                <td>
+                                    <div>admin@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">管理员</div>
+                                </td>
+                                <td><span class="badge badge-info">上下架</span></td>
+                                <td>下架演出《薛之谦演唱会》场次：2025-01-20 19:30，原因：演出已结束</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:20:12</td>
+                                <td>
+                                    <div>operator@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">运营员</div>
+                                </td>
+                                <td><span class="badge badge-info">配置修改</span></td>
+                                <td>修改运营配置：座位占用时长从15分钟改为20分钟</td>
+                                <td>192.168.1.102</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:15:58</td>
+                                <td>
+                                    <div>admin@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">管理员</div>
+                                </td>
+                                <td><span class="badge badge-danger">删除数据</span></td>
+                                <td>删除演出《过期演出测试》，演出ID：EVT20241235001</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:10:35</td>
+                                <td>
+                                    <div>editor@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">编辑员</div>
+                                </td>
+                                <td><span class="badge badge-warning">修改订单</span></td>
+                                <td>修改订单 ORD202501261400002 座位信息：将座位从A区5排6号改为A区5排8号</td>
+                                <td>192.168.1.101</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:05:20</td>
+                                <td>
+                                    <div>operator@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">运营员</div>
+                                </td>
+                                <td><span class="badge badge-info">配置修改</span></td>
+                                <td>更新推送模板：开售提醒模板内容修改</td>
+                                <td>192.168.1.102</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 14:00:45</td>
+                                <td>
+                                    <div>admin@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">管理员</div>
+                                </td>
+                                <td><span class="badge badge-primary">用户管理</span></td>
+                                <td>禁用用户 user003456，原因：恶意刷单</td>
+                                <td>192.168.1.100</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 13:55:30</td>
+                                <td>
+                                    <div>editor@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">编辑员</div>
+                                </td>
+                                <td><span class="badge badge-primary">创建演出</span></td>
+                                <td>创建演出《音乐剧《剧院魅影》》，演出时间：2025-03-25 19:30</td>
+                                <td>192.168.1.101</td>
+                                <td><span class="badge badge-danger">失败</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025-01-26 13:50:15</td>
+                                <td>
+                                    <div>operator@taopiaopiao.com</div>
+                                    <div class="text-small text-muted">运营员</div>
+                                </td>
+                                <td><span class="badge badge-warning">修改订单</span></td>
+                                <td>处理退款申请：订单 ORD202501261350001 同意退款，金额¥880</td>
+                                <td>192.168.1.102</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td>
+                                    <button class="action-btn action-btn-view">查看</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="admin-table-footer">
+                        <div class="text-muted">显示 1-10 条，共 15,678 条</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                            <button class="btn btn-primary btn-small">1</button>
+                            <button class="btn btn-secondary btn-small">2</button>
+                            <button class="btn btn-secondary btn-small">3</button>
+                            <button class="btn btn-secondary btn-small">...</button>
+                            <button class="btn btn-secondary btn-small">1568</button>
+                            <button class="btn btn-secondary btn-small">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

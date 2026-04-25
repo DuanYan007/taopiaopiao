@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main style="min-height: calc(100vh - 64px); display: flex; flex-direction: column;">
+        <!-- 聊天标题栏 -->
+        <div style="background: white; border-bottom: 1px solid #eee; padding: 16px 0;">
+            <div class="container">
+                <div class="flex-between">
+                    <div class="flex" style="gap: 12px; align-items: center;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 600;">淘票票AI助手</div>
+                            <div class="text-small text-muted">智能问答，随时为您服务</div>
+                        </div>
+                    </div>
+                    <a href="ai-subscription.html" class="btn btn-outline btn-small">订阅设置</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天内容区 -->
+        <div style="flex: 1; background: #f5f5f5; padding: 32px 0; overflow-y: auto;">
+            <div class="container" style="max-width: 800px;">
+                <!-- 欢迎消息 -->
+                <div style="margin-bottom: 32px;">
+                    <div class="flex" style="gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px;">🤖</div>
+                        <div class="card" style="background: white; padding: 16px 20px; max-width: 600px;">
+                            <div style="line-height: 1.8;">您好！我是淘票票AI助手，很高兴为您服务！我可以帮您解答以下问题：</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预置问题 -->
+                <div style="margin-bottom: 32px; margin-left: 52px;">
+                    <div class="text-muted text-small" style="margin-bottom: 12px;">您可以问我：</div>
+                    <div class="flex" style="flex-wrap: wrap; gap: 12px;">
+                        <button class="btn btn-outline btn-small">怎么抢票？</button>
+                        <button class="btn btn-outline btn-small">为什么占用失败？</button>
+                        <button class="btn btn-outline btn-small">什么时候开售？</button>
+                        <button class="btn btn-outline btn-small">如何退票？</button>
+                        <button class="btn btn-outline btn-small">实名制规则</button>
+                        <button class="btn btn-outline btn-small">儿童购票规定</button>
+                    </div>
+                </div>
+
+                <!-- 示例问答 1 -->
+                <div style="margin-bottom: 32px;">
+                    <!-- 用户消息 -->
+                    <div class="flex" style="gap: 12px; justify-content: flex-end; margin-bottom: 16px;">
+                        <div class="card" style="background: #1976d2; color: white; padding: 12px 20px; max-width: 500px;">
+                            <div style="line-height: 1.6;">怎么抢票？有什么技巧吗？</div>
+                        </div>
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">用户</div>
+                    </div>
+
+                    <!-- AI回复 -->
+                    <div class="flex" style="gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px;">🤖</div>
+                        <div class="card" style="background: white; padding: 16px 20px; max-width: 600px;">
+                            <div style="line-height: 1.8;">
+                                <p style="margin-bottom: 12px;">您好！抢票确实需要一些技巧，以下是我的建议：</p>
+                                <p style="margin-bottom: 12px;"><strong>1. 提前准备：</strong>在开售前15分钟登录账号，确保网络畅通，提前填写好观演人信息。</p>
+                                <p style="margin-bottom: 12px;"><strong>2. 设置开售提醒：</strong>在演出详情页点击"设置开售提醒"，我们会在开售前第一时间通知您。</p>
+                                <p style="margin-bottom: 12px;"><strong>3. 选择合适的购票方式：</strong>票档购票通常比选座购票更快，系统会自动分配最佳座位。</p>
+                                <p style="margin-bottom: 12px;"><strong>4. 避开高峰：</strong>热门演出开售时访问量大，建议选择非高峰时段或等待后续场次。</p>
+                                <p style="margin-bottom: 12px;"><strong>5. 使用订阅功能：</strong>可以订阅演出或艺人，有新场次或余票时我们会第一时间通知您。</p>
+                                <p>祝您抢票成功！如还有其他问题，随时问我 😊</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 示例问答 2 -->
+                <div style="margin-bottom: 32px;">
+                    <!-- 用户消息 -->
+                    <div class="flex" style="gap: 12px; justify-content: flex-end; margin-bottom: 16px;">
+                        <div class="card" style="background: #1976d2; color: white; padding: 12px 20px; max-width: 500px;">
+                            <div style="line-height: 1.6;">为什么我选座的时候提示占用失败？</div>
+                        </div>
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">用户</div>
+                    </div>
+
+                    <!-- AI回复 -->
+                    <div class="flex" style="gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px;">🤖</div>
+                        <div class="card" style="background: white; padding: 16px 20px; max-width: 600px;">
+                            <div style="line-height: 1.8;">
+                                <p style="margin-bottom: 12px;">占用失败通常有以下几种原因：</p>
+                                <p style="margin-bottom: 12px;"><strong>1. 座位已被占用：</strong>该座位可能刚刚被其他用户选中并占用，热门演出座位竞争非常激烈。</p>
+                                <p style="margin-bottom: 12px;"><strong>2. 支付超时：</strong>之前占用该座位的订单因超时未支付而被释放，但其他用户抢先一步占用了。</p>
+                                <p style="margin-bottom: 12px;"><strong>3. 系统繁忙：</strong>开售高峰期系统访问量大，可能导致占用请求处理失败。</p>
+                                <p style="margin-bottom: 12px;"><strong>建议：</strong></p>
+                                <ul style="margin-left: 24px; line-height: 1.8;">
+                                    <li>选择其他可用座位</li>
+                                    <li>使用票档购票方式，系统自动分配座位</li>
+                                    <li>设置余票提醒，有座位释放时第一时间通知</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 示例问答 3 -->
+                <div style="margin-bottom: 32px;">
+                    <!-- 用户消息 -->
+                    <div class="flex" style="gap: 12px; justify-content: flex-end; margin-bottom: 16px;">
+                        <div class="card" style="background: #1976d2; color: white; padding: 12px 20px; max-width: 500px;">
+                            <div style="line-height: 1.6;">周杰伦的演唱会什么时候开售？</div>
+                        </div>
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">用户</div>
+                    </div>
+
+                    <!-- AI回复 -->
+                    <div class="flex" style="gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px;">🤖</div>
+                        <div class="card" style="background: white; padding: 16px 20px; max-width: 600px;">
+                            <div style="line-height: 1.8;">
+                                <p style="margin-bottom: 12px;">根据我的查询，周杰伦2025嘉年华世界巡回演唱会的开售信息如下：</p>
+                                <div class="card" style="background: #f9f9f9; padding: 16px; margin: 16px 0;">
+                                    <div class="flex-between mb-8">
+                                        <span class="text-muted">演出名称</span>
+                                        <span>周杰伦2025嘉年华世界巡回演唱会-上海站</span>
+                                    </div>
+                                    <div class="flex-between mb-8">
+                                        <span class="text-muted">开售时间</span>
+                                        <span class="text-danger" style="font-weight: 600;">2025年2月20日 12:00</span>
+                                    </div>
+                                    <div class="flex-between mb-8">
+                                        <span class="text-muted">演出时间</span>
+                                        <span>2025年3月15日-16日</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="text-muted">票价范围</span>
+                                        <span class="price">¥380 - ¥2580</span>
+                                    </div>
+                                </div>
+                                <p>建议您提前设置开售提醒，我们会在开售前通知您。点击这里可以<a href="event-detail.html" style="color: #1976d2;">查看演出详情</a>并设置提醒。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入框 -->
+        <div style="background: white; border-top: 1px solid #eee; padding: 16px 0;">
+            <div class="container" style="max-width: 800px;">
+                <div class="flex" style="gap: 12px;">
+                    <input type="text" class="form-input" placeholder="输入您的问题，按回车发送..." style="flex: 1;">
+                    <button class="btn btn-primary">发送</button>
+                </div>
+                <div class="text-small text-muted text-center" style="margin-top: 8px;">
+                    AI助手基于智能算法回答，仅供参考，具体以官方信息为准
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

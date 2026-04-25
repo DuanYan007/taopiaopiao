@@ -1,0 +1,834 @@
+/* ==========================================
+   客户端（C端）样式
+   ========================================== */
+
+/* 顶部导航栏 */
+.header {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1976d2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.nav-link {
+    color: #333;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #1976d2;
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #1976d2;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.city-selector {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.city-selector:hover {
+    background-color: #f5f5f5;
+}
+
+/* 主内容区 */
+.main-content {
+    min-height: calc(100vh - 64px);
+    padding: 24px 0;
+}
+
+/* 演出卡片网格 */
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+}
+
+/* 响应式断点：中等屏幕 */
+@media (max-width: 1200px) {
+    .event-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 响应式断点：小屏幕 */
+@media (max-width: 768px) {
+    .event-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+/* loading 和 empty 状态占满整行 */
+.event-grid > .loading-state,
+.event-grid > .empty-state {
+    grid-column: 1 / -1;
+    display: none;
+}
+
+.event-grid > .loading-state[style*="flex"],
+.event-grid > .empty-state[style*="block"] {
+    display: flex;
+}
+
+.event-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.event-cover {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #f5f5f5;
+}
+
+.event-info {
+    padding: 16px;
+}
+
+.event-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-meta {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.event-meta-icon {
+    margin-right: 4px;
+}
+
+.event-price {
+    margin-top: 12px;
+    color: #d32f2f;
+    font-weight: 600;
+}
+
+.event-status {
+    float: right;
+}
+
+/* 筛选栏 */
+.filter-bar {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-section {
+    margin-bottom: 16px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    border-radius: 20px;
+    background-color: #f5f5f5;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #e0e0e0;
+    user-select: none;
+}
+
+.filter-btn:hover {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-color: #1976d2;
+}
+
+.filter-btn.active {
+    background-color: #1976d2;
+    color: white;
+    border-color: #1976d2;
+}
+
+/* 演出详情页 */
+.detail-header {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.detail-main {
+    display: flex;
+    gap: 32px;
+}
+
+.detail-cover {
+    width: 320px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+}
+
+.detail-content {
+    flex: 1;
+}
+
+.detail-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.detail-info {
+    margin-bottom: 24px;
+}
+
+.detail-info-item {
+    display: flex;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.detail-info-label {
+    color: #666;
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.detail-info-value {
+    color: #333;
+    flex: 1;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.detail-section {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.detail-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.detail-section-content {
+    color: #666;
+    line-height: 1.8;
+}
+
+/* 场次列表 */
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.session-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.session-info {
+    flex: 1;
+}
+
+.session-date {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.session-venue {
+    font-size: 14px;
+    color: #666;
+}
+
+.session-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* 座位选择 */
+.seat-map {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stage {
+    background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+    height: 60px;
+    margin-bottom: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.seats-container {
+    margin-bottom: 24px;
+    max-width: 100%;
+}
+
+.seat-row {
+    display: flex;
+    gap: 8px;
+}
+
+.seat {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    border: 2px solid #ddd;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.seat-available {
+    background-color: white;
+    border-color: #1976d2;
+    color: #1976d2;
+}
+
+.seat-available:hover {
+    background-color: #e3f2fd;
+}
+
+.seat-occupied {
+    background-color: #fff3e0;
+    border-color: #f57c00;
+    color: #f57c00;
+    cursor: not-allowed;
+}
+
+.seat-sold {
+    background-color: #f5f5f5;
+    border-color: #999;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.seat-locked {
+    background-color: #fff3e0;
+    border-color: #f57c00;
+    color: #f57c00;
+    cursor: not-allowed;
+}
+
+.seat-unavailable {
+    background-color: #e0e0e0;
+    border-color: #757575;
+    color: #757575;
+    cursor: not-allowed;
+}
+
+.seat-selected {
+    background-color: #1976d2;
+    border-color: #1976d2;
+    color: white;
+}
+
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.seat-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.seat-legend-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid;
+}
+
+/* 票档选择 */
+.ticket-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ticket-tier {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.ticket-tier:hover {
+    border-color: #1976d2;
+}
+
+.ticket-tier.selected {
+    border-color: #1976d2;
+    background-color: #e3f2fd;
+}
+
+.ticket-tier-info {
+    flex: 1;
+}
+
+.ticket-tier-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.ticket-tier-remaining {
+    font-size: 13px;
+    color: #666;
+}
+
+.ticket-tier-price {
+    font-size: 20px;
+    font-weight: 600;
+    color: #d32f2f;
+}
+
+.ticket-tier-quantity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 24px;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-btn:hover {
+    border-color: #1976d2;
+    color: #1976d2;
+}
+
+.quantity-value {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* 订单确认 */
+.order-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.order-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item-cover {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+.order-item-info {
+    flex: 1;
+}
+
+.order-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.order-item-meta {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.order-price-breakdown {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.price-row:last-child {
+    margin-bottom: 0;
+}
+
+.price-row-total {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* 订单列表 */
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.order-card-header {
+    padding: 16px 20px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-card-body {
+    padding: 20px;
+}
+
+.order-card-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 电子票 */
+.e-ticket {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.e-ticket-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.e-ticket-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.e-ticket-code {
+    font-size: 14px;
+    color: #666;
+}
+
+.e-ticket-qr {
+    text-align: center;
+    margin: 32px 0;
+}
+
+.e-ticket-qr-code {
+    width: 200px;
+    height: 200px;
+    background-color: #f5f5f5;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.e-ticket-info {
+    border-top: 1px dashed #ddd;
+    padding-top: 24px;
+}
+
+.e-ticket-info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.e-ticket-info-label {
+    color: #666;
+}
+
+.e-ticket-info-value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+}
+
+/* 页脚 */
+.footer {
+    background: white;
+    border-top: 1px solid #eee;
+    padding: 32px 0;
+    margin-top: 64px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px;
+}
+
+.footer-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-link {
+    margin-bottom: 8px;
+}
+
+.footer-link a {
+    color: #666;
+    font-size: 14px;
+}
+
+.footer-link a:hover {
+    color: #1976d2;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 32px;
+    margin-top: 32px;
+    border-top: 1px solid #eee;
+    color: #999;
+    font-size: 13px;
+}
+
+/* 加载状态和空状态 */
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state-text {
+    font-size: 16px;
+    color: #666;
+}
+
+/* 座位区域滚动条样式 */
+.seat-area {
+    /* 自定义滚动条样式 */
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+.seat-area::-webkit-scrollbar {
+    height: 8px;
+}
+
+.seat-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.seat-area::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 4px;
+}
+
+.seat-area::-webkit-scrollbar-thumb:hover {
+    background-color: #bbb;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .detail-main {
+        flex-direction: column;
+    }
+
+    .detail-cover {
+        width: 100%;
+        height: auto;
+    }
+
+    .nav {
+        gap: 16px;
+    }
+}

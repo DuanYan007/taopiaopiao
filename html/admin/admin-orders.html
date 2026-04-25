@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-venues.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🏟️</span>
+                    <span>场馆管理</span>
+                </a>
+                <a href="admin-seat-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🪑</span>
+                    <span>座位模板</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">订单管理</div>
+                <div class="admin-header-actions">
+                    <span class="badge badge-warning">⚠️ 12 条即将过期</span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 标签页 -->
+                <div class="tabs">
+                    <div class="tab-item active">全部订单</div>
+                    <div class="tab-item">待支付 <span class="badge-count">234</span></div>
+                    <div class="tab-item">已确认</div>
+                    <div class="tab-item">已取消</div>
+                    <div class="tab-item">已完成</div>
+                </div>
+
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="搜索订单号、手机号、演出名称...">
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部时间</option>
+                        <option>今天</option>
+                        <option>本周</option>
+                        <option>本月</option>
+                    </select>
+                    <button class="btn btn-primary">搜索</button>
+                    <button class="btn btn-secondary">导出数据</button>
+                </div>
+
+                <!-- 订单列表 -->
+                <div class="admin-table">
+                    <div class="admin-table-header">
+                        <div class="admin-table-title">订单列表</div>
+                        <div class="text-muted">共 1,234 条记录</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>演出信息</th>
+                                <th>观演人</th>
+                                <th>手机号</th>
+                                <th>座位信息</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>支付倒计时</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ORD202501251930001</td>
+                                <td>
+                                    <div style="font-weight: 600;">周杰伦2025嘉年华</div>
+                                    <div class="text-small text-muted">2025-03-15 19:30</div>
+                                </td>
+                                <td>张三</td>
+                                <td>138****8888</td>
+                                <td>VIP内场 B排3号 ×1</td>
+                                <td class="price">¥2580</td>
+                                <td><span class="badge badge-warning">待支付</span></td>
+                                <td>
+                                    <div style="color: #d32f2f; font-weight: 600;">11分32秒</div>
+                                    <div class="text-small text-muted">到期: 21:45</div>
+                                </td>
+                                <td>2025-01-25 19:30</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">催付</button>
+                                        <button class="action-btn action-btn-delete">取消</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ORD202501201450002</td>
+                                <td>
+                                    <div style="font-weight: 600;">林俊杰JJ20世界巡回</div>
+                                    <div class="text-small text-muted">2025-04-12 19:30</div>
+                                </td>
+                                <td>张三、李四</td>
+                                <td>138****8888</td>
+                                <td>看台一等 1排5号 ×2</td>
+                                <td class="price">¥2560</td>
+                                <td><span class="badge badge-success">已确认</span></td>
+                                <td><span class="text-muted">-</span></td>
+                                <td>2025-01-20 14:50</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">详情</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ORD202501151030003</td>
+                                <td>
+                                    <div style="font-weight: 600;">剧院魅影中文版</div>
+                                    <div class="text-small text-muted">2025-03-20 19:30</div>
+                                </td>
+                                <td>王五</td>
+                                <td>139****6666</td>
+                                <td>看台二等 3排12号 ×1</td>
+                                <td class="price">¥480</td>
+                                <td><span class="badge badge-gray">已取消</span></td>
+                                <td><span class="text-muted">-</span></td>
+                                <td>2025-01-15 10:30</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ORD202501101820004</td>
+                                <td>
+                                    <div style="font-weight: 600;">NBA季前赛：湖人vs勇士</div>
+                                    <div class="text-small text-muted">2025-01-18 19:00</div>
+                                </td>
+                                <td>赵六</td>
+                                <td>150****1234</td>
+                                <td>内场 A区2排8号 ×1</td>
+                                <td class="price">¥1880</td>
+                                <td><span class="badge badge-info">已完成</span></td>
+                                <td><span class="text-muted">-</span></td>
+                                <td>2025-01-10 18:20</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="admin-table-footer">
+                        <div class="text-muted">显示 1-4 条，共 1,234 条</div>
+                        <div class="flex" style="gap: 8px;">
+                            <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                            <button class="btn btn-primary btn-small">1</button>
+                            <button class="btn btn-secondary btn-small">2</button>
+                            <button class="btn btn-secondary btn-small">3</button>
+                            <button class="btn btn-secondary btn-small">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/assets/js/auth-check.js"></script>
+</body>
+</html>

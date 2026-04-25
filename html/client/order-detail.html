@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单详情 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link active">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 面包屑 -->
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                <li class="breadcrumb-item"><a href="order-center.html">我的订单</a></li>
+                <li class="breadcrumb-item">订单详情</li>
+            </ul>
+
+            <div class="flex-between" style="margin-bottom: 24px;">
+                <h1 class="page-title" style="margin-bottom: 0;">订单详情</h1>
+                <span class="badge badge-success" style="font-size: 14px; padding: 8px 16px;">已确认</span>
+            </div>
+
+            <div class="flex" style="gap: 24px;">
+                <div style="flex: 1;">
+                    <!-- 订单基本信息 -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">订单信息</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="flex" style="gap: 20px; margin-bottom: 20px;">
+                                <div class="order-item-cover" style="width: 120px; height: 160px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                                <div style="flex: 1;">
+                                    <div class="order-item-title" style="font-size: 18px; margin-bottom: 12px;">林俊杰JJ20世界巡回演唱会-上海站</div>
+                                    <div class="text-muted" style="margin-bottom: 8px;">场次：2025年4月12日 周六 19:30</div>
+                                    <div class="text-muted" style="margin-bottom: 8px;">场馆：梅赛德斯-奔驰文化中心</div>
+                                    <div class="text-muted">地址：上海市浦东新区世博大道1200号</div>
+                                </div>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="grid-2" style="margin-top: 16px;">
+                                <div>
+                                    <div class="text-muted text-small">订单编号</div>
+                                    <div style="font-weight: 600;">ORD202501201450002</div>
+                                </div>
+                                <div>
+                                    <div class="text-muted text-small">创建时间</div>
+                                    <div>2025-01-20 14:50:32</div>
+                                </div>
+                                <div>
+                                    <div class="text-muted text-small">支付时间</div>
+                                    <div>2025-01-20 14:52:18</div>
+                                </div>
+                                <div>
+                                    <div class="text-muted text-small">订单状态</div>
+                                    <div><span class="badge badge-success">已确认</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 座位信息 -->
+                    <div class="card" style="margin-bottom: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">座位信息</div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>票档</th>
+                                        <th>排号</th>
+                                        <th>座位号</th>
+                                        <th>价格</th>
+                                        <th>观演人</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>看台一等</td>
+                                        <td>1排</td>
+                                        <td>5号</td>
+                                        <td class="price">¥1280</td>
+                                        <td>张三</td>
+                                    </tr>
+                                    <tr>
+                                        <td>看台一等</td>
+                                        <td>1排</td>
+                                        <td>6号</td>
+                                        <td class="price">¥1280</td>
+                                        <td>李四</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 价格明细 -->
+                    <div class="order-price-breakdown">
+                        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">价格明细</h2>
+                        <div class="price-row">
+                            <span>票价总计</span>
+                            <span>¥2560.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>服务费</span>
+                            <span>¥0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span>优惠</span>
+                            <span class="text-danger">- ¥0.00</span>
+                        </div>
+                        <div class="divider" style="margin: 16px 0;"></div>
+                        <div class="price-row price-row-total">
+                            <span>实付金额</span>
+                            <div class="price price-large">¥2560.00</div>
+                        </div>
+                        <div class="text-small text-muted" style="margin-top: 12px;">支付方式：微信支付</div>
+                    </div>
+                </div>
+
+                <!-- 电子票 -->
+                <div style="width: 420px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">电子票</div>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="e-ticket">
+                                <div class="e-ticket-header">
+                                    <div class="e-ticket-title">林俊杰JJ20世界巡回演唱会</div>
+                                    <div class="e-ticket-code">取票码：3582 9103 4456</div>
+                                </div>
+
+                                <div class="e-ticket-qr">
+                                    <div class="e-ticket-qr-code" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                        <span style="font-size: 48px; color: white;">QR</span>
+                                    </div>
+                                    <div class="text-small text-muted" style="margin-top: 16px;">
+                                        请在演出当天出示二维码入场
+                                    </div>
+                                </div>
+
+                                <div class="e-ticket-info">
+                                    <div class="e-ticket-info-item">
+                                        <span class="e-ticket-info-label">演出时间</span>
+                                        <span class="e-ticket-info-value">2025-04-12 19:30</span>
+                                    </div>
+                                    <div class="e-ticket-info-item">
+                                        <span class="e-ticket-info-label">演出场馆</span>
+                                        <span class="e-ticket-info-value">梅赛德斯-奔驰文化中心</span>
+                                    </div>
+                                    <div class="e-ticket-info-item">
+                                        <span class="e-ticket-info-label">座位信息</span>
+                                        <span class="e-ticket-info-value">1排5号、1排6号</span>
+                                    </div>
+                                    <div class="e-ticket-info-item">
+                                        <span class="e-ticket-info-label">入场时间</span>
+                                        <span class="e-ticket-info-value">18:00</span>
+                                    </div>
+                                    <div class="e-ticket-info-item">
+                                        <span class="e-ticket-info-label">观演人</span>
+                                        <span class="e-ticket-info-value">张三、李四</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary" style="width: 100%;">保存到相册</button>
+                            <div class="flex" style="gap: 12px; margin-top: 12px;">
+                                <button class="btn btn-secondary btn-small" style="flex: 1;">分享好友</button>
+                                <button class="btn btn-secondary btn-small" style="flex: 1;">转赠门票</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 温馨提示 -->
+                    <div class="card" style="margin-top: 24px; background: #fff3e0;">
+                        <div class="card-header" style="background: transparent; border-bottom: none;">
+                            <div class="card-title">温馨提示</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-small" style="line-height: 1.8; color: #666;">
+                                <p style="margin-bottom: 8px;">1. 请提前90分钟到达场馆</p>
+                                <p style="margin-bottom: 8px;">2. 入场时需出示身份证原件</p>
+                                <p style="margin-bottom: 8px;">3. 禁止携带专业摄影器材</p>
+                                <p style="margin-bottom: 8px;">4. 1.2米以下儿童谢绝入场</p>
+                                <p>5. 电子票已加密，请勿泄露给他人</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 继续浏览 -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-body text-center">
+                            <p class="text-muted" style="margin-bottom: 16px;">还想看更多精彩演出？</p>
+                            <a href="index.html" class="btn btn-primary">继续浏览</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择场次 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div class="user-info" id="userInfo" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <!-- 动态填充用户信息 -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 面包屑 -->
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">首页</a></li>
+                <li class="breadcrumb-item" id="breadcrumbEvent"><a href="event-detail.html">演出详情</a></li>
+                <li class="breadcrumb-item">选择场次</li>
+            </ul>
+
+            <h1 class="page-title">选择场次</h1>
+
+            <p class="page-subtitle" id="eventName">演出名称</p>
+
+            <!-- 场次列表 -->
+            <div class="session-list" id="sessionList">
+                <!-- 加载提示 -->
+                <div class="loading-state" id="loadingState" style="padding: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">加载中...</div>
+                </div>
+
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state-icon">🎫</div>
+                    <div class="empty-state-text">暂无场次信息</div>
+                </div>
+            </div>
+
+            <!-- 购票提示 -->
+            <div class="detail-section" style="margin-top: 32px;">
+                <h2 class="detail-section-title">购票提示</h2>
+                <div class="detail-section-content">
+                    <p style="margin-bottom: 12px;"><strong>在线选座：</strong>自主选择具体座位，适合对位置有明确要求的观众</p>
+                    <p style="margin-bottom: 12px;"><strong>系统选座：</strong>选择票档后系统自动分配座位，更加快捷方便</p>
+                    <p style="margin-bottom: 12px;"><strong>购买限制：</strong>每个账号每场演出最多购买4张门票</p>
+                    <p style="margin-bottom: 12px;"><strong>实名制：</strong>本场演出实行实名制购票观演，需填写观演人真实身份信息</p>
+                    <p><strong>入场方式：</strong>凭借电子票二维码扫码入场</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script>
+        // 获取URL参数中的演出ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('eventId');
+        let eventData = null;
+
+        // 页面加载时获取场次列表
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 更新用户信息显示
+            updateUserInfo();
+
+            if (eventId) {
+                // 先获取演出信息
+                try {
+                    eventData = await getEventDetail(eventId);
+                    updateEventInfo(eventData);
+                    loadEventSessions(eventId);
+                } catch (error) {
+                    console.error('加载演出信息失败:', error);
+                    showErrorMessage('加载演出信息失败: ' + error.message);
+                }
+            } else {
+                showErrorMessage('缺少演出ID参数');
+            }
+        });
+
+        /**
+         * 更新用户信息显示
+         */
+        function updateUserInfo() {
+            const userInfo = document.getElementById('userInfo');
+            const user = getCurrentUser();
+
+            if (user) {
+                userInfo.innerHTML = `
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">
+                        ${user.nickname ? user.nickname.charAt(0) : '用'}
+                    </div>
+                    <span>${user.nickname || '用户'}</span>
+                `;
+            } else {
+                userInfo.innerHTML = `
+                    <a href="login.html" class="btn btn-outline btn-small">登录</a>
+                `;
+            }
+        }
+
+        /**
+         * 更新演出信息显示
+         */
+        function updateEventInfo(event) {
+            // 更新页面标题和副标题
+            document.title = `选择场次 - ${event.name} - 淘票票`;
+            document.getElementById('eventName').textContent = event.name;
+
+            // 更新面包屑
+            const breadcrumbEvent = document.getElementById('breadcrumbEvent');
+            if (breadcrumbEvent) {
+                breadcrumbEvent.innerHTML = `<a href="event-detail.html?id=${event.id}">${event.name}</a>`;
+            }
+        }
+
+        /**
+         * 加载场次列表
+         */
+        async function loadEventSessions(id) {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const sessionList = document.getElementById('sessionList');
+
+            try {
+                loadingState.style.display = 'flex';
+                emptyState.style.display = 'none';
+
+                const result = await getEventSessions(id, { page: 1, pageSize: 100 });
+                const sessionListData = result.list || result.data || result.records || [];
+
+                console.log('场次列表:', sessionListData);
+
+                loadingState.style.display = 'none';
+
+                if (sessionListData.length === 0) {
+                    emptyState.style.display = 'flex';
+                    return;
+                }
+
+                renderSessionList(sessionListData);
+
+            } catch (error) {
+                console.error('加载场次列表失败:', error);
+                loadingState.style.display = 'none';
+                emptyState.style.display = 'flex';
+                const emptyText = emptyState.querySelector('.empty-state-text');
+                if (emptyText) {
+                    emptyText.textContent = '加载失败: ' + error.message;
+                }
+            }
+        }
+
+        /**
+         * 渲染场次列表
+         */
+        function renderSessionList(sessions) {
+            const sessionList = document.getElementById('sessionList');
+
+            // 清空现有内容
+            sessionList.innerHTML = '';
+
+            sessions.forEach(session => {
+                const statusInfo = SESSION_STATUS_MAP[session.status] || { text: session.status, class: 'badge-secondary' };
+                const isSoldOut = session.status === 'sold_out' || (session.availableSeats !== undefined && session.availableSeats <= 0);
+
+                const cardStyle = isSoldOut ? 'background-color: #f5f5f5; opacity: 0.7;' : '';
+
+                // 格式化开始时间
+                const startTime = formatSessionTime(session.startTime);
+
+                // 余票状态
+                let availableStatus = '余票充足';
+                let availableClass = 'badge-info';
+                if (session.availableSeats !== undefined) {
+                    if (session.availableSeats <= 0) {
+                        availableStatus = '已售罄';
+                        availableClass = 'badge-danger';
+                    } else if (session.totalSeats && session.availableSeats < session.totalSeats * 0.2) {
+                        availableStatus = '余票紧张';
+                        availableClass = 'badge-warning';
+                    }
+                }
+
+                const sessionCard = document.createElement('div');
+                sessionCard.className = 'session-card';
+                sessionCard.style.cssText = cardStyle;
+
+                sessionCard.innerHTML = `
+                    <div class="session-info">
+                        <div class="session-date">${startTime}</div>
+                        <div class="session-venue">📍 ${session.address || '地址待定'}</div>
+                        <div style="margin-top: 8px;">
+                            <span class="badge ${statusInfo.class}">${statusInfo.text}</span>
+                            <span class="badge ${availableClass}" style="margin-left: 8px;">${availableStatus}</span>
+                            ${session.availableSeats !== undefined && session.availableSeats > 0
+                                ? `<span class="text-muted text-small" style="margin-left: 8px;">剩余 ${formatSeatCount(session.availableSeats)} 张</span>`
+                                : ''}
+                        </div>
+                    </div>
+                    <div class="session-actions">
+                        ${renderSessionActions(session)}
+                    </div>
+                `;
+
+                sessionList.appendChild(sessionCard);
+            });
+
+            // 添加加载更多提示
+            if (sessions.length > 0) {
+                const loadMoreDiv = document.createElement('div');
+                loadMoreDiv.style.textAlign = 'center';
+                loadMoreDiv.style.padding = '20px 0';
+                loadMoreDiv.innerHTML = `<span class="text-muted text-small">已显示全部场次</span>`;
+                sessionList.appendChild(loadMoreDiv);
+            }
+        }
+
+        /**
+         * 渲染场次操作按钮
+         */
+        function renderSessionActions(session) {
+            const isSoldOut = session.status === 'sold_out' || (session.availableSeats !== undefined && session.availableSeats <= 0);
+
+            if (isSoldOut) {
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置余票提醒</button>
+                `;
+            }
+
+            // 检查选座方式 - 从metadata中获取
+            const seatMode = session.metadata?.seatSelectionMode || 'online';
+
+            if (seatMode === 'online') {
+                // 在线选座模式 - 直接到选座页面
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
+                    <a href="seat-selection.html?sessionId=${session.id}&eventId=${eventId}" class="btn btn-primary">选座购票</a>
+                `;
+            } else {
+                // 系统自动选座模式 - 先选择票档
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
+                    <a href="ticket-tier-selection.html?sessionId=${session.id}&eventId=${eventId}" class="btn btn-primary">选择票档</a>
+                `;
+            }
+        }
+
+        /**
+         * 格式化场次时间
+         */
+        function formatSessionTime(dateTime) {
+            if (!dateTime) return '时间待定';
+            const date = new Date(dateTime);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            const weekDay = weekDays[date.getDay()];
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}年${month}月${day}日 ${weekDay} ${hours}:${minutes}`;
+        }
+
+        /**
+         * 设置提醒
+         */
+        function setReminder(sessionId) {
+            alert('提醒功能开发中，敬请期待！');
+        }
+
+        /**
+         * 显示错误信息
+         */
+        function showErrorMessage(message) {
+            const mainContent = document.querySelector('.main-content .container');
+            mainContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">${message}</div>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">返回首页</a>
+                </div>
+            `;
+        }
+    </script>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

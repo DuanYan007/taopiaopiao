@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>淘票票 - 演出票务平台</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div class="user-info" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <div class="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;"></div>
+                    <span class="user-name">未登录</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-section">
+                    <div class="filter-label">分类</div>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn active" data-category="all">全部</button>
+                        <button type="button" class="filter-btn" data-category="concert">演唱会</button>
+                        <button type="button" class="filter-btn" data-category="theatre">话剧歌剧</button>
+                        <button type="button" class="filter-btn" data-category="exhibition">展览休闲</button>
+                        <button type="button" class="filter-btn" data-category="sports">体育赛事</button>
+                        <button type="button" class="filter-btn" data-category="music">音乐会</button>
+                        <button type="button" class="filter-btn" data-category="kids">儿童亲子</button>
+                        <button type="button" class="filter-btn" data-category="dance">舞蹈芭蕾</button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">时间</div>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn active" data-time="all">全部</button>
+                        <button type="button" class="filter-btn" data-time="today">今天</button>
+                        <button type="button" class="filter-btn" data-time="tomorrow">明天</button>
+                        <button type="button" class="filter-btn" data-time="weekend">本周末</button>
+                        <button type="button" class="filter-btn" data-time="month">本月</button>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">排序</div>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn active" data-sort="hot">热度优先</button>
+                        <button type="button" class="filter-btn" data-sort="new">最新上架</button>
+                        <button type="button" class="filter-btn" data-sort="soonest">即将开始</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 演出列表 - 通过JavaScript动态加载 -->
+            <div class="event-grid" id="eventGrid">
+                <!-- 加载提示 -->
+                <div class="loading-state" id="loadingState">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">加载中...</div>
+                </div>
+
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state-icon">🎭</div>
+                    <div class="empty-state-text">暂无演出数据</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-section-title">关于我们</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">公司简介</a></li>
+                        <li class="footer-link"><a href="#">联系方式</a></li>
+                        <li class="footer-link"><a href="#">加入我们</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">帮助中心</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="help-center.html">购票须知</a></li>
+                        <li class="footer-link"><a href="help-center.html">常见问题</a></li>
+                        <li class="footer-link"><a href="help-center.html">退换票政策</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">合作伙伴</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">场馆合作</a></li>
+                        <li class="footer-link"><a href="#">票务代理</a></li>
+                        <li class="footer-link"><a href="#">广告合作</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">关注我们</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">官方微信</a></li>
+                        <li class="footer-link"><a href="#">新浪微博</a></li>
+                        <li class="footer-link"><a href="#">抖音号</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script src="/assets/js/client-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);">
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="admin-form" style="width: 100%; max-width: 440px;">
+            <!-- Logo -->
+            <div class="text-center" style="margin-bottom: 40px;">
+                <div style="font-size: 56px; margin-bottom: 16px;">🎫</div>
+                <h1 style="font-size: 28px; font-weight: 700; color: #2c3e50; margin-bottom: 8px;">淘票票管理后台</h1>
+                <p class="text-muted">管理员登录</p>
+            </div>
+
+            <!-- 登录表单 -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">管理员账号</label>
+                    <input type="text" class="form-input" name="username" placeholder="请输入管理员账号" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" name="password" placeholder="请输入密码" required>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="remember" style="margin-right: 8px;">
+                        <span class="text-small">记住登录状态</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 14px; font-size: 16px;">登录</button>
+
+                <div id="errorMessage" class="text-center" style="margin-top: 16px; color: #d32f2f; display: none;"></div>
+            </form>
+
+            <div class="text-center text-small text-muted" style="margin-top: 32px;">
+                忘记密码？<a href="#" style="color: #1976d2;">联系系统管理员</a>
+            </div>
+
+            <!-- 安全提示 -->
+            <div class="text-center text-small text-muted" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee;">
+                <p>为了您的账户安全，请注意：</p>
+                <ul style="list-style: none; padding: 0; margin-top: 12px; line-height: 1.8;">
+                    <li>• 请使用官方分配的账号密码登录</li>
+                    <li>• 不要在公共设备上保存登录状态</li>
+                    <li>• 定期更换密码，确保账户安全</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/auth.js"></script>
+    <script>
+        // 登录表单处理
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const formData = new FormData(e.target);
+            const username = formData.get('username').trim();
+            const password = formData.get('password');
+            const remember = formData.get('remember') === 'on';
+
+            // 简单验证
+            if (!username || !password) {
+                showError('请输入用户名和密码');
+                return;
+            }
+
+            // 禁用提交按钮
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = '登录中...';
+
+            try {
+                // 调用登录接口
+                const response = await fetch('/api/admin/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    // 登录成功
+                    const { token, userInfo } = result.data;
+                    saveToken(token, userInfo, remember);
+                    window.location.href = 'admin-index.html';
+                } else {
+                    // 登录失败
+                    showError(result.msg || '登录失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+                console.error('登录错误:', error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        });
+
+        // 显示错误信息
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // 隐藏错误信息
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
