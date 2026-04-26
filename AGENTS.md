@@ -1,15 +1,15 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is a Maven multi-module Spring Boot project for a microservice-based ticketing backend. The root `pom.xml` aggregates shared modules (`taopiaopiao-common*`) and services such as `taopiaopiao-user-service`, `taopiaopiao-order-service`, `taopiaopiao-seckill-service`, and `taopiaopiao-gateway`. Each service is split into `*-api`, `*-domain`, and `*-application` modules. Java sources live under `src/main/java`, MyBatis XML files under `src/main/resources/mapper`, SQL bootstrap scripts in `sql/`, and the main repository entry points are `README.md`, `AGENTS.md`, and project memory under `/home/duanyan/.codex/memories/taopiaopiao-backend/`.
+This repository is a Maven multi-module Spring Boot project for a microservice-based ticketing backend. The root `pom.xml` aggregates shared modules (`taopiaopiao-common*`) and services such as `taopiaopiao-user-service`, `taopiaopiao-order-service`, `taopiaopiao-seckill-service`, and `taopiaopiao-gateway`. Each service is split into `*-api`, `*-domain`, and `*-application` modules. Java sources live under `src/main/java`, MyBatis XML files under `src/main/resources/mapper`, SQL bootstrap scripts in `sql/`, and the main repository entry points are `README.md`, `AGENTS.md`, and project memory under `$HOME/.codex/memories/taopiaopiao-backend/`.
 
-Frontend delivery is served by OpenResty from `/usr/local/openresty/nginx`. Route definitions are maintained in `/usr/local/openresty/nginx/conf/app.conf`, and deployed frontend assets are served from `/usr/local/openresty/nginx/html`. The main frontend source repository is `/home/duanyan/project/taopiaopiao-frontend`.
+Frontend delivery is served by OpenResty from `/usr/local/openresty/nginx`. Route definitions are maintained in `/usr/local/openresty/nginx/conf/app.conf`, and deployed frontend assets are served from `/usr/local/openresty/nginx/html`. Frontend static assets are maintained in this repository under `<repo-root>/html`.
 
 Repository entry points:
 - `README.md`: project summary, startup, and local pressure-test entry.
 - `AGENTS.md`: repository guardrails and collaboration rules.
-- `/home/duanyan/.codex/memories/taopiaopiao-backend/stable-context.md`: stable Codex working context.
-- `/home/duanyan/.codex/memories/taopiaopiao-backend/active-context.md`: dated recent context that may still change.
+- `$HOME/.codex/memories/taopiaopiao-backend/stable-context.md`: stable Codex working context.
+- `$HOME/.codex/memories/taopiaopiao-backend/active-context.md`: dated recent context that may still change.
 
 ## Build, Test, and Development Commands
 - `mvn clean install -DskipTests`: build all modules and install artifacts locally.

@@ -4,12 +4,12 @@
 environment: local-single-node
 
 backend:
-  repository: /home/duanyan/project/taopiaopiao-backend
+  repository: <repo-root>
   java_version: 17
   build_tool: maven
 
 frontend:
-  source_repository: /home/duanyan/project/taopiaopiao-frontend
+  source_repository: <repo-root>/html
   deployed_static_root: /usr/local/openresty/nginx/html
 
 components:
@@ -60,7 +60,7 @@ components:
 
   mock_payment:
     role: local payment creation, query, and simulated success
-    repository: /home/duanyan/project/taopiaopiao-backend/taopiaopiao-payment-system
+    repository: <repo-root>/taopiaopiao-payment-system
     notes:
       - Required for end-to-end payment flow verification.
 
