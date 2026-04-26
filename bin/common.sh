@@ -4,6 +4,7 @@ set -euo pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${BIN_DIR}/.." && pwd)"
+HOME_DIR="${HOME:-$(cd ~ && pwd)}"
 LOG_DIR="${ROOT_DIR}/logs"
 RUN_DIR="${ROOT_DIR}/.run"
 MVN_BIN="${MVN_BIN:-mvn}"

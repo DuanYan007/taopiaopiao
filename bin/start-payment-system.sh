@@ -4,7 +4,14 @@ set -euo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
-PAYMENT_DIR="/home/duanyan/project/taopiaopiao-payment-system"
+if [[ -n "${PAYMENT_DIR:-}" ]]; then
+    PAYMENT_DIR="${PAYMENT_DIR}"
+elif [[ -f "${PWD}/taopiaopiao-payment-system/pom.xml" ]]; then
+    PAYMENT_DIR="${PWD}/taopiaopiao-payment-system"
+else
+    PAYMENT_DIR="${ROOT_DIR}/taopiaopiao-payment-system"
+fi
+
 PAYMENT_POM="${PAYMENT_DIR}/pom.xml"
 PAYMENT_LOG="${LOG_DIR}/payment-system.log"
 PAYMENT_PID_FILE="${RUN_DIR}/payment-system.pid"

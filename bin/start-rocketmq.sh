@@ -4,7 +4,7 @@ set -euo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
-ROCKETMQ_DIR="/home/duanyan/rocketmq-all-5.4.0-bin-release"
+ROCKETMQ_DIR="${ROCKETMQ_DIR:-${HOME_DIR}/rocketmq-all-5.4.0-bin-release}"
 NAMESRV_BIN="${ROCKETMQ_DIR}/bin/mqnamesrv"
 BROKER_BIN="${ROCKETMQ_DIR}/bin/mqbroker"
 BROKER_CONF="${ROCKETMQ_DIR}/conf/broker.conf"
