@@ -197,7 +197,7 @@ public class PaymentService {
                 .orderNo(record.getOrderNo())
                 .paymentNo(record.getPaymentNo())
                 .amount(record.getAmount().toString())
-                .payUrl("http://localhost:7500/payment/simulate/success?orderNo=" + record.getOrderNo())
+                .payUrl("/payment/simulate/success?orderNo=" + record.getOrderNo())
                 .qrCode("mock_qr_code_" + record.getPaymentNo())
                 .build();
     }

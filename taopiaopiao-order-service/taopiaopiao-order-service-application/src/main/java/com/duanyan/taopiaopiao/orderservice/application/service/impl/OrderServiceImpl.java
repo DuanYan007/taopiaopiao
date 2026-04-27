@@ -257,7 +257,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String buildPayUrl(String orderNo) {
-        return "http://localhost:7500/payment/simulate/success?orderNo=" + orderNo;
+        return "/payment/simulate/success?orderNo=" + orderNo;
     }
 
     private OrderResponse buildProcessingResponse(Long userId, String orderNo) {
