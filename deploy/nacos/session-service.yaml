@@ -1,0 +1,3 @@
+rocketmq:
+  consumer:
+    group: session-service-consumer-group

@@ -1,0 +1,64 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/admin/auth/**, /admin/users/**
+          filters:
+            - StripPrefix=0
+
+        - id: venue-service
+          uri: lb://venue-service
+          predicates:
+            - Path=/admin/venues/**, /client/venues/**
+          filters:
+            - StripPrefix=0
+
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/admin/events/**, /client/events/**, /admin/files/**
+          filters:
+            - StripPrefix=0
+
+        - id: session-service
+          uri: lb://session-service
+          predicates:
+            - Path=/admin/sessions/**, /client/sessions/**, /test/**
+          filters:
+            - StripPrefix=0
+
+        - id: seat-template-service
+          uri: lb://seat-template-service
+          predicates:
+            - Path=/admin/seat-templates/**, /client/seat-templates/**
+          filters:
+            - StripPrefix=0
+
+        - id: seckill-service
+          uri: lb://seckill-service
+          predicates:
+            - Path=/client/seckill/**, /seckill/**
+          filters:
+            - StripPrefix=0
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/client/orders/**
+          filters:
+            - StripPrefix=0
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

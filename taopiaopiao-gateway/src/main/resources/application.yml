@@ -4,83 +4,21 @@ server:
 spring:
   application:
     name: gateway
+  config:
+    import:
+      - optional:nacos:backend-common.yaml?group=${NACOS_CONFIG_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_CONFIG_GROUP:DEFAULT_GROUP}&refreshEnabled=true
 
   cloud:
-    gateway:
-      routes:
-        # 用户服务路由
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/admin/auth/**, /admin/users/**
-          filters:
-            - StripPrefix=0
-
-        # 场馆服务路由（管理端 + 客户端）
-        - id: venue-service
-          uri: lb://venue-service
-          predicates:
-            - Path=/admin/venues/**, /client/venues/**
-          filters:
-            - StripPrefix=0
-
-        # 演出服务路由（管理端 + 客户端）
-        - id: event-service
-          uri: lb://event-service
-          predicates:
-            - Path=/admin/events/**, /client/events/**, /admin/files/**
-          filters:
-            - StripPrefix=0
-
-        # 场次服务路由（管理端 + 客户端 + 测试接口）
-        - id: session-service
-          uri: lb://session-service
-          predicates:
-            - Path=/admin/sessions/**, /client/sessions/**, /test/**
-          filters:
-            - StripPrefix=0
-
-        # 座位模板服务路由（管理端 + 客户端）
-        - id: seat-template-service
-          uri: lb://seat-template-service
-          predicates:
-            - Path=/admin/seat-templates/**, /client/seat-templates/**
-          filters:
-            - StripPrefix=0
-
-        # 秒杀/选座服务路由（客户端）
-        - id: seckill-service
-          uri: lb://seckill-service
-          predicates:
-            - Path=/client/seckill/**, /seckill/**
-          filters:
-            - StripPrefix=0
-
-        # 订单服务路由（客户端）
-        - id: order-service
-          uri: lb://order-service
-          predicates:
-            - Path=/client/orders/**
-          filters:
-            - StripPrefix=0
-
-      # 全局CORS配置
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
-
     nacos:
       discovery:
-        server-addr: localhost:8848
-        username: nacos
-        password: nacos
-
-# 日志配置
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud.gateway: DEBUG
+        server-addr: ${NACOS_SERVER_ADDR}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+        group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+        namespace: ${NACOS_CONFIG_NAMESPACE:}
+        file-extension: yaml

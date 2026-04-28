@@ -183,19 +183,19 @@ OpenResty 在本项目里承担三件事：
 
 ### 7.1 MySQL
 
-- Host：`127.0.0.1`
+- Host：`192.168.3.36`
 - Port：`3306`
 - Database：`taopiaopiao`
 - Username：`root`
 
 说明：
 
-- 正式业务服务默认连接 `taopiaopiao`
+- 正式业务服务当前通过 Nacos `backend-common.yaml` 连接 `taopiaopiao`
 - 支付系统当前不再需要独立数据库
 
 ### 7.2 Redis
 
-- Host：`127.0.0.1`
+- Host：`192.168.3.36`
 - Port：`6349`
 
 说明：
@@ -206,21 +206,21 @@ OpenResty 在本项目里承担三件事：
 
 ### 7.3 Nacos
 
-- Addr：`127.0.0.1:8848`
+- Addr：`192.168.3.36:8848`
 
 说明：
 
-- 本地微服务集成运行时依赖服务注册发现
+- 本地微服务集成运行时依赖服务注册发现与配置中心
 
 ### 7.4 RocketMQ
 
-- NameServer：`127.0.0.1:9876`
+- NameServer：`192.168.3.36:9876`
 - 本地默认目录：`$HOME/rocketmq-all-5.4.0-bin-release`
 
 说明：
 
 - 承接锁单、订单、支付、超时、取消等异步消息
-- 本地脚本 `bin/start-rocketmq.sh` 默认从当前用户家目录读取 RocketMQ 安装目录
+- 本地脚本 `bin/start-rocketmq.sh` 默认从当前用户家目录读取 RocketMQ 安装目录，并读取 `ROCKETMQ_NAMESRV_ADDR`
 
 ### 7.5 OpenResty
 

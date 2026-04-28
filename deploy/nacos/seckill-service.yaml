@@ -1,0 +1,12 @@
+rocketmq:
+  producer:
+    group: seckill-service-producer-group
+    send-message-timeout: 3000
+    retry-times-when-send-failed: 2
+  consumer:
+    group: seckill-service-consumer-group
+
+tpp:
+  rocketmq:
+    topic-bootstrap:
+      enabled: true

@@ -8,6 +8,7 @@ ROCKETMQ_DIR="${ROCKETMQ_DIR:-${HOME_DIR}/rocketmq-all-5.4.0-bin-release}"
 NAMESRV_BIN="${ROCKETMQ_DIR}/bin/mqnamesrv"
 BROKER_BIN="${ROCKETMQ_DIR}/bin/mqbroker"
 BROKER_CONF="${ROCKETMQ_DIR}/conf/broker.conf"
+ROCKETMQ_NAMESRV_ADDR="${ROCKETMQ_NAMESRV_ADDR:-127.0.0.1:9876}"
 
 NAMESRV_LOG="${LOG_DIR}/rocketmq-namesrv.log"
 BROKER_LOG="${LOG_DIR}/rocketmq-broker.log"
@@ -90,5 +91,5 @@ require_file "${BROKER_CONF}"
 start_process "rocketmq-namesrv" "${NAMESRV_BIN}" "${NAMESRV_LOG}" "${NAMESRV_PID_FILE}" 9876
 start_process "rocketmq-broker" "${BROKER_BIN}" "${BROKER_LOG}" "${BROKER_PID_FILE}" \
     10911 \
-    -n "127.0.0.1:9876" \
+    -n "${ROCKETMQ_NAMESRV_ADDR}" \
     -c "${BROKER_CONF}"

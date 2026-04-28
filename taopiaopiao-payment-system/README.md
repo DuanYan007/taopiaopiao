@@ -9,21 +9,14 @@
 ## 技术栈
 
 - Spring Boot 3.2.4
-- MySQL 8.0
-- MyBatis-Plus 3.5.5
 - Knife4j 4.3.0
+- 内存存储（`ConcurrentHashMap`）
 
 ## 端口与配置
 
 - **服务端口**: 7500
-- **数据库**: payment_db
-- **API 文档**: http://localhost:7500/doc.html
-
-## 初始化数据库
-
-```bash
-docker exec -i mysql mysql -u root -p7566 < docs/init.sql
-```
+- **运行方式**: 内存模式，无独立数据库
+- **API 文档**: http://192.168.3.36:7500/doc.html
 
 ## 启动服务
 
@@ -36,7 +29,7 @@ mvn spring-boot:run
 ### 1. 创建支付订单
 
 ```bash
-POST http://localhost:7500/payment/create
+POST http://192.168.3.36:7500/payment/create
 Content-Type: application/json
 
 {
@@ -56,7 +49,7 @@ Content-Type: application/json
     "orderNo": "ORDER20240329001",
     "paymentNo": "PAY202403291234567890",
     "amount": "128.00",
-    "payUrl": "http://localhost:7500/payment/pay/PAY202403291234567890",
+    "payUrl": "/payment/simulate/success?orderNo=ORDER20240329001",
     "qrCode": "mock_qr_code_PAY202403291234567890"
   }
 }
@@ -65,7 +58,7 @@ Content-Type: application/json
 ### 2. 查询支付状态
 
 ```bash
-GET http://localhost:7500/payment/query?orderNo=ORDER20240329001
+GET http://192.168.3.36:7500/payment/query?orderNo=ORDER20240329001
 ```
 
 **响应**:
@@ -90,13 +83,13 @@ GET http://localhost:7500/payment/query?orderNo=ORDER20240329001
 ### 3. 模拟支付成功（测试用）
 
 ```bash
-GET http://localhost:7500/payment/simulate/success?orderNo=ORDER20240329001
+GET http://192.168.3.36:7500/payment/simulate/success?orderNo=ORDER20240329001
 ```
 
 ### 4. 模拟支付失败（测试用）
 
 ```bash
-POST http://localhost:7500/payment/simulate/fail
+POST http://192.168.3.36:7500/payment/simulate/fail
 Content-Type: application/json
 
 {
@@ -113,23 +106,9 @@ Content-Type: application/json
 | FAILED | 支付失败 |
 | CANCELLED | 已取消 |
 
-## 数据库表
+## 存储方式
 
-### payment_record（支付记录表）
-
-| 字段 | 说明 |
-|------|------|
-| id | 主键 |
-| order_no | 业务订单号 |
-| payment_no | 支付流水号 |
-| amount | 支付金额 |
-| status | 支付状态 |
-| transaction_id | 第三方交易号 |
-| pay_method | 支付方式 |
-| notify_url | 回调地址（仅记录，不使用） |
-| return_url | 跳转地址（仅记录，不使用） |
-| created_at | 创建时间 |
-| paid_at | 支付时间 |
+支付记录仅保存在进程内存中，重启后清空。
 
 ## 与业务系统的交互
 
@@ -137,7 +116,7 @@ Content-Type: application/json
 业务系统 (订单服务)           支付系统
      │                            │
      ├── POST /create ───────────>│  创建支付订单
-     │<─── payment_no ────────────┤
+     │<─── payment_no / payUrl ──┤
      │                            │
      │                            │  用户完成支付
      │                            │  (模拟接口)

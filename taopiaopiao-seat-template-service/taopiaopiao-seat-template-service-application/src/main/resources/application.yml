@@ -4,14 +4,15 @@ server:
 spring:
   application:
     name: seat-template-service
+  config:
+    import:
+      - optional:nacos:backend-common.yaml?group=${NACOS_CONFIG_GROUP:DEFAULT_GROUP}&refreshEnabled=true
+      - optional:nacos:${spring.application.name}.yaml?group=${NACOS_CONFIG_GROUP:DEFAULT_GROUP}&refreshEnabled=true
 
   # 数据源配置
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/taopiaopiao?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: 7566
     druid:
       initial-size: 5
       min-idle: 5
@@ -22,8 +23,16 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
-        ip: 127.0.0.1  # 强制使用本地IP注册
+        server-addr: ${NACOS_SERVER_ADDR}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: ${NACOS_SERVER_ADDR}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+        group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
+        namespace: ${NACOS_CONFIG_NAMESPACE:}
+        file-extension: yaml
 
 # MyBatis-Plus配置
 mybatis-plus:
@@ -35,16 +44,3 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
-
-# Knife4j API文档配置
-knife4j:
-  enable: true
-  setting:
-    language: zh_cn
-  production: false
-
-# 日志配置
-logging:
-  level:
-    root: INFO
-    com.duanyan.taopiaopiao: INFO
