@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 1.0.0
  */
 @FeignClient(
-        name = "payment-system",
-        url = "${payment.base-url}"
+        name = "payment-system"
 )
 public interface PaymentClient {
 

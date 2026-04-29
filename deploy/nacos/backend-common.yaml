@@ -21,9 +21,6 @@ knife4j:
 rocketmq:
   name-server: 192.168.3.36:9876
 
-payment:
-  base-url: http://192.168.3.36:7500
-
 logging:
   level:
     root: INFO

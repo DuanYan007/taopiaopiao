@@ -75,5 +75,5 @@ export NACOS_CONFIG_NAMESPACE=
 
 当前拆分规则：
 
-- `backend-common.yaml`：MySQL、Redis、RocketMQ nameserver、基础日志级别、Knife4j、支付服务地址
+- `backend-common.yaml`：MySQL、Redis、RocketMQ nameserver、基础日志级别、Knife4j
 - `<service-name>.yaml`：服务专属项，例如 MQ group、网关路由、上传限制、逻辑删除配置

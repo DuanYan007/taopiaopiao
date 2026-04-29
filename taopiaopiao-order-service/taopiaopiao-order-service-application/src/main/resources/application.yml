@@ -22,11 +22,11 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_SERVER_ADDR}
+        server-addr: ${NACOS_SERVER_ADDR:192.168.3.36:8848}
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:nacos}
       config:
-        server-addr: ${NACOS_SERVER_ADDR}
+        server-addr: ${NACOS_SERVER_ADDR:192.168.3.36:8848}
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:nacos}
         group: ${NACOS_CONFIG_GROUP:DEFAULT_GROUP}
