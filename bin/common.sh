@@ -5,17 +5,43 @@ set -euo pipefail
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${BIN_DIR}/.." && pwd)"
 HOME_DIR="${HOME:-$(cd ~ && pwd)}"
+ENV_FILE_DEFAULT="${HOME_DIR}/taopiaopiao-nodeb.env"
+TPP_ENV_FILE="${TPP_ENV_FILE:-${ENV_FILE_DEFAULT}}"
 LOG_DIR="${ROOT_DIR}/logs"
 RUN_DIR="${ROOT_DIR}/.run"
 MVN_BIN="${MVN_BIN:-mvn}"
 
 mkdir -p "${LOG_DIR}" "${RUN_DIR}"
 
+if [[ -f "${TPP_ENV_FILE}" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${TPP_ENV_FILE}"
+    set +a
+fi
+
 read_listen_pid_by_port() {
     local port="$1"
     ss -ltnp "( sport = :${port} )" 2>/dev/null \
         | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' \
         | head -n 1
+}
+
+service_port() {
+    local service_name="$1"
+
+    case "${service_name}" in
+        payment-system) echo "7500" ;;
+        gateway) echo "8080" ;;
+        user-service) echo "8081" ;;
+        venue-service) echo "8082" ;;
+        event-service) echo "8083" ;;
+        session-service) echo "8084" ;;
+        seat-template-service) echo "8085" ;;
+        seckill-service) echo "8086" ;;
+        order-service) echo "8087" ;;
+        *) return 1 ;;
+    esac
 }
 
 run_service_foreground() {
@@ -73,4 +99,36 @@ stop_service_by_port() {
     fi
 
     echo "${service_name}: pid=${pid} on port ${port} is not running"
+}
+
+stop_service() {
+    local service_name="$1"
+    local pid_file="${RUN_DIR}/${service_name}.pid"
+    local port=""
+
+    if port="$(service_port "${service_name}")"; then
+        :
+    else
+        port=""
+    fi
+
+    if [[ -f "${pid_file}" ]]; then
+        stop_service_by_pid_file "${service_name}"
+        if [[ -n "${port}" ]]; then
+            sleep 1
+            local port_pid
+            port_pid="$(read_listen_pid_by_port "${port}")"
+            if [[ -n "${port_pid}" ]]; then
+                stop_service_by_port "${service_name}" "${port}"
+            fi
+        fi
+        return 0
+    fi
+
+    if [[ -n "${port}" ]]; then
+        stop_service_by_port "${service_name}" "${port}"
+        return 0
+    fi
+
+    echo "${service_name}: pid file not found"
 }

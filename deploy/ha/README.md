@@ -9,9 +9,9 @@ This document is split into two parts:
 
 Current machine reality:
 
-- only Node A is actually deployed now
-- Node A IP: `192.168.3.36`
-- Node B is planned only and is not available yet
+- Node A is active on `192.168.3.36`
+- Node B standby is deployed on `192.168.3.41`
+- `192.168.3.39` is not the primary runtime registration IP for Node B
 
 Future target nodes:
 
@@ -34,13 +34,14 @@ For components that require quorum or a third vote, this document explicitly dis
 
 The repository has already completed the first round of de-localhost refactoring. The current limitation is deployment completeness, not code binding.
 
-### 2.1 Current deployed node
+### 2.1 Current deployed nodes
 
 - active host: `192.168.3.36`
+- standby host: `192.168.3.41`
 - active Nacos: `192.168.3.36:8848`
 - active RocketMQ nameserver: `192.168.3.36:9876`
-- active OpenResty entry: Node A only
-- Node B: not deployed, should not appear in active runtime config
+- both nodes can run local OpenResty plus local core stateless services
+- verified manual failover for the core stateless path: after stopping Node A core services, Nacos retained only Node B instances and Node B local traffic remained available
 
 ### 2.2 Current service configuration state
 
@@ -64,8 +65,10 @@ The repository has already completed the first round of de-localhost refactoring
 ### 2.5 Current conclusion
 
 - current repo and runtime are ready for single-node integrated operation
-- current repo is also structurally ready for future dual-node rollout
-- the main missing piece is actual standby deployment on Node B
+- current repo is structurally ready for dual-node stateless standby
+- Node B standby deployment and manual failover drill have been validated for `payment-system`, `gateway`, `session-service`, `seckill-service`, and `order-service`
+- one operational gap remains on Node A: some historical service processes were not started by the repo `bin` scripts, so `bin/stop-all-services.sh` cannot stop them unless they are re-managed or stopped by port/PID
+- repeatable operator commands for this drill are documented in `deploy/ha/manual-failover-sop.md`
 
 ## 3. Future Dual-Node HA Target
 

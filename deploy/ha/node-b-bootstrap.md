@@ -4,16 +4,19 @@
 
 当前原则：
 
+- `NodeB` 当前按纯命令行主机处理，不依赖桌面环境
 - `NodeB` 先按宿主机部署
-- 业务服务使用 `systemd` 托管
+- 当前核心服务先使用仓库 `bin` 脚本托管，后续再统一收敛到 `systemd`
 - 暂不把 `NodeB` 做成独立中间件节点
 - 当前只接入 `NodeA (192.168.3.36)` 的 Nacos / RocketMQ / MySQL / Redis
-- 当前不要在活跃配置里写入 `192.168.3.39`
+- 当前 `NodeB` 主运行 IP 为 `192.168.3.41`
+- 当前不要把 `192.168.3.39` 当作 `NodeB` 的主服务注册地址写入活跃配置
 
 适用范围：
 
 - Ubuntu 22.04 / 24.04
 - `amd64`
+- 当前主机仅能使用 CLI
 - 当前仓库默认路径示例：`/home/duan/projects/taopiaopiao`
 
 ---
@@ -137,6 +140,33 @@ sudo apt update
 sudo apt -y upgrade
 ```
 
+### 3.3 需要 VPN 的下载统一处理
+
+当前 `NodeB` 是 CLI-only 主机，且外网能力可能不稳定。对以下内容，不要边装边试，先决定下载路径：
+
+- GitHub 仓库拉取
+- OpenResty 官方仓库 / GPG key
+- Docker 官方仓库 / GPG key
+- 任何不能被国内 apt 镜像直接覆盖的资源
+
+优先顺序：
+
+1. 能直连就直接下载
+2. 不能直连但 `NodeA` 可以下载，则先在 `NodeA` 下载，再 `scp` / `rsync` 到 `NodeB`
+3. 仍不稳定时，优先使用源码目录同步，不要依赖现场 `git clone`
+
+推荐做法：
+
+```bash
+# 在 NodeA 上执行，把仓库直接同步到 NodeB
+rsync -avz --delete /home/duan/projects/taopiaopiao/ <nodeb-user>@192.168.3.41:/home/<nodeb-user>/projects/taopiaopiao/
+```
+
+如果 OpenResty / Docker 官方仓库拉不通，也优先在 `NodeA` 验证后，再决定是否：
+
+- 导出 `.deb` 包后复制到 `NodeB`
+- 或暂时跳过 Docker，只先完成 Java 服务与 OpenResty 部署
+
 ---
 
 ## 4. 安装基础软件
@@ -186,6 +216,11 @@ OpenResty 官方 Ubuntu 包文档：
 
 - https://openresty.org/en/linux-packages.html
 
+如果官方仓库访问不稳定，优先在 `NodeA` 验证安装流程，再决定是否改为：
+
+- 在 `NodeA` 下载包后传到 `NodeB`
+- 或直接把 `NodeA` 已部署好的 OpenResty 配置与静态资源同步到 `NodeB`
+
 ### 6.1 安装前处理
 
 如果系统里已有 nginx，先停掉：
@@ -220,6 +255,8 @@ sudo apt install -y openresty
 Docker 官方 Ubuntu 安装文档：
 
 - https://docs.docker.com/engine/install/ubuntu/
+
+如果 Docker 官方仓库访问不稳定，可以先跳过本节。当前第一阶段 NodeB 部署并不依赖 Docker。
 
 ### 7.1 安装
 
@@ -266,11 +303,11 @@ docker ps
 ```bash
 mkdir -p "$HOME/projects"
 cd "$HOME/projects"
-git clone <your-repo-url> taopiaopiao
+git clone https://github.com/DuanYan007/taopiaopiao taopiaopiao
 cd taopiaopiao
 ```
 
-如果当前机器无法稳定访问 GitHub，建议：
+如果当前机器无法稳定访问 GitHub，建议直接不要在 `NodeB` 上 `git clone`，而是：
 
 1. 在 `NodeA` 打包仓库
 2. 用 `scp` / `rsync` 同步到 `NodeB`
@@ -278,7 +315,7 @@ cd taopiaopiao
 示例：
 
 ```bash
-rsync -avz --delete /home/duan/projects/taopiaopiao/ <nodeb-user>@192.168.3.39:/home/<nodeb-user>/projects/taopiaopiao/
+rsync -avz --delete /home/duan/projects/taopiaopiao/ <nodeb-user>@192.168.3.41:/home/<nodeb-user>/projects/taopiaopiao/
 ```
 
 ---
@@ -619,6 +656,10 @@ sudo /usr/local/openresty/nginx/sbin/nginx -s reload
 ss -ltnp | grep -E '7500|8080|8084|8086|8087'
 ```
 
+### 18.1.1 CLI-only 主机说明
+
+当前 `NodeB` 没有桌面依赖，验证全部通过命令行完成，不要求本机图形访问能力。
+
 ### 18.2 Nacos 服务注册检查
 
 到 `NodeA` 的 Nacos 控制台确认：
@@ -657,6 +698,7 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 3. `order-service` 能通过服务发现调用 `payment-system`
 4. OpenResty 能正常提供静态资源和 API 入口
 5. 从 `NodeB` 本机访问时，核心购票链路可走通
+6. 在停掉 `NodeA` 对应核心服务后，Nacos 中只剩 `NodeB(192.168.3.41)` 的核心实例，且 `NodeB` 本机访问仍可成功
 
 ---
 
@@ -664,11 +706,12 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 
 当前阶段不要提前做这些：
 
-1. 不要把 `192.168.3.39` 写回活跃 Nacos 配置
+1. 不要把 `192.168.3.39` 写成 `NodeB` 当前主服务注册地址
 2. 不要把 RocketMQ nameserver 改成双节点
 3. 不要在 `NodeB` 单独改成全 Docker
 4. 不要先上 keepalived
 5. 不要先上 MySQL / Redis 自动切换
+6. 不要假设 `NodeA` 现有核心服务一定是由仓库 `bin` 脚本托管；演练前先核对 `.run/*.pid` 或按端口确认真实进程
 
 ---
 
@@ -677,7 +720,7 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 `NodeB` 第一阶段完成后，再继续：
 
 1. 为 `NodeB` 补齐 OpenResty 配置同步流程
-2. 设计 NodeB 手动接管演练
+2. 清理并统一 `NodeA` 核心服务的启动方式，确保后续能用仓库 `bin` 脚本稳定停止和重启
 3. 再决定是否部署：
    - Nacos 第二节点
    - RocketMQ slave
