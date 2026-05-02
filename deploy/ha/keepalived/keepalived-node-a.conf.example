@@ -1,0 +1,52 @@
+global_defs {
+    router_id TPP_NODE_A
+    enable_script_security
+    script_user root
+}
+
+vrrp_script chk_openresty {
+    script "/etc/keepalived/check-openresty.sh"
+    interval 2
+    timeout 2
+    fall 2
+    rise 2
+    weight -20
+}
+
+vrrp_script chk_tpp_entry {
+    script "/etc/keepalived/check-tpp-entry.sh"
+    interval 3
+    timeout 3
+    fall 2
+    rise 2
+    weight -30
+}
+
+vrrp_instance VI_TPP_1 {
+    state MASTER
+    interface __INTERFACE__
+    virtual_router_id 51
+    priority 120
+    advert_int 1
+    nopreempt
+
+    authentication {
+        auth_type PASS
+        auth_pass __VRRP_PASSWORD__
+    }
+
+    unicast_src_ip 192.168.3.36
+
+    unicast_peer {
+        192.168.3.41
+    }
+
+    virtual_ipaddress {
+        __VIP_IP__/__VIP_PREFIX__
+    }
+
+    track_script {
+        chk_openresty
+        chk_tpp_entry
+    }
+}

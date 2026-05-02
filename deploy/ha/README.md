@@ -341,7 +341,8 @@ The current repo has already been adjusted to return relative payment paths inst
 
 - deploy real standby services on Node B
 - decide whether `payment-system` should be registered into Nacos
-- add OpenResty config sync, static asset sync, and failover operating procedures
+- add VIP-based entry failover on top of the current manual service failover
+- keep OpenResty config sync and static asset sync in the operating baseline
 
 ## 8. Future Rollout Sequence
 
@@ -395,6 +396,15 @@ Deliverable:
 3. prepare a VIP-based OpenResty failover drill
 4. verify Node B can serve gateway, seckill, order, session, and payment-system
 5. define rollback steps for failed failover
+
+Current repo assets for the next step:
+
+- `deploy/ha/manual-failover-sop.md`
+- `deploy/ha/keepalived/README.md`
+- `deploy/ha/keepalived/keepalived-node-a.conf.example`
+- `deploy/ha/keepalived/keepalived-node-b.conf.example`
+- `deploy/ha/keepalived/check-openresty.sh`
+- `deploy/ha/keepalived/check-tpp-entry.sh`
 
 ## 10. Suggested Machine-Local Variables
 
