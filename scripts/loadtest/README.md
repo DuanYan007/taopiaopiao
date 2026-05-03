@@ -34,10 +34,10 @@ Before each `lock_only_burst` round, use `reset -> config -> run` in this order.
 
 ### 1600-seat session
 
-Init cache:
+Full reset:
 
 ```bash
-bash bin/init-loadtest-session-1600.sh
+MYSQL_PASSWORD=your-mysql-password bash bin/reset-loadtest-1600.sh
 ```
 
 Fixed runner:
@@ -54,10 +54,10 @@ Session facts:
 
 ### 16000-seat session
 
-Init cache:
+Full reset:
 
 ```bash
-bash bin/init-loadtest-session-16000.sh
+MYSQL_PASSWORD=your-mysql-password bash bin/reset-loadtest-16000.sh
 ```
 
 Fixed runner:
@@ -75,11 +75,7 @@ Session facts:
 ## Current recommended local profile for `sessionId=2`
 
 ```bash
-bash bin/init-loadtest-session-1600.sh
-```
-
-```bash
-curl -X POST http://127.0.0.1/internal/seckill/gate/reset -H 'Content-Type: application/json' -d '{"sessionId":2}'
+MYSQL_PASSWORD=your-mysql-password bash bin/reset-loadtest-1600.sh
 ```
 
 ```bash
@@ -101,11 +97,7 @@ Verified result for this profile under the current local `1600` users / `1600` s
 Do not jump directly to the absolute maximum. Start with a real in-project large session but ramp conservatively:
 
 ```bash
-bash bin/init-loadtest-session-16000.sh
-```
-
-```bash
-curl -X POST http://127.0.0.1/internal/seckill/gate/reset -H 'Content-Type: application/json' -d '{"sessionId":3}'
+MYSQL_PASSWORD=your-mysql-password bash bin/reset-loadtest-16000.sh
 ```
 
 ```bash
@@ -143,6 +135,8 @@ docker run --rm --network host \
 - `hotspot_conflict.js`: different users, same seats, validates hotspot contention and `409/429` behavior.
 - `hotspot_throughput.js`: different users, rotating seats, validates gated throughput and backend stability.
 - `lock_only_burst.js`: rotating-seat burst test used for the current session-gate tuning loop.
+- `bin/reset-loadtest-1600.sh`: fixed full reset for the real `1600座位测试场`
+- `bin/reset-loadtest-16000.sh`: fixed full reset for the real `16000-测试`
 - `bin/run-lock-burst-1600.sh`: fixed runner for the real `1600座位测试场`
 - `bin/run-lock-burst-16000.sh`: fixed runner for the real `16000-测试`
 
