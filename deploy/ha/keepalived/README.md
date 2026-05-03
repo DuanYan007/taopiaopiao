@@ -22,6 +22,8 @@
 - `check-tpp-entry.sh`: 检查本机入口是否还能正常服务
 - `setup-node-a.sh`: Node A 一键安装与渲染脚本
 - `setup-node-b.sh`: Node B 一键安装与渲染脚本
+- `drill-observe-node-b.sh`: Node B 漂移观察脚本
+- `drill-trigger-node-a.sh`: Node A 漂移动作脚本
 
 ## 2. 推荐策略
 
@@ -99,6 +101,13 @@ ip addr show
 1. `ip addr show` 中 VIP 当前挂在哪台机器
 2. 从客户端访问 VIP 时，`/admin/` 与 `/client/` 是否仍然返回 `200`
 3. `curl http://<VIP>/api/client/sessions` 与 `curl http://<VIP>/payment/query?orderNo=VIPCHECK` 是否仍然返回 JSON
+
+如果你不想再手工拼两段命令，可以直接使用：
+
+```bash
+VIP_IP=192.168.3.50 INTERFACE=enp3s0   WAIT_SECONDS=12 bash deploy/ha/keepalived/drill-observe-node-b.sh
+VIP_IP=192.168.3.50 INTERFACE=enp131s0 WAIT_SECONDS=12 bash deploy/ha/keepalived/drill-trigger-node-a.sh
+```
 
 ## 7. 当前不要做的事情
 
