@@ -24,6 +24,7 @@
 - `setup-node-b.sh`: Node B 一键安装与渲染脚本
 - `drill-observe-node-b.sh`: Node B 漂移观察脚本
 - `drill-trigger-node-a.sh`: Node A 漂移动作脚本
+- `manual-failback-node-b.sh`: Node B 手动回切脚本
 
 ## 2. 推荐策略
 
@@ -128,6 +129,12 @@ VIP_IP=192.168.3.50 INTERFACE=enp131s0 WAIT_SECONDS=12 bash deploy/ha/keepalived
 3. 在 Node B 上执行 `sudo systemctl stop keepalived`
 4. 等待 VIP 漂回 Node A
 5. 确认 VIP 访问正常后，再决定是否恢复 Node B keepalived
+
+如果你不想手工拼命令，可以直接在当前持有 VIP 的 Node B 上执行：
+
+```bash
+VIP_IP=192.168.3.50 INTERFACE=enp3s0 WAIT_SECONDS=12 bash deploy/ha/keepalived/manual-failback-node-b.sh
+```
 
 ## 8. 当前不要做的事情
 
