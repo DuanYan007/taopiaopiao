@@ -709,9 +709,8 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 1. 不要把 `192.168.3.39` 写成 `NodeB` 当前主服务注册地址
 2. 不要把 RocketMQ nameserver 改成双节点
 3. 不要在 `NodeB` 单独改成全 Docker
-4. 不要先上 keepalived
-5. 不要先上 MySQL / Redis 自动切换
-6. 不要假设 `NodeA` 现有核心服务一定是由仓库 `bin` 脚本托管；演练前先核对 `.run/*.pid` 或按端口确认真实进程
+4. 不要先上 MySQL / Redis 自动切换
+5. 不要假设 `NodeA` 现有核心服务一定是由仓库 `bin` 脚本托管；演练前先核对 `.run/*.pid` 或按端口确认真实进程
 
 ---
 
@@ -719,11 +718,9 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 
 `NodeB` 第一阶段完成后，再继续：
 
-1. 为 `NodeB` 补齐 OpenResty 配置同步流程
-2. 清理并统一 `NodeA` 核心服务的启动方式，确保后续能用仓库 `bin` 脚本稳定停止和重启
-3. 再决定是否部署：
-   - Nacos 第二节点
+1. 为 `NodeB` 保持 OpenResty 配置与静态资源同步流程
+2. 继续推进 Redis 主从
+3. 再推进 MySQL 主从
+4. 再决定是否部署：
    - RocketMQ slave
-   - Redis replica
-   - MySQL replica
-4. 最后再考虑 VIP / keepalived
+   - Nacos 第二节点或第三轻量节点方案

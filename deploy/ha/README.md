@@ -42,6 +42,7 @@ The repository has already completed the first round of de-localhost refactoring
 - active RocketMQ nameserver: `192.168.3.36:9876`
 - both nodes can run local OpenResty plus local core stateless services
 - verified manual failover for the core stateless path: after stopping Node A core services, Nacos retained only Node B instances and Node B local traffic remained available
+- verified VIP entry failover on `192.168.3.50`: Node B can automatically take over the VIP when Node A keepalived stops, and the repo keepalived templates now support manual failback instead of automatic VIP grab-back on Node A recovery
 
 ### 2.2 Current service configuration state
 
@@ -67,6 +68,7 @@ The repository has already completed the first round of de-localhost refactoring
 - current repo and runtime are ready for single-node integrated operation
 - current repo is structurally ready for dual-node stateless standby
 - Node B standby deployment and manual failover drill have been validated for `payment-system`, `gateway`, `session-service`, `seckill-service`, and `order-service`
+- keepalived-based VIP entry failover has been deployed and validated on both nodes
 - one operational gap remains on Node A: some historical service processes were not started by the repo `bin` scripts, so `bin/stop-all-services.sh` cannot stop them unless they are re-managed or stopped by port/PID
 - repeatable operator commands for this drill are documented in `deploy/ha/manual-failover-sop.md`
 
@@ -339,10 +341,9 @@ The current repo has already been adjusted to return relative payment paths inst
 
 ### 7.2 Remaining work
 
-- deploy real standby services on Node B
 - decide whether `payment-system` should be registered into Nacos
-- add VIP-based entry failover on top of the current manual service failover
 - keep OpenResty config sync and static asset sync in the operating baseline
+- move from stateless-plus-entry HA into data-layer HA: Redis, MySQL, RocketMQ, and later Nacos clustering
 
 ## 8. Future Rollout Sequence
 
@@ -391,11 +392,11 @@ Deliverable:
 
 ## 9. Immediate Next Tasks
 
-1. complete Node B deployment
-2. deploy the same Nacos config set on standby runtime
-3. prepare a VIP-based OpenResty failover drill
-4. verify Node B can serve gateway, seckill, order, session, and payment-system
-5. define rollback steps for failed failover
+1. promote Redis to primary/replica
+2. promote MySQL to primary/replica
+3. design RocketMQ master/slave rollout
+4. evaluate Nacos dual-node transitional mode or a third lightweight node
+5. keep rollback and manual failback procedures aligned with the deployed VIP model
 
 Current repo assets for the next step:
 
@@ -405,6 +406,11 @@ Current repo assets for the next step:
 - `deploy/ha/keepalived/keepalived-node-b.conf.example`
 - `deploy/ha/keepalived/check-openresty.sh`
 - `deploy/ha/keepalived/check-tpp-entry.sh`
+- `deploy/ha/keepalived/setup-node-a.sh`
+- `deploy/ha/keepalived/setup-node-b.sh`
+- `deploy/ha/keepalived/drill-observe-node-b.sh`
+- `deploy/ha/keepalived/drill-trigger-node-a.sh`
+- `deploy/ha/keepalived/manual-failback-node-b.sh`
 
 ## 10. Suggested Machine-Local Variables
 
