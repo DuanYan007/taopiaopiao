@@ -1,10 +1,15 @@
 # Load Test Scripts
 
-These k6 scripts target the current gated lock-seat entry. The current local `lock_only_burst` tuning baseline is `sessionId=2`.
+These k6 scripts target the current gated lock-seat entry.
+
+Current real in-project pressure-test sessions:
+
+- `sessionId=2` -> `1600座位测试场`
+- `sessionId=3` -> `16000-测试`
 
 ## Prerequisites
 
-Start OpenResty, gateway, `seckill-service`, `order-service`, `session-service`, Redis, MySQL, RocketMQ, Nacos, and the mock payment service. Make sure the target session, especially `sessionId=2` for `lock_only_burst`, has been initialized with enough available seats.
+Start OpenResty, gateway, `seckill-service`, `order-service`, `session-service`, Redis, MySQL, RocketMQ, Nacos, and the mock payment service. Use the existing seeded sessions in the project instead of creating ad hoc test sessions.
 
 ## Run with Docker
 
@@ -16,15 +21,46 @@ docker run --rm --network host -v "$(pwd)/scripts/loadtest:/scripts" grafana/k6 
 docker run --rm --network host -v "$(pwd)/scripts/loadtest:/scripts" grafana/k6 run /scripts/hotspot_throughput.js
 ```
 
-For `lock_only_burst.js`, prefer the repository runner so the full console output and `STATUS0_SAMPLE` lines are saved automatically:
+For `lock_only_burst.js`, prefer the repository runners so the full console output and `STATUS0_SAMPLE` lines are saved automatically:
 
 ```bash
-bash bin/run-lock-only-burst.sh
+bash bin/run-lock-burst-1600.sh
+bash bin/run-lock-burst-16000.sh
 ```
 
 Before each `lock_only_burst` round, use `reset -> config -> run` in this order. `reset` clears the session override as well as runtime counters.
 
-Current recommended local profile for `sessionId=2`:
+## Recommended current entry points
+
+### 1600-seat session
+
+Fixed runner:
+
+```bash
+bash bin/run-lock-burst-1600.sh
+```
+
+Session facts:
+
+- `sessionId=2`
+- session name: `1600座位测试场`
+- seat id range: `161-1760`
+
+### 16000-seat session
+
+Fixed runner:
+
+```bash
+bash bin/run-lock-burst-16000.sh
+```
+
+Session facts:
+
+- `sessionId=3`
+- session name: `16000-测试`
+- seat id range: `1761-17760`
+
+## Current recommended local profile for `sessionId=2`
 
 ```bash
 curl -X POST http://127.0.0.1/internal/seckill/gate/reset \
@@ -41,7 +77,7 @@ curl -X POST http://127.0.0.1/internal/seckill/gate/config \
     "queue_timeout_ms": 260
   }'
 
-bash bin/run-lock-only-burst.sh
+bash bin/run-lock-burst-1600.sh
 ```
 
 Verified result for this profile under the current local `1600` users / `1600` seats burst:
@@ -49,6 +85,28 @@ Verified result for this profile under the current local `1600` users / `1600` s
 - `429=998`
 - `status_0=0`
 - `http_req_duration p95≈302.89ms`
+
+## Suggested profile for first 16000-seat round
+
+Do not jump directly to the absolute maximum. Start with a real in-project large session but ramp conservatively:
+
+```bash
+curl -X POST http://127.0.0.1/internal/seckill/gate/reset \
+  -H 'Content-Type: application/json' \
+  -d '{"sessionId":3}'
+
+curl -X POST http://127.0.0.1/internal/seckill/gate/config \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "sessionId": 3,
+    "token_rate": 1200,
+    "bucket_capacity": 1800,
+    "max_inflight": 320,
+    "queue_timeout_ms": 400
+  }'
+
+USERS=4000 MAX_DURATION=60s bash bin/run-lock-burst-16000.sh
+```
 
 ## Optional Environment Variables
 
@@ -77,6 +135,8 @@ docker run --rm --network host \
 - `hotspot_conflict.js`: different users, same seats, validates hotspot contention and `409/429` behavior.
 - `hotspot_throughput.js`: different users, rotating seats, validates gated throughput and backend stability.
 - `lock_only_burst.js`: rotating-seat burst test used for the current session-gate tuning loop.
+- `bin/run-lock-burst-1600.sh`: fixed runner for the real `1600座位测试场`
+- `bin/run-lock-burst-16000.sh`: fixed runner for the real `16000-测试`
 
 ## Observe During Test
 

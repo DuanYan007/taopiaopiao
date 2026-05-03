@@ -478,5 +478,7 @@ bash bin/run-lock-only-burst.sh
 - `bash deploy/ha/keepalived/manual-failback-node-b.sh`
 - `bash deploy/ha/redis/inspect-node-a.sh`
 - `bash deploy/ha/redis/inspect-node-b.sh`
+- `bash bin/run-lock-burst-1600.sh`
+- `bash bin/run-lock-burst-16000.sh`
 
 如果后续本地目录、默认端口、启动方式、OpenResty 路由、支付系统模式再次变化，README 应优先同步更新。
