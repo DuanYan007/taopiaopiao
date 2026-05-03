@@ -29,6 +29,13 @@ openresty/1.29.2.1
 - `deploy/ha/keepalived/check-openresty.sh`
 - `deploy/ha/keepalived/check-tpp-entry.sh`
 
+当前已验证的入口基线：
+
+- Node A：`192.168.3.36`
+- Node B：`192.168.3.41`
+- VIP：`192.168.3.50`
+- 策略：故障自动漂移，恢复手动回切
+
 当前 OpenResty 仍然保持本机回环转发：
 
 - `127.0.0.1:8080` -> gateway

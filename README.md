@@ -30,6 +30,29 @@
 - RocketMQ 承接锁单接受、订单创建、支付成功、超时检查、取消收敛等异步事件
 - OpenResty 同时承担前端静态资源入口、API 反向代理、秒杀闸门 Lua 限流
 
+## 1.1 当前双节点高可用状态
+
+当前仓库对应的实际阶段已经不是“纯单机”：
+
+- Node A：`192.168.3.36`
+- Node B：`192.168.3.41`
+- 入口 VIP：`192.168.3.50`
+- Node A 当前 keepalived 网卡：`enp131s0`
+- Node B 当前 keepalived 网卡：`enp3s0`
+
+已经完成并验证：
+
+- Node B 已部署并接管核心无状态链路：`payment-system`、`gateway`、`session-service`、`seckill-service`、`order-service`
+- 两台机器都已部署 OpenResty
+- keepalived VIP 漂移已经落地
+- 当前入口策略为“故障自动漂移，恢复手动回切”
+
+当前下一阶段：
+
+- Redis 主从
+- MySQL 主从
+- RocketMQ / Nacos 后续高可用设计
+
 ## 2. 仓库内容
 
 本仓库不只是后端代码，还包含联调用的外围材料：
@@ -241,6 +264,10 @@ OpenResty 在本项目里承担三件事：
 
 - `conf/local-components.yml`：本地组件清单
 - `conf/local-env.example`：环境变量模板
+- `deploy/ha/README.md`：两节点高可用整体规划与当前状态
+- `deploy/ha/manual-failover-sop.md`：核心无状态链路手动切换 SOP
+- `deploy/ha/keepalived/README.md`：VIP 漂移说明、安装脚本、演练脚本
+- `deploy/ha/redis/README.md`：Redis 现状采集脚本与下一阶段入口
 - `deploy/openresty/README.md`：OpenResty 部署说明
 - `scripts/loadtest/README.md`：压测入口说明
 
@@ -425,7 +452,30 @@ bash bin/run-lock-only-burst.sh
 - `conf/README.md`：本地组件配置说明
 - `conf/local-components.yml`：本地组件清单
 - `conf/local-env.example`：环境变量模板
+- `deploy/ha/README.md`：HA 总览
+- `deploy/ha/manual-failover-sop.md`：核心链路手动切换 SOP
+- `deploy/ha/keepalived/README.md`：VIP 漂移说明
+- `deploy/ha/redis/README.md`：Redis 现状采集入口
 - `deploy/openresty/README.md`：OpenResty 部署说明
 - `scripts/loadtest/README.md`：压测说明
+
+## 14. HA 操作入口约定
+
+当前 HA 相关操作尽量已经收敛成仓库内脚本，优先使用：
+
+- 单行命令
+- 直接执行脚本路径
+
+避免现场再手工拼多段命令块。
+
+当前已提供的入口包括：
+
+- `bash deploy/ha/keepalived/setup-node-a.sh`
+- `bash deploy/ha/keepalived/setup-node-b.sh`
+- `bash deploy/ha/keepalived/drill-trigger-node-a.sh`
+- `bash deploy/ha/keepalived/drill-observe-node-b.sh`
+- `bash deploy/ha/keepalived/manual-failback-node-b.sh`
+- `bash deploy/ha/redis/inspect-node-a.sh`
+- `bash deploy/ha/redis/inspect-node-b.sh`
 
 如果后续本地目录、默认端口、启动方式、OpenResty 路由、支付系统模式再次变化，README 应优先同步更新。

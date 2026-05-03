@@ -338,16 +338,23 @@ The current repo has already been adjusted to return relative payment paths inst
 - payment access has been externalized
 - browser-facing pay URL is now a relative path under `/payment/`
 - `PaymentClient` no longer depends on a hardcoded node-local URL
+- Node B standby is deployed and verified on `192.168.3.41`
+- core stateless services have already passed a manual failover drill
+- keepalived VIP `192.168.3.50` is already deployed and verified on both nodes
+- keepalived now follows automatic failover plus manual failback
+- repo now includes one-shot keepalived setup, drill, and manual failback scripts
+- repo now includes Redis current-state inspection scripts for both nodes
 
 ### 7.2 Remaining work
 
-- decide whether `payment-system` should be registered into Nacos
 - keep OpenResty config sync and static asset sync in the operating baseline
 - move from stateless-plus-entry HA into data-layer HA: Redis, MySQL, RocketMQ, and later Nacos clustering
 
 ## 8. Future Rollout Sequence
 
 ### Phase 1: dual-node stateless deployment
+
+Status: done
 
 1. deploy OpenResty on both nodes
 2. deploy gateway/seckill/order/session/payment-system on both nodes
@@ -357,26 +364,32 @@ Deliverable:
 
 - business services can fail over at application level
 
-### Phase 2: data-layer standby
+### Phase 2: entry failover
 
-1. MySQL primary/replica
-2. Redis master/replica
+Status: done
+
+1. deploy VIP with keepalived
+2. bind VIP to Node A normally
+3. switch VIP to Node B in failover drill
+4. switch VIP back to Node A by manual failback
+
+Deliverable:
+
+- client entrypoint remains stable during host failure
+- VIP strategy is automatic failover plus manual failback
+
+### Phase 3: data-layer standby
+
+Status: in progress, next step is Redis
+
+1. Redis master/replica
+2. MySQL primary/replica
 3. RocketMQ master/slave
 4. Nacos dual-node cluster or dual-node transitional mode
 
 Deliverable:
 
 - infrastructure no longer depends on one machine only
-
-### Phase 3: entry failover
-
-1. deploy VIP with keepalived
-2. bind VIP to Node A normally
-3. switch VIP to Node B in failover drill
-
-Deliverable:
-
-- client entrypoint remains stable during host failure
 
 ### Phase 4: third node for quorum
 
@@ -411,6 +424,9 @@ Current repo assets for the next step:
 - `deploy/ha/keepalived/drill-observe-node-b.sh`
 - `deploy/ha/keepalived/drill-trigger-node-a.sh`
 - `deploy/ha/keepalived/manual-failback-node-b.sh`
+- `deploy/ha/redis/README.md`
+- `deploy/ha/redis/inspect-node-a.sh`
+- `deploy/ha/redis/inspect-node-b.sh`
 
 ## 10. Suggested Machine-Local Variables
 
@@ -434,6 +450,6 @@ Example files added in this repo:
 
 Recommended interpretation:
 
-- Node A is the only active node at the moment
-- Node B is not yet deployed and should not be referenced in active runtime config
-- both nodes should eventually use the same Nacos and RocketMQ address sets after standby deployment is completed
+- Node A remains the primary traffic node at the moment
+- Node B standby is already deployed and should now be treated as a real verified standby node
+- both nodes should eventually use the same Nacos and RocketMQ address sets after data-layer HA is completed

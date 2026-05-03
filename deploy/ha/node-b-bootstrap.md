@@ -11,6 +11,7 @@
 - 当前只接入 `NodeA (192.168.3.36)` 的 Nacos / RocketMQ / MySQL / Redis
 - 当前 `NodeB` 主运行 IP 为 `192.168.3.41`
 - 当前不要把 `192.168.3.39` 当作 `NodeB` 的主服务注册地址写入活跃配置
+- 当前 keepalived / VIP 已经纳入双节点基线，VIP 为 `192.168.3.50`
 
 适用范围：
 
@@ -23,7 +24,7 @@
 
 ## 1. 部署目标
 
-`NodeB` 第一阶段只承接核心无状态链路：
+`NodeB` 当前基线已经包括：
 
 - OpenResty
 - gateway
@@ -31,6 +32,7 @@
 - order-service
 - session-service
 - payment-system
+- keepalived standby
 
 当前阶段不做：
 
@@ -38,7 +40,11 @@
 - Redis 副本
 - RocketMQ slave
 - Nacos 第二节点
-- keepalived / VIP
+
+说明：
+
+- 核心无状态链路与 VIP 漂移已经完成并验证
+- 当前下一阶段不是再补 NodeB 基础接入，而是继续推进 Redis / MySQL 数据层高可用
 
 ---
 
@@ -699,6 +705,7 @@ curl -s http://127.0.0.1/payment/query?orderNo=TEST_ORDER
 4. OpenResty 能正常提供静态资源和 API 入口
 5. 从 `NodeB` 本机访问时，核心购票链路可走通
 6. 在停掉 `NodeA` 对应核心服务后，Nacos 中只剩 `NodeB(192.168.3.41)` 的核心实例，且 `NodeB` 本机访问仍可成功
+7. keepalived 启动后，NodeB 能在 NodeA keepalived 停止时接管 VIP，并在 NodeA 恢复后按“手动回切”策略保持当前持有状态
 
 ---
 
