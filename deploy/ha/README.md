@@ -274,6 +274,12 @@ If a third node is added, re-evaluate:
 - AOF enabled
 - periodic backup export
 
+### Current starting point
+
+- current runtime Redis is a single-node Docker container on `NodeA(192.168.3.36)`
+- current exposed business address remains `192.168.3.36:6349`
+- the next Redis HA step is to turn this container-based single node into `NodeA master + NodeB replica`
+
 ### Do not over-trust two-node Sentinel
 
 Redis Sentinel with only two real data nodes is weak for automatic failover because split-brain and quorum edge cases remain awkward. If used, a third sentinel should be added on a third lightweight node.

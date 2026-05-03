@@ -224,6 +224,7 @@ OpenResty 在本项目里承担三件事：
 说明：
 
 - 主要用于秒杀热路径
+- 当前实际运行形态为 `NodeA(192.168.3.36)` 上的 Docker 单机 Redis 容器
 - 座位锁、锁单聚合、处理中状态、部分缓存均在 Redis 中
 - 大压测推荐使用 `scripts/loadtest/redis-loadtest.conf.example` 对应配置
 
