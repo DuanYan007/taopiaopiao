@@ -46,6 +46,12 @@ Fixed runner:
 bash bin/run-lock-burst-1600.sh
 ```
 
+From a dedicated load-generator host, point the runner at the business node explicitly:
+
+```bash
+BASE_URL=http://192.168.3.36/api/seckill/lock bash bin/run-lock-burst-1600.sh
+```
+
 Session facts:
 
 - `sessionId=2`
@@ -64,6 +70,12 @@ Fixed runner:
 
 ```bash
 bash bin/run-lock-burst-16000.sh
+```
+
+From a dedicated load-generator host, point the runner at the business node explicitly:
+
+```bash
+BASE_URL=http://192.168.3.36/api/seckill/lock bash bin/run-lock-burst-16000.sh
 ```
 
 Session facts:
@@ -123,6 +135,7 @@ Example:
 
 ```bash
 docker run --rm --network host \
+  -e BASE_URL=http://192.168.3.36/api/seckill/lock \
   -e VUS=100 \
   -e DURATION=90s \
   -v "$(pwd)/scripts/loadtest:/scripts" \
@@ -139,6 +152,16 @@ docker run --rm --network host \
 - `bin/reset-loadtest-16000.sh`: fixed full reset for the real `16000-测试`
 - `bin/run-lock-burst-1600.sh`: fixed runner for the real `1600座位测试场`
 - `bin/run-lock-burst-16000.sh`: fixed runner for the real `16000-测试`
+
+## Dedicated Load-Generator Host
+
+If you add a third host dedicated to pressure testing:
+
+1. business node runs reset/init/gate config
+2. load-generator host only runs the K6 scripts
+3. always pass `BASE_URL=http://<business-node>/api/seckill/lock`
+
+This keeps the pressure traffic off the business node itself and avoids mixing generator CPU with service CPU.
 
 ## Observe During Test
 

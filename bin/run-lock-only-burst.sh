@@ -8,13 +8,16 @@ LOADTEST_DIR="${ROOT_DIR}/scripts/loadtest"
 LOG_DIR="${ROOT_DIR}/logs/loadtest"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 LOG_FILE="${LOG_DIR}/lock-only-burst-${TIMESTAMP}.log"
+BASE_URL="${BASE_URL:-http://127.0.0.1/api/seckill/lock}"
 
 mkdir -p "${LOG_DIR}"
 
 echo "lock_only_burst log=${LOG_FILE}"
+echo "lock_only_burst base_url=${BASE_URL}"
 
 set +e
 docker run --rm --network host \
+    -e BASE_URL="${BASE_URL}" \
     -e SESSION_ID="${SESSION_ID:-2}" \
     -e USERS="${USERS:-1600}" \
     -e USER_BASE="${USER_BASE:-100000}" \
