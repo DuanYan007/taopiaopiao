@@ -34,6 +34,12 @@ Before each `lock_only_burst` round, use `reset -> config -> run` in this order.
 
 ### 1600-seat session
 
+Init cache:
+
+```bash
+bash bin/init-loadtest-session-1600.sh
+```
+
 Fixed runner:
 
 ```bash
@@ -47,6 +53,12 @@ Session facts:
 - seat id range: `161-1760`
 
 ### 16000-seat session
+
+Init cache:
+
+```bash
+bash bin/init-loadtest-session-16000.sh
+```
 
 Fixed runner:
 
@@ -63,20 +75,18 @@ Session facts:
 ## Current recommended local profile for `sessionId=2`
 
 ```bash
-curl -X POST http://127.0.0.1/internal/seckill/gate/reset \
-  -H 'Content-Type: application/json' \
-  -d '{"sessionId":2}'
+bash bin/init-loadtest-session-1600.sh
+```
 
-curl -X POST http://127.0.0.1/internal/seckill/gate/config \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "sessionId": 2,
-    "token_rate": 420,
-    "bucket_capacity": 620,
-    "max_inflight": 160,
-    "queue_timeout_ms": 260
-  }'
+```bash
+curl -X POST http://127.0.0.1/internal/seckill/gate/reset -H 'Content-Type: application/json' -d '{"sessionId":2}'
+```
 
+```bash
+curl -X POST http://127.0.0.1/internal/seckill/gate/config -H 'Content-Type: application/json' -d '{"sessionId":2,"token_rate":420,"bucket_capacity":620,"max_inflight":160,"queue_timeout_ms":260}'
+```
+
+```bash
 bash bin/run-lock-burst-1600.sh
 ```
 
@@ -91,20 +101,18 @@ Verified result for this profile under the current local `1600` users / `1600` s
 Do not jump directly to the absolute maximum. Start with a real in-project large session but ramp conservatively:
 
 ```bash
-curl -X POST http://127.0.0.1/internal/seckill/gate/reset \
-  -H 'Content-Type: application/json' \
-  -d '{"sessionId":3}'
+bash bin/init-loadtest-session-16000.sh
+```
 
-curl -X POST http://127.0.0.1/internal/seckill/gate/config \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "sessionId": 3,
-    "token_rate": 1200,
-    "bucket_capacity": 1800,
-    "max_inflight": 320,
-    "queue_timeout_ms": 400
-  }'
+```bash
+curl -X POST http://127.0.0.1/internal/seckill/gate/reset -H 'Content-Type: application/json' -d '{"sessionId":3}'
+```
 
+```bash
+curl -X POST http://127.0.0.1/internal/seckill/gate/config -H 'Content-Type: application/json' -d '{"sessionId":3,"token_rate":1200,"bucket_capacity":1800,"max_inflight":320,"queue_timeout_ms":400}'
+```
+
+```bash
 USERS=4000 MAX_DURATION=60s bash bin/run-lock-burst-16000.sh
 ```
 
