@@ -29,7 +29,7 @@
 
 当前阶段建议采用：
 
-- Node A `MASTER`
+- Node A `BACKUP` with higher priority
 - Node B `BACKUP`
 - `nopreempt`
 
@@ -38,6 +38,14 @@
 1. 先追求稳定，不追求自动抢回
 2. 避免 Node A 短暂恢复后又把 VIP 抢回去
 3. 更适合当前还在整理服务托管方式的阶段
+
+当前模板的实际含义是：
+
+- Node A 优先级更高，但初始状态也使用 `BACKUP`
+- Node B 优先级更低，也使用 `BACKUP`
+- 正常首次选主时，Node A 会拿到 VIP
+- 一旦 Node A 故障、Node B 接管，Node A 恢复后不会自动抢回 VIP
+- 需要人工回切时，再由运维执行一次明确的切换动作
 
 ## 3. 健康检查建议
 
@@ -109,7 +117,19 @@ VIP_IP=192.168.3.50 INTERFACE=enp3s0   WAIT_SECONDS=12 bash deploy/ha/keepalived
 VIP_IP=192.168.3.50 INTERFACE=enp131s0 WAIT_SECONDS=12 bash deploy/ha/keepalived/drill-trigger-node-a.sh
 ```
 
-## 7. 当前不要做的事情
+## 7. 手动回切
+
+当前模板默认采用“故障自动漂移、恢复手动回切”。
+
+如果 Node B 已持有 VIP，而你想把 VIP 明确切回 Node A，建议顺序：
+
+1. 确认 Node A 本机 `/admin/`、`/client/`、`/api/client/sessions`、`/payment/query` 全部正常
+2. 在 Node A 上确认 keepalived 已运行
+3. 在 Node B 上执行 `sudo systemctl stop keepalived`
+4. 等待 VIP 漂回 Node A
+5. 确认 VIP 访问正常后，再决定是否恢复 Node B keepalived
+
+## 8. 当前不要做的事情
 
 当前阶段不要把 VIP 切换和以下动作绑成一套自动化：
 

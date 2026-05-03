@@ -23,7 +23,7 @@ vrrp_script chk_tpp_entry {
 }
 
 vrrp_instance VI_TPP_1 {
-    state MASTER
+    state BACKUP
     interface __INTERFACE__
     virtual_router_id 51
     priority 120
