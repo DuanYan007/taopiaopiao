@@ -34,6 +34,11 @@ Do not hardcode new secrets or environment-specific endpoints. Prefer environmen
 ## Agent Workflow
 Before changing code, read the relevant repository entry points or memory first, then inspect the affected controller, service, consumer, and mapper classes. For high-risk flows such as seat locking, payment, RocketMQ consumers, cancellation, and OpenResty gating, review the full producer-consumer chain before proposing code changes.
 
+Current seckill/order hot-path facts:
+- `seckill-service` generates `orderNo` before locking seats; `orderNo` is also the Redis temporary lock owner token.
+- Redis no longer stores lock-order aggregate state such as `lock:order:*`, `lock:expire:*`, or `order:processing:*`; only seat long-term state, temporary locks, and user lock index remain on the hot path.
+- Seata TCC only covers `锁座 + 下单`: `order-service` Try writes `order_prepare`, and Confirm creates the formal `UNPAID` order plus the `TIMEOUT_CHECK` delayed message.
+
 ## Skills
 - `tpp-bootstrap-repo`: bootstrap this repository before implementation-heavy work.
 - `tpp-create-skill`: create or update repository-specific skills.

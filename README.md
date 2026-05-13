@@ -19,39 +19,36 @@
 - 超时关单与取消收敛
 - RocketMQ 异步最终一致性
 
+当前锁座到支付链路已经收敛为：
+
+- `seckill-service` 生成 `orderNo`
+- Redis 仅维护座位长期状态 `seat:state:*` 与临时锁 `seat:lock:*`
+- 临时锁 owner token 统一使用 `orderNo`，不再单独维护 `lockId`
+- Seata TCC 只覆盖 `锁座 + 下单`：`seckill-service` Try 写临时锁，`order-service` Try 写 `order_prepare`
+- 当前已验证运行组合为 `Seata client 2.0.0 + Seata server 2.6.0`，不要仅因 server 升级就直接修改仓库里的 client 依赖版本
+- TCC Confirm 时 `order-service` 才创建正式 `UNPAID` 订单并发送 `TIMEOUT_CHECK` 延时消息
+- 支付单不是锁座成功时同步创建，而是前端进入订单确认页后，由 `order-service` 在查询订单详情时按需创建
+- 支付成功或超时取消由 `order-service` 回调 `seckill-service` 完成确认售出或释放座位
+- 订单终态收敛统一走条件更新：只允许 `UNPAID -> PAID / CANCELLED / TIMEOUT`
+- `ORDER_PAID`、`TIMEOUT_CHECK`、用户取消互相并发时，迟到链路只要发现订单已进入其他终态就直接跳过，不再覆盖
+- `TIMEOUT_CHECK vs 支付成功`、`取消 vs 支付成功`、`取消后迟到支付成功` 都已经做过实链路回放验证
+
 当前本地默认链路：
 
 `Browser -> OpenResty -> gateway -> seckill-service -> order-service -> payment-system / RocketMQ consumers`
 
 其中：
 
-- Redis 是座位锁、锁单聚合、处理中间态的热路径事实来源
+- Redis 是座位长期状态 `seat:state:*`、临时锁 `seat:lock:*` 与用户锁索引 `lock:user:*` 的热路径事实来源
 - MySQL `taopiaopiao` 是正式业务数据持久化来源
-- RocketMQ 承接锁单接受、订单创建、支付成功、超时检查、取消收敛等异步事件
+- RocketMQ 承接订单超时检查、支付成功、取消收敛等异步事件
 - OpenResty 同时承担前端静态资源入口、API 反向代理、秒杀闸门 Lua 限流
 
-## 1.1 当前双节点高可用状态
+并发裁决补充：
 
-当前仓库对应的实际阶段已经不是“纯单机”：
-
-- Node A：`192.168.3.36`
-- Node B：`192.168.3.41`
-- 入口 VIP：`192.168.3.50`
-- Node A 当前 keepalived 网卡：`enp131s0`
-- Node B 当前 keepalived 网卡：`enp3s0`
-
-已经完成并验证：
-
-- Node B 已部署并接管核心无状态链路：`payment-system`、`gateway`、`session-service`、`seckill-service`、`order-service`
-- 两台机器都已部署 OpenResty
-- keepalived VIP 漂移已经落地
-- 当前入口策略为“故障自动漂移，恢复手动回切”
-
-当前下一阶段：
-
-- Redis 主从
-- MySQL 主从
-- RocketMQ / Nacos 后续高可用设计
+- `OrderPaidConsumer` 只尝试执行 `UNPAID -> PAID`；若订单已是 `CANCELLED / TIMEOUT / REFUNDED`，则只记录告警并跳过
+- `OrderTimeoutCheckConsumer` 只裁决仍为 `UNPAID` 的订单；若支付已成功则推进 `UNPAID -> PAID` 并确认售出，否则推进 `UNPAID -> TIMEOUT` 并释放座位
+- 用户取消只允许执行 `UNPAID -> CANCELLED`；若支付或超时已先完成，则取消直接失败，不再回滚其他终态
 
 ## 2. 仓库内容
 
@@ -61,8 +58,7 @@
 - `taopiaopiao-payment-system` 模拟支付系统
 - `deploy/openresty/` OpenResty 部署基线
 - `html/` 前端静态页面产物
-- `bin/` 本地启动、停止、状态、压测辅助脚本
-- `scripts/loadtest/` k6 压测脚本
+- `bin/` 本地启动、停止、状态脚本
 - `conf/` 本地组件清单和环境变量模板
 
 ## 3. 目录结构
@@ -73,7 +69,6 @@ taopiaopiao/
 ├── conf/                             # 本地环境配置模板与组件清单
 ├── deploy/openresty/                 # OpenResty nginx.conf / app.conf / lua
 ├── html/                             # 前端静态资源（admin/client/assets）
-├── scripts/loadtest/                 # k6 压测脚本
 ├── taopiaopiao-common*               # 公共模块
 ├── taopiaopiao-user-service          # 用户服务
 ├── taopiaopiao-venue-service         # 场馆服务
@@ -108,7 +103,7 @@ taopiaopiao/
 | event-service | `taopiaopiao-event-service/...-application` | `8083` | 演出能力 |
 | session-service | `taopiaopiao-session-service/...-application` | `8084` | 场次、座位数据 |
 | seat-template-service | `taopiaopiao-seat-template-service/...-application` | `8085` | 座位模板管理 |
-| seckill-service | `taopiaopiao-seckill-service/...-application` | `8086` | 秒杀入口、Redis Lua 锁座、锁单聚合 |
+| seckill-service | `taopiaopiao-seckill-service/...-application` | `8086` | 秒杀入口、Redis Lua 锁座、座位确认/释放 |
 | order-service | `taopiaopiao-order-service/...-application` | `8087` | 正式订单、支付准备、超时检查、取消收敛 |
 | payment-system | `taopiaopiao-payment-system` | `7500` | 模拟支付创建、查询、成功/失败回放 |
 
@@ -200,6 +195,7 @@ OpenResty 在本项目里承担三件事：
 - 创建模拟支付单
 - 查询支付状态
 - 手工模拟支付成功/失败
+- 配合 `order-service` 的订单详情轮询，按需把订单推进到 `paymentStatus=READY`
 - 配合订单服务完成本地联调和压测链路
 
 ## 7. 中间件与本地默认配置
@@ -225,8 +221,7 @@ OpenResty 在本项目里承担三件事：
 
 - 主要用于秒杀热路径
 - 当前实际运行形态为 `NodeA(192.168.3.36)` 上的 Docker 单机 Redis 容器
-- 座位锁、锁单聚合、处理中状态、部分缓存均在 Redis 中
-- 大压测推荐使用 `scripts/loadtest/redis-loadtest.conf.example` 对应配置
+- Redis 当前只保留座位长期状态、临时锁和用户锁索引等热路径数据；正式订单与支付状态以 MySQL 和支付系统为准
 
 ### 7.3 Nacos
 
@@ -243,7 +238,7 @@ OpenResty 在本项目里承担三件事：
 
 说明：
 
-- 承接锁单、订单、支付、超时、取消等异步消息
+- 承接支付成功、超时检查、取消等异步消息
 - 本地脚本 `bin/start-rocketmq.sh` 默认从当前用户家目录读取 RocketMQ 安装目录，并读取 `ROCKETMQ_NAMESRV_ADDR`
 
 ### 7.5 OpenResty
@@ -265,12 +260,8 @@ OpenResty 在本项目里承担三件事：
 
 - `conf/local-components.yml`：本地组件清单
 - `conf/local-env.example`：环境变量模板
-- `deploy/ha/README.md`：两节点高可用整体规划与当前状态
-- `deploy/ha/manual-failover-sop.md`：核心无状态链路手动切换 SOP
-- `deploy/ha/keepalived/README.md`：VIP 漂移说明、安装脚本、演练脚本
-- `deploy/ha/redis/README.md`：Redis 现状采集脚本与下一阶段入口
 - `deploy/openresty/README.md`：OpenResty 部署说明
-- `scripts/loadtest/README.md`：压测入口说明
+- `SECKILL-TCC-SEQUENCE.md`：锁座 + 下单 TCC 链路说明
 
 ### 8.2 服务配置
 
@@ -360,6 +351,16 @@ bash bin/stop-rocketmq.sh
 
 因此，在当前仓库根目录执行脚本即可正常启动支付系统。
 
+### 9.6 运行时测试钩子
+
+`order-service` 目前保留了一个仅用于并发演练的内部测试钩子：
+
+- 接口：`POST /internal/orders/test/timeout-delay`
+- 开关：默认关闭
+- 显式开启方式：为 `order-service` 设置 `tpp.test.runtime-hooks-enabled=true`
+
+该钩子只用于故障演练时人为延迟下一次 `TIMEOUT_CHECK` 消费，默认联调和正常运行不应开启。
+
 ## 10. 推荐本地启动顺序
 
 建议按下面顺序启动本地联调环境：
@@ -389,36 +390,9 @@ bash bin/stop-rocketmq.sh
 - Nacos
 - RocketMQ
 
-## 11. 压测入口
+## 11. 常见联调问题
 
-压测脚本目录：
-
-- `scripts/loadtest/`
-
-推荐入口：
-
-```bash
-bash bin/run-lock-only-burst.sh
-```
-
-压测前提：
-
-- OpenResty 已启动
-- gateway / seckill-service / order-service / session-service 已启动
-- Redis / MySQL / RocketMQ / Nacos / payment-system 已启动
-- 目标场次有足够座位数据
-
-当前本地 `lock_only_burst` 推荐基线：
-
-- `sessionId=2`
-
-压测前推荐按 `reset -> config -> run` 顺序执行，详细参数见：
-
-- `scripts/loadtest/README.md`
-
-## 12. 常见联调问题
-
-### 12.1 支付系统报 `Unknown database 'payment_db'`
+### 11.1 支付系统报 `Unknown database 'payment_db'`
 
 这表示你运行的是旧配置或旧进程日志。
 
@@ -435,7 +409,7 @@ bash bin/run-lock-only-burst.sh
 3. 是否还存在旧的支付系统进程
 4. `logs/payment-system.log` 是否已经刷新为新的内存模式启动日志
 
-### 12.2 OpenResty 页面能开但接口不通
+### 11.2 OpenResty 页面能开但接口不通
 
 优先检查：
 
@@ -443,42 +417,17 @@ bash bin/run-lock-only-burst.sh
 - `gateway` 是否监听 `8080`
 - OpenResty 是否已 `nginx -t` 并 reload
 
-### 12.3 `status-services.sh` 结果异常
+### 11.3 `status-services.sh` 结果异常
 
 当前脚本已经改为固定读取仓库自己的 `.run/` 目录，因此建议直接使用仓库下的脚本，不要手写 PID 检查逻辑。
 
-## 13. 与仓库相关的说明文件
+## 12. 与仓库相关的说明文件
 
 - `AGENTS.md`：仓库协作规则
+- `SECKILL-TCC-SEQUENCE.md`：锁座 + 下单 TCC 链路说明
 - `conf/README.md`：本地组件配置说明
 - `conf/local-components.yml`：本地组件清单
 - `conf/local-env.example`：环境变量模板
-- `deploy/ha/README.md`：HA 总览
-- `deploy/ha/manual-failover-sop.md`：核心链路手动切换 SOP
-- `deploy/ha/keepalived/README.md`：VIP 漂移说明
-- `deploy/ha/redis/README.md`：Redis 现状采集入口
 - `deploy/openresty/README.md`：OpenResty 部署说明
-- `scripts/loadtest/README.md`：压测说明
-
-## 14. HA 操作入口约定
-
-当前 HA 相关操作尽量已经收敛成仓库内脚本，优先使用：
-
-- 单行命令
-- 直接执行脚本路径
-
-避免现场再手工拼多段命令块。
-
-当前已提供的入口包括：
-
-- `bash deploy/ha/keepalived/setup-node-a.sh`
-- `bash deploy/ha/keepalived/setup-node-b.sh`
-- `bash deploy/ha/keepalived/drill-trigger-node-a.sh`
-- `bash deploy/ha/keepalived/drill-observe-node-b.sh`
-- `bash deploy/ha/keepalived/manual-failback-node-b.sh`
-- `bash deploy/ha/redis/inspect-node-a.sh`
-- `bash deploy/ha/redis/inspect-node-b.sh`
-- `bash bin/run-lock-burst-1600.sh`
-- `bash bin/run-lock-burst-16000.sh`
 
 如果后续本地目录、默认端口、启动方式、OpenResty 路由、支付系统模式再次变化，README 应优先同步更新。

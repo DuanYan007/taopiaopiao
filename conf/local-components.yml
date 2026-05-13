@@ -24,14 +24,12 @@ components:
       - MySQL orders table is the durable source for formal order state.
 
   redis:
-    role: hot-path seat state, temporary locks, lock-order aggregate, processing cache, Redis Stream
+    role: hot-path seat state, temporary locks, user lock index
     host: 127.0.0.1
     port: 6349
     password_env: REDIS_PASSWORD
-    loadtest_profile: scripts/loadtest/redis-loadtest.conf.example
     notes:
       - Redis is the runtime truth for lock-seat admission.
-      - Large local burst tests should use the dedicated load-test profile, not a minimal default config.
 
   nacos:
     role: service discovery
@@ -41,10 +39,10 @@ components:
       - Java services rely on local service discovery during integrated runs.
 
   rocketmq:
-    role: async events, transactional messages, delayed timeout checks
+    role: async events, delayed timeout checks, payment/cancel convergence
     nameserver: 127.0.0.1:9876
     notes:
-      - Used for LOCK_ACCEPTED, ORDER_CREATED_INTERNAL, ORDER_PAID, TIMEOUT_CHECK, and cancel convergence events.
+      - Used for ORDER_PAID, TIMEOUT_CHECK, and cancel convergence events.
 
   openresty:
     role: frontend entry, API routing, seckill gate
@@ -69,13 +67,6 @@ tools:
     role: local infrastructure runtime
     notes:
       - MySQL, Redis, and Nacos are commonly run as local containers.
-
-  k6:
-    role: pressure testing
-    scripts: scripts/loadtest
-    runner: bin/run-lock-only-burst.sh
-    notes:
-      - Prefer the repository runner for lock_only_burst so logs are captured under logs/loadtest.
 
   maven:
     role: build and verification

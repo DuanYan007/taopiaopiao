@@ -55,10 +55,57 @@ start_service_background() {
     local module_path="$2"
     local log_file="${LOG_DIR}/${service_name}.log"
     local pid_file="${RUN_DIR}/${service_name}.pid"
+    local port=""
+    local cmd=""
+    local pid=""
 
-    nohup bash -lc "cd '${ROOT_DIR}/${module_path}' && '${MVN_BIN}' spring-boot:run -DskipTests" >"${log_file}" 2>&1 &
-    echo $! >"${pid_file}"
-    echo "${service_name} started, pid=$(cat "${pid_file}"), log=${log_file}"
+    port="$(service_port "${service_name}" 2>/dev/null || true)"
+    cmd="cd '${ROOT_DIR}/${module_path}' && exec '${MVN_BIN}' spring-boot:run -DskipTests"
+
+    : >"${log_file}"
+    setsid bash -lc "${cmd}" >>"${log_file}" 2>&1 < /dev/null &
+    pid=$!
+    echo "${pid}" >"${pid_file}"
+    echo "${service_name} starting, pid=${pid}, log=${log_file}"
+
+    if [[ -n "${port}" ]]; then
+        wait_for_service_port "${service_name}" "${port}" "${pid}" "${log_file}"
+    fi
+}
+
+wait_for_service_port() {
+    local service_name="$1"
+    local port="$2"
+    local pid="$3"
+    local log_file="$4"
+    local waited=0
+    local max_wait=60
+
+    while (( waited < max_wait )); do
+        local port_pid
+        port_pid="$(read_listen_pid_by_port "${port}")"
+        if [[ -n "${port_pid}" ]]; then
+            echo "${service_name}: listening on port ${port}, pid=${port_pid}"
+            return 0
+        fi
+
+        if ! kill -0 "${pid}" 2>/dev/null; then
+            echo "${service_name}: failed before opening port ${port}, see ${log_file}"
+            if [[ -s "${log_file}" ]]; then
+                tail -n 40 "${log_file}"
+            fi
+            return 1
+        fi
+
+        sleep 1
+        waited=$((waited + 1))
+    done
+
+    echo "${service_name}: start timeout waiting for port ${port}, see ${log_file}"
+    if [[ -s "${log_file}" ]]; then
+        tail -n 40 "${log_file}"
+    fi
+    return 1
 }
 
 stop_service_by_pid_file() {
