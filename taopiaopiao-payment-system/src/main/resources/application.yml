@@ -11,6 +11,11 @@ spring:
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:nacos}
 
+rocketmq:
+  name-server: ${ROCKETMQ_NAMESRV_ADDR:192.168.3.36:9876}
+  producer:
+    group: payment-system-producer-group
+
 # Knife4j API文档配置
 knife4j:
   enable: true

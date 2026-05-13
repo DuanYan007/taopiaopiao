@@ -28,6 +28,6 @@ public class SeatLayoutDTO {
     @Schema(description = "列号", required = true)
     private Integer col;
 
-    @Schema(description = "状态: 0-可选, 1-已锁定, 2-已售出", required = true)
+    @Schema(description = "状态: 0-可选, 1-已下单未支付, 2-已售出", required = true)
     private Integer status;
 }

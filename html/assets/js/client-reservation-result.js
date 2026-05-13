@@ -10,12 +10,15 @@ let orderData = null;
 let eventData = null;   // 演出信息
 let sessionData = null; // 场次信息
 let orderNo = null;
+let localOrderContext = null;
 
 /**
  * 页面初始化
  */
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('支付结果页面初始化');
+
+    restoreLocalOrderContext();
 
     // 更新用户信息显示
     updateUserInfo();
@@ -87,9 +90,9 @@ async function loadOrderAndEventInfo(orderNo) {
         orderData = await getOrderDetail(orderNo);
         console.log('订单详情:', orderData);
 
-        // 从订单中获取演出ID和场次ID
-        const eventId = orderData.eventId;
-        const sessionId = orderData.sessionId;
+        // 从订单和本地缓存中获取演出ID和场次ID
+        const eventId = orderData.eventId || localOrderContext?.eventId;
+        const sessionId = orderData.sessionId || localOrderContext?.sessionId;
 
         if (!eventId || !sessionId) {
             console.warn('订单中缺少eventId或sessionId，仅使用订单数据渲染');
@@ -99,13 +102,13 @@ async function loadOrderAndEventInfo(orderNo) {
 
         // 2. 并行获取演出和场次详情
         console.log('获取演出和场次信息:', eventId, sessionId);
-        const [eventResult, sessionResult] = await Promise.all([
+        const [eventResult, sessionResult] = await Promise.allSettled([
             getEventDetail(eventId),
             getSessionDetail(sessionId)
         ]);
 
-        eventData = eventResult;
-        sessionData = sessionResult;
+        eventData = eventResult.status === 'fulfilled' ? eventResult.value : null;
+        sessionData = sessionResult.status === 'fulfilled' ? sessionResult.value : null;
 
         console.log('演出信息:', eventData);
         console.log('场次信息:', sessionData);
@@ -167,17 +170,35 @@ function renderSuccessStatus(order, event, session) {
     const statusDesc = order.statusDesc || (status === 2 ? '支付成功' : '操作成功');
     const isPaid = status === 2;  // 2=已支付
 
-    // 优先使用从API获取的完整信息，否则使用订单中的字段或缓存
-    const eventName = event?.eventName || event?.name || order.eventName || '-';
-    const startTime = session?.startTime || session?.eventStartTime || order.startTime || order.sessionStartTime || '';
+    const localSession = localOrderContext?.sessionData || null;
+    const localSeats = localOrderContext?.selectedSeats || [];
+
+    // 优先使用从API获取的完整信息，否则使用订单中的字段或本地缓存
+    const eventName = event?.eventName
+        || event?.name
+        || localSession?.eventName
+        || order.eventName
+        || '演出信息待补充';
+    const startTime = session?.startTime
+        || session?.eventStartTime
+        || localSession?.startTime
+        || order.startTime
+        || order.sessionStartTime
+        || '';
     const formattedTime = formatDateTime(startTime);
-    const venueName = session?.venueName || session?.address || session?.hallName || order.venueName || order.address || '-';
-    const seatInfo = order.seatInfo || '';
+    const venueName = session?.venueName
+        || session?.address
+        || session?.hallName
+        || localSession?.address
+        || order.venueName
+        || order.address
+        || '场馆信息待补充';
+    const seatInfo = order.seatInfo || buildSeatInfoFromLocalSeats(localSeats);
 
     // 单价
-    const unitPrice = order.unitPrice || order.price || 0;
-    const seatCount = order.seatCount || 0;
-    const totalAmount = order.totalAmount || 0;
+    const unitPrice = order.unitPrice || order.price || localSeats[0]?.price || 0;
+    const seatCount = order.seatCount || localSeats.length || 0;
+    const totalAmount = order.totalAmount || localOrderContext?.totalPrice || 0;
 
     // 生成模拟二维码
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${order.orderNo || orderNo}`;
@@ -693,6 +714,39 @@ function renderSuccessStatus(order, event, session) {
     `;
 
     container.innerHTML = containerHTML;
+}
+
+function restoreLocalOrderContext() {
+    try {
+        const storedSessionId = sessionStorage.getItem('sessionId');
+        const storedEventId = sessionStorage.getItem('eventId');
+        const storedSessionData = sessionStorage.getItem('sessionData');
+        const storedSeats = sessionStorage.getItem('selectedSeats');
+        const storedTotalPrice = sessionStorage.getItem('totalPrice');
+
+        localOrderContext = {
+            sessionId: storedSessionId ? Number(storedSessionId) : null,
+            eventId: storedEventId ? Number(storedEventId) : null,
+            sessionData: storedSessionData ? JSON.parse(storedSessionData) : null,
+            selectedSeats: storedSeats ? JSON.parse(storedSeats) : [],
+            totalPrice: storedTotalPrice ? Number(storedTotalPrice) : null
+        };
+    } catch (error) {
+        console.warn('恢复本地订单上下文失败:', error);
+        localOrderContext = null;
+    }
+}
+
+function buildSeatInfoFromLocalSeats(seats) {
+    if (!Array.isArray(seats) || seats.length === 0) {
+        return '';
+    }
+    return seats.map(seat => {
+        const areaName = seat.areaName || seat.areaCode || '';
+        const rowNum = seat.rowNum ? `${seat.rowNum}排` : '';
+        const seatNum = seat.seatNum ? `${String(seat.seatNum).padStart(2, '0')}座` : '';
+        return [areaName, rowNum, seatNum].filter(Boolean).join(' ');
+    }).join(' / ');
 }
 
 /**

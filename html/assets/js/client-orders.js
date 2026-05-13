@@ -8,26 +8,6 @@
 const ORDERS_BASE_URL = '/api/client/orders';
 
 /**
- * 创建订单并直接支付（旧逻辑，已废弃）
- * @deprecated 支付流程已改为通过锁座接口返回支付URL
- * @param {number} sessionId - 场次ID
- * @param {number} eventId - 演出ID
- * @param {array} seatIds - 座位ID列表
- * @param {array} seatDetails - 座位详细信息 [{seatId, areaCode, areaName, rowNum, seatNum, price}, ...]
- * @param {number} totalAmount - 订单总金额
- * @returns {Promise<object>} 订单数据
- */
-async function createOrder(sessionId, eventId, seatIds, seatDetails, totalAmount) {
-    return clientPost(ORDERS_BASE_URL, {
-        sessionId: sessionId,
-        eventId: eventId,
-        seatIds: seatIds,
-        seatDetails: seatDetails,
-        totalAmount: totalAmount
-    });
-}
-
-/**
  * 取消订单
  * @param {string} orderNo - 订单号
  * @returns {Promise<boolean>} 是否成功
@@ -77,7 +57,8 @@ const ORDER_STATUS = {
     UNPAID: 1,       // 未支付
     PAID: 2,         // 已支付
     CANCELLED: 3,    // 已取消
-    REFUNDED: 4      // 已退款
+    REFUNDED: 4,     // 已退款
+    TIMEOUT: 5       // 超时取消
 };
 
 /**
@@ -88,7 +69,8 @@ function getOrderStatusText(status) {
         1: '未支付',
         2: '已支付',
         3: '已取消',
-        4: '已退款'
+        4: '已退款',
+        5: '超时取消'
     };
     return statusMap[status] || '未知';
 }
@@ -101,7 +83,8 @@ function getOrderStatusClass(status) {
         1: 'status-unpaid',
         2: 'status-paid',
         3: 'status-cancelled',
-        4: 'status-refunded'
+        4: 'status-refunded',
+        5: 'status-cancelled'
     };
     return classMap[status] || '';
 }

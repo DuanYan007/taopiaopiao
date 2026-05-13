@@ -31,9 +31,6 @@ public class LockSeatResponse {
     @Schema(description = "锁定的座位ID列表")
     private List<String> lockedSeats;
 
-    @Schema(description = "锁定ID")
-    private String lockId;
-
     @Schema(description = "订单号")
     private String orderNo;
 

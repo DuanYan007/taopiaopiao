@@ -6,6 +6,7 @@ package com.duanyan.taopiaopiao.common.redis.constants;
  * 命名规范：
  * - 座位状态: seat:state:{sessionId}:{seatId}
  * - 座位临时锁: seat:lock:{sessionId}:{seatId}
+ * - 用户锁索引: lock:user:{sessionId}:{userId}
  *
  * @author duanyan
  * @since 1.0.0
@@ -15,14 +16,14 @@ public class RedisKey {
     /**
      * 座位状态 Key 前缀
      * <p>完整格式: seat:state:{sessionId}:{seatId}
-     * <p>值类型: String，值为状态码 (0=可选, 2=已售出)
+     * <p>值类型: String，值为状态码 (0=可选, 1=已下单未支付, 2=已售出)
      */
     public static final String SEAT_STATE_PREFIX = "seat:state:";
 
     /**
      * 座位临时锁 Key 前缀
      * <p>完整格式: seat:lock:{sessionId}:{seatId}
-     * <p>值类型: String，值为 userId|lockId
+     * <p>值类型: String，值为 TRY|userId|orderNo|xid 或 CANCEL|userId|orderNo|xid
      */
     public static final String SEAT_LOCK_PREFIX = "seat:lock:";
     /**
@@ -36,15 +37,7 @@ public class RedisKey {
 
     public static final String SESSION_META_SUFFIX = ":meta";
 
-    public static final String ORDER_PROCESSING_PREFIX = "order:processing:";
-
-    public static final String LOCK_ORDER_PREFIX = "lock:order:";
-
     public static final String LOCK_USER_PREFIX = "lock:user:";
-
-    public static final String LOCK_EXPIRE_PREFIX = "lock:expire:";
-
-    public static final String LOCK_ACCEPTED_STREAM_PREFIX = "stream:lock_accepted:";
 
     // ========== Key 构建方法 ==========
 
@@ -91,24 +84,8 @@ public class RedisKey {
         return SESSION_META_PREFIX + sessionId + SESSION_META_SUFFIX;
     }
 
-    public static String orderProcessingKey(String orderNo) {
-        return ORDER_PROCESSING_PREFIX + orderNo;
-    }
-
-    public static String lockOrderKey(String orderNo) {
-        return LOCK_ORDER_PREFIX + orderNo;
-    }
-
     public static String lockUserKey(Long sessionId, Long userId) {
         return LOCK_USER_PREFIX + sessionId + ":" + userId;
-    }
-
-    public static String lockExpireKey(Long sessionId) {
-        return LOCK_EXPIRE_PREFIX + sessionId;
-    }
-
-    public static String lockAcceptedStreamKey(Long sessionId) {
-        return LOCK_ACCEPTED_STREAM_PREFIX + sessionId;
     }
 
     private RedisKey() {

@@ -44,8 +44,7 @@ public class SeckillController {
                 ? requestId
                 : "srv-" + UUID.randomUUID().toString().replace("-", "");
 
-        LockSeatResponse response = seckillService.lockSeats(request, userId, finalRequestId);
-        return response.getSuccess() ? Result.success(response) : Result.fail(response.getCode(), response.getMessage());
+        return Result.success(seckillService.lockSeats(request, userId, finalRequestId));
     }
 
     @PostMapping("/init")

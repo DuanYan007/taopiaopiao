@@ -1,8 +1,11 @@
 package com.duanyan.taopiaopiao.orderservice.application.consumer;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.duanyan.taopiaopiao.common.dto.ConfirmOrderRequest;
 import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
 import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
+import com.duanyan.taopiaopiao.common.response.Result;
+import com.duanyan.taopiaopiao.orderservice.application.client.SeckillInternalClient;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
@@ -35,6 +38,7 @@ import org.springframework.stereotype.Component;
 public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
 
     private final OrderMapper orderMapper;
+    private final SeckillInternalClient seckillInternalClient;
 
     @Override
     public void onMessage(OrderPaidMessage message) {
@@ -75,10 +79,25 @@ public class OrderPaidConsumer implements RocketMQListener<OrderPaidMessage> {
                     log.info("订单已由其他链路更新为支付状态，跳过: orderNo={}", message.getOrderNo());
                     return;
                 }
+                if (latest != null && !OrderStatus.UNPAID.getCode().equals(latest.getStatus())) {
+                    log.warn("支付成功消息到达时订单已进入其他终态，跳过: orderNo={}, status={}",
+                            message.getOrderNo(), latest.getStatus());
+                    return;
+                }
                 throw new RuntimeException("更新订单状态失败: " + message.getOrderNo());
             }
 
             log.info("订单支付成功，状态已更新: orderNo={}", message.getOrderNo());
+
+            Result<Boolean> confirmResult = seckillInternalClient.confirmOrder(ConfirmOrderRequest.builder()
+                    .orderNo(order.getOrderNo())
+                    .userId(order.getUserId())
+                    .sessionId(order.getSessionId())
+                    .seatIds(order.getSeatIds())
+                    .build());
+            if (confirmResult == null || !confirmResult.isSuccess() || !Boolean.TRUE.equals(confirmResult.getData())) {
+                throw new RuntimeException("支付成功后确认售出失败: " + message.getOrderNo());
+            }
 
         } catch (Exception e) {
             log.error("处理支付成功事件异常: orderNo={}", message.getOrderNo(), e);

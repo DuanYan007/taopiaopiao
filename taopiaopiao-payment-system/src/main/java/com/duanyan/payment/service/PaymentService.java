@@ -1,5 +1,7 @@
 package com.duanyan.payment.service;
 
+import com.duanyan.taopiaopiao.common.mq.constant.MqTopic;
+import com.duanyan.taopiaopiao.common.mq.message.OrderPaidMessage;
 import com.duanyan.payment.domain.PaymentRecord;
 import com.duanyan.payment.domain.PaymentStatus;
 import com.duanyan.payment.dto.PaymentCreateRequest;
@@ -8,10 +10,13 @@ import com.duanyan.payment.dto.PaymentQueryResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -26,11 +31,11 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    /**
-     * 压测场景下以内存作为唯一真实存储，避免模拟支付系统成为数据库瓶颈。
-     */
+    private static final String ORDER_PAID_DESTINATION = MqTopic.ORDER_TOPIC + ":" + MqTopic.TAG_ORDER_PAID;
+
     private final ConcurrentHashMap<String, PaymentRecord> orderNoStore = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, PaymentRecord> paymentNoStore = new ConcurrentHashMap<>();
+    private final RocketMQTemplate rocketMQTemplate;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -110,13 +115,10 @@ public class PaymentService {
         record.setStatus(PaymentStatus.SUCCESS);
         record.setTransactionId("MOCK_" + System.currentTimeMillis());
         record.setPaidAt(LocalDateTime.now());
-
         record.setUpdatedAt(LocalDateTime.now());
 
+        publishOrderPaid(record);
         log.info("模拟支付成功: orderNo={}, paymentNo={}", orderNo, record.getPaymentNo());
-
-        // 注意：支付系统不主动通知业务系统
-        // 业务系统通过 RocketMQ 回查机制主动查询支付状态
 
         return true;
     }
@@ -135,7 +137,6 @@ public class PaymentService {
         }
 
         record.setStatus(PaymentStatus.FAILED);
-
         record.setUpdatedAt(LocalDateTime.now());
 
         log.info("模拟支付失败: orderNo={}", orderNo);
@@ -163,7 +164,6 @@ public class PaymentService {
         }
 
         record.setStatus(PaymentStatus.CANCELLED);
-
         record.setUpdatedAt(LocalDateTime.now());
 
         log.info("取消支付: orderNo={}", orderNo);
@@ -215,4 +215,19 @@ public class PaymentService {
                 .paidAt(record.getPaidAt())
                 .build();
     }
+
+    private void publishOrderPaid(PaymentRecord record) {
+        OrderPaidMessage message = OrderPaidMessage.builder()
+                .orderNo(record.getOrderNo())
+                .seatIds(List.of())
+                .seatCount(0)
+                .unitPrice(BigDecimal.ZERO)
+                .totalAmount(record.getAmount())
+                .payMethod(record.getPayMethod())
+                .createdAt(record.getCreatedAt())
+                .build();
+        rocketMQTemplate.syncSend(ORDER_PAID_DESTINATION, message);
+        log.info("发送 ORDER_PAID 成功: orderNo={}", record.getOrderNo());
+    }
+
 }

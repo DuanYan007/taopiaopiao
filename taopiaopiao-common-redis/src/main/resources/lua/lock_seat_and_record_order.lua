@@ -1,44 +1,29 @@
--- 锁座并记录 Redis 锁单聚合
+-- 锁座并记录用户锁索引
 -- KEYS[1]=sessionId
 -- ARGV:
 -- 1=userId
--- 2=lockId
--- 3=orderNo
+-- 2=orderNo
+-- 3=xid
 -- 4=eventId
 -- 5=seatCount
 -- 6=seatLockExpireSeconds
 -- 7=userLockExpireSeconds
--- 8=lockOrderTtlSeconds
--- 9=unitPrice
--- 10=totalAmount
--- 11=expireTimeMillis
--- 12=createdAtMillis
--- 13=requestId
--- 14=payloadJson
--- 15=seatIdsJson
--- 16=statusCode
--- 17=paymentStatus
--- 18..=seatIds
--- 返回: 0=成功, 1=座位不存在, 2=座位不可用, 3=用户已有未终态锁单, 4=场次或eventId非法
+-- 8..=seatIds
+-- 返回: 0=成功, 1=座位不存在, 2=座位不可用, 3=用户已有未终态锁单, 4=场次或eventId非法, 5=幂等成功, 6=命中空回滚 marker, 7=被其他事务锁定
 
 local sessionId = KEYS[1]
 local userId = tostring(ARGV[1])
-local lockId = tostring(ARGV[2])
-local orderNo = tostring(ARGV[3])
+local orderNo = tostring(ARGV[2])
+local xid = tostring(ARGV[3])
 local eventId = tostring(ARGV[4])
 local seatCount = tonumber(ARGV[5])
 local seatLockExpireSeconds = tonumber(ARGV[6]) or 330
 local userLockExpireSeconds = tonumber(ARGV[7]) or seatLockExpireSeconds
-local lockOrderTtlSeconds = tonumber(ARGV[8]) or 7200
-local unitPrice = tostring(ARGV[9])
-local totalAmount = tostring(ARGV[10])
-local expireTimeMillis = tostring(ARGV[11])
-local createdAtMillis = tostring(ARGV[12])
-local requestId = tostring(ARGV[13])
-local payloadJson = tostring(ARGV[14])
-local seatIdsJson = tostring(ARGV[15])
-local statusCode = tostring(ARGV[16])
-local paymentStatus = tostring(ARGV[17])
+
+local currentSeatTry = "TRY|" .. userId .. "|" .. orderNo .. "|" .. xid
+local currentSeatCancel = "CANCEL|" .. userId .. "|" .. orderNo .. "|" .. xid
+local currentUserTry = "TRY|" .. orderNo .. "|" .. xid
+local currentUserCancel = "CANCEL|" .. orderNo .. "|" .. xid
 
 local sessionMetaKey = "session:" .. sessionId .. ":meta"
 local cachedEventId = redis.call("HGET", sessionMetaKey, "eventId")
@@ -50,22 +35,18 @@ if tostring(cachedEventId) ~= eventId then
 end
 
 local userLockKey = "lock:user:" .. sessionId .. ":" .. userId
-if redis.call("GET", userLockKey) then
+local userLockValue = redis.call("GET", userLockKey)
+if userLockValue then
+    if userLockValue == currentUserTry then
+        return 5
+    end
+    if userLockValue == currentUserCancel then
+        return 6
+    end
     return 3
 end
 
-local function parse_lock_value(lockValue)
-    local delimiter = string.find(lockValue, "|", 1, true)
-    if not delimiter then
-        return nil, nil
-    end
-
-    local ownerUserId = string.sub(lockValue, 1, delimiter - 1)
-    local ownerLockId = string.sub(lockValue, delimiter + 1)
-    return ownerUserId, ownerLockId
-end
-
-for i = 18, 18 + seatCount - 1 do
+for i = 8, 8 + seatCount - 1 do
     local seatId = ARGV[i]
     local seatStateKey = "seat:state:" .. sessionId .. ":" .. seatId
     local seatLockKey = "seat:lock:" .. sessionId .. ":" .. seatId
@@ -75,53 +56,28 @@ for i = 18, 18 + seatCount - 1 do
         return 1
     end
 
-    if current == 2 then
+    if current ~= 0 then
         return 2
     end
 
     local lockValue = redis.call("GET", seatLockKey)
     if lockValue then
-        local ownerUserId, ownerLockId = parse_lock_value(lockValue)
-        if ownerUserId == userId or ownerLockId == lockId then
-            return 3
+        if lockValue == currentSeatTry then
+            return 5
         end
-        return 2
+        if lockValue == currentSeatCancel then
+            return 6
+        end
+        return 7
     end
 end
 
-for i = 18, 18 + seatCount - 1 do
+for i = 8, 8 + seatCount - 1 do
     local seatId = ARGV[i]
     local seatLockKey = "seat:lock:" .. sessionId .. ":" .. seatId
-    redis.call("SET", seatLockKey, userId .. "|" .. lockId, "EX", seatLockExpireSeconds)
+    redis.call("SET", seatLockKey, currentSeatTry, "EX", seatLockExpireSeconds)
 end
 
-redis.call("SET", userLockKey, orderNo, "EX", userLockExpireSeconds)
-
-local orderKey = "lock:order:" .. orderNo
-redis.call(
-    "HSET", orderKey,
-    "lockId", lockId,
-    "orderNo", orderNo,
-    "requestId", requestId,
-    "userId", userId,
-    "sessionId", sessionId,
-    "eventId", eventId,
-    "seatIdsJson", seatIdsJson,
-    "seatCount", tostring(seatCount),
-    "unitPrice", unitPrice,
-    "totalAmount", totalAmount,
-    "status", statusCode,
-    "paymentStatus", paymentStatus,
-    "expireTimeMillis", expireTimeMillis,
-    "createdAtMillis", createdAtMillis,
-    "updatedAtMillis", createdAtMillis
-)
-redis.call("EXPIRE", orderKey, lockOrderTtlSeconds)
-
-local expireKey = "lock:expire:" .. sessionId
-redis.call("ZADD", expireKey, tonumber(expireTimeMillis), orderNo)
-
-local streamKey = "stream:lock_accepted:" .. sessionId
-redis.call("XADD", streamKey, "*", "payloadJson", payloadJson, "orderNo", orderNo)
+redis.call("SET", userLockKey, currentUserTry, "EX", userLockExpireSeconds)
 
 return 0

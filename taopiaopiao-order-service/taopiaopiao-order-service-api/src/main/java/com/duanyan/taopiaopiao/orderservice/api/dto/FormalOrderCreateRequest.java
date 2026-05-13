@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * 正式订单创建参数。
  * <p>
- * 由 order-service 在消费 LOCK_ACCEPTED 后构造，并交给事务消息监听器创建本地 UNPAID 订单。
+ * 由 order-service 在 TCC Confirm 阶段构造，用于创建本地 UNPAID 正式订单。
  */
 @Data
 @Builder
@@ -30,10 +30,6 @@ public class FormalOrderCreateRequest {
     @NotNull(message = "场次ID不能为空")
     @Schema(description = "场次ID", required = true)
     private Long sessionId;
-
-    @NotNull(message = "锁ID不能为空")
-    @Schema(description = "锁ID", required = true)
-    private String lockId;
 
     @Schema(description = "演出ID")
     private Long eventId;

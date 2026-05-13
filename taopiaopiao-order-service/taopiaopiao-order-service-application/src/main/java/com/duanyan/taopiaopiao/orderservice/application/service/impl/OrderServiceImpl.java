@@ -2,10 +2,8 @@ package com.duanyan.taopiaopiao.orderservice.application.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.duanyan.taopiaopiao.common.dto.CancelOrderRequest;
 import com.duanyan.taopiaopiao.common.mq.message.OrderCancelMessage;
-import com.duanyan.taopiaopiao.common.redis.model.OrderProcessingCacheData;
-import com.duanyan.taopiaopiao.common.redis.model.RedisLockOrderData;
-import com.duanyan.taopiaopiao.common.redis.service.RedisService;
 import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.orderservice.api.dto.*;
 import com.duanyan.taopiaopiao.orderservice.application.client.EventClient;
@@ -15,7 +13,6 @@ import com.duanyan.taopiaopiao.orderservice.application.client.SeatTemplateClien
 import com.duanyan.taopiaopiao.orderservice.application.client.SessionClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.VenueClient;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.EventResponse;
-import com.duanyan.taopiaopiao.orderservice.application.client.dto.InternalLockOrderResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentCreateRequest;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentCreateResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.PaymentQueryResponse;
@@ -24,16 +21,16 @@ import com.duanyan.taopiaopiao.orderservice.application.client.dto.SeatTemplateR
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.SessionResponse;
 import com.duanyan.taopiaopiao.orderservice.application.client.dto.VenueResponse;
 import com.duanyan.taopiaopiao.orderservice.application.mapper.OrderMapper;
-import com.duanyan.taopiaopiao.orderservice.application.producer.OrderCancelProducer;
-import com.duanyan.taopiaopiao.orderservice.application.producer.OrderTransactionProducer;
 import com.duanyan.taopiaopiao.orderservice.application.service.OrderService;
 import com.duanyan.taopiaopiao.orderservice.domain.entity.Order;
 import com.duanyan.taopiaopiao.orderservice.domain.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -53,7 +50,6 @@ public class OrderServiceImpl implements OrderService {
 
     private static final long POLL_MS_STOP = 0L;
     private static final long POLL_MS_READY = 0L;
-    private static final long POLL_MS_PROCESSING = 1200L;
     private static final long POLL_MS_UNPAID_NOT_READY = 1500L;
     private static final long POLL_MS_SLOW_PATH = 2500L;
 
@@ -63,10 +59,7 @@ public class OrderServiceImpl implements OrderService {
     private final VenueClient venueClient;
     private final SeatTemplateClient seatTemplateClient;
     private final PaymentClient paymentClient;
-    private final RedisService redisService;
     private final SeckillInternalClient seckillInternalClient;
-    private final OrderCancelProducer orderCancelProducer;
-    private final OrderTransactionProducer orderTransactionProducer;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -107,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
         );
 
         if (order == null) {
-            return buildProcessingResponse(userId, orderNo);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "订单不存在");
         }
 
         OrderResponse response = buildOrderResponse(order);
@@ -134,22 +127,32 @@ public class OrderServiceImpl implements OrderService {
 
         List<String> seatIds = order.getSeatIds() == null ? List.of() : order.getSeatIds();
 
-        // 1. 先更新订单状态，确保本地状态先进入取消态
-        order.setStatus(OrderStatus.CANCELLED.getCode());
-        order.setCancelTime(LocalDateTime.now());
-        order.setUpdatedAt(null); // 让 MyBatis-Plus 自动填充
-        orderMapper.updateById(order);
+        int updated = orderMapper.markCancelledIfUnpaid(orderNo, OrderStatus.CANCELLED.getCode());
+        if (updated != 1) {
+            Order latest = orderMapper.selectOne(
+                    new LambdaQueryWrapper<Order>()
+                            .eq(Order::getOrderNo, orderNo)
+            );
+            if (latest != null && OrderStatus.CANCELLED.getCode().equals(latest.getStatus())) {
+                log.info("订单已由其他链路更新为取消状态，跳过重复取消: orderNo={}", orderNo);
+                return true;
+            }
+            if (latest != null) {
+                throw new RuntimeException("订单状态已变化，无法取消: " + latest.getStatus());
+            }
+            throw new RuntimeException("取消订单时更新状态失败");
+        }
 
-        // 2. 再发送取消消息（异步释放座位）
-        OrderCancelMessage cancelMessage = OrderCancelMessage.builder()
+        Result<Boolean> cancelResult = seckillInternalClient.cancelOrder(CancelOrderRequest.builder()
                 .orderNo(orderNo)
                 .userId(userId)
-                .lockId(order.getLockId())
                 .sessionId(order.getSessionId())
                 .seatIds(seatIds)
-                .reason("USER")  // 用户主动取消
-                .build();
-        orderCancelProducer.sendCancelMessage(cancelMessage);
+                .reason("USER")
+                .build());
+        if (cancelResult == null || !cancelResult.isSuccess() || !Boolean.TRUE.equals(cancelResult.getData())) {
+            throw new RuntimeException("取消订单后释放座位失败");
+        }
 
         log.info("订单取消成功: orderNo={}, userId={}", orderNo, userId);
         return true;
@@ -260,248 +263,9 @@ public class OrderServiceImpl implements OrderService {
         return "/payment/simulate/success?orderNo=" + orderNo;
     }
 
-    private OrderResponse buildProcessingResponse(Long userId, String orderNo) {
-        OrderResponse cacheResponse = buildProcessingResponseFromCache(userId, orderNo);
-        if (cacheResponse != null) {
-            return cacheResponse;
-        }
-
-        OrderResponse redisLockOrderResponse = buildProcessingResponseFromRedisLockOrder(userId, orderNo);
-        if (redisLockOrderResponse != null) {
-            return redisLockOrderResponse;
-        }
-
-        try {
-            Result<InternalLockOrderResponse> result = seckillInternalClient.getLockOrder(orderNo, userId);
-            if (result == null || !result.isSuccess() || result.getData() == null) {
-                return null;
-            }
-
-            InternalLockOrderResponse lockOrder = result.getData();
-            Integer lockStatus = lockOrder.getStatus();
-            if (lockStatus == null) {
-                lockStatus = OrderStatus.PROCESSING.getCode();
-            }
-            return switch (lockStatus) {
-                case 1, 2, 3 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PROCESSING.getCode())
-                        .statusDesc(OrderStatus.PROCESSING.getDesc())
-                        .paymentStatus("NOT_READY")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PROCESSING.getCode(), "NOT_READY", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 4 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PAID.getCode())
-                        .statusDesc(OrderStatus.PAID.getDesc())
-                        .paymentStatus("SUCCESS")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PAID.getCode(), "SUCCESS", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 5 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.TIMEOUT.getCode())
-                        .statusDesc(OrderStatus.TIMEOUT.getDesc())
-                        .paymentStatus("NOT_AVAILABLE")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.TIMEOUT.getCode(), "NOT_AVAILABLE", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 6 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.CANCELLED.getCode())
-                        .statusDesc(OrderStatus.CANCELLED.getDesc())
-                        .paymentStatus("NOT_AVAILABLE")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.CANCELLED.getCode(), "NOT_AVAILABLE", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                default -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PROCESSING.getCode())
-                        .statusDesc(lockOrder.getStatusDesc() == null ? OrderStatus.PROCESSING.getDesc() : lockOrder.getStatusDesc())
-                        .paymentStatus("NOT_READY")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PROCESSING.getCode(), "NOT_READY", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-            };
-        } catch (Exception e) {
-            log.warn("查询锁单兜底失败: orderNo={}, userId={}", orderNo, userId, e);
-            return null;
-        }
-    }
-
-    private OrderResponse buildProcessingResponseFromRedisLockOrder(Long userId, String orderNo) {
-        try {
-            RedisLockOrderData lockOrder = redisService.getLockOrder(orderNo);
-            if (lockOrder == null || !userId.equals(lockOrder.getUserId())) {
-                return null;
-            }
-
-            Integer lockStatus = lockOrder.getStatus();
-            if (lockStatus == null) {
-                lockStatus = OrderStatus.PROCESSING.getCode();
-            }
-
-            return switch (lockStatus) {
-                case 1, 2, 3 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PROCESSING.getCode())
-                        .statusDesc(OrderStatus.PROCESSING.getDesc())
-                        .paymentStatus(lockOrder.getPaymentStatus() == null ? "NOT_READY" : lockOrder.getPaymentStatus())
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PROCESSING.getCode(), lockOrder.getPaymentStatus(), lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 4 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PAID.getCode())
-                        .statusDesc(OrderStatus.PAID.getDesc())
-                        .paymentStatus("SUCCESS")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PAID.getCode(), "SUCCESS", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 5 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.TIMEOUT.getCode())
-                        .statusDesc(OrderStatus.TIMEOUT.getDesc())
-                        .paymentStatus("NOT_AVAILABLE")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.TIMEOUT.getCode(), "NOT_AVAILABLE", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                case 6 -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.CANCELLED.getCode())
-                        .statusDesc(OrderStatus.CANCELLED.getDesc())
-                        .paymentStatus("NOT_AVAILABLE")
-                        .nextPollMs(resolveNextPollMs(OrderStatus.CANCELLED.getCode(), "NOT_AVAILABLE", lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-                default -> OrderResponse.builder()
-                        .orderNo(lockOrder.getOrderNo())
-                        .userId(lockOrder.getUserId())
-                        .sessionId(lockOrder.getSessionId())
-                        .eventId(lockOrder.getEventId())
-                        .seatIds(lockOrder.getSeatIds())
-                        .seatCount(lockOrder.getSeatCount())
-                        .unitPrice(lockOrder.getUnitPrice())
-                        .totalAmount(lockOrder.getTotalAmount())
-                        .status(OrderStatus.PROCESSING.getCode())
-                        .statusDesc(OrderStatus.PROCESSING.getDesc())
-                        .paymentStatus(lockOrder.getPaymentStatus() == null ? "NOT_READY" : lockOrder.getPaymentStatus())
-                        .nextPollMs(resolveNextPollMs(OrderStatus.PROCESSING.getCode(), lockOrder.getPaymentStatus(), lockOrder.getExpireTime()))
-                        .expireTime(lockOrder.getExpireTime())
-                        .createdAt(lockOrder.getCreatedAt())
-                        .build();
-            };
-        } catch (Exception e) {
-            log.warn("查询 Redis 锁单失败: orderNo={}, userId={}", orderNo, userId, e);
-            return null;
-        }
-    }
-
-    private OrderResponse buildProcessingResponseFromCache(Long userId, String orderNo) {
-        try {
-            OrderProcessingCacheData cacheData = redisService.getOrderProcessing(orderNo);
-            if (cacheData == null || !userId.equals(cacheData.getUserId())) {
-                return null;
-            }
-
-            return OrderResponse.builder()
-                    .orderNo(cacheData.getOrderNo())
-                    .userId(cacheData.getUserId())
-                    .sessionId(cacheData.getSessionId())
-                    .eventId(cacheData.getEventId())
-                    .seatIds(cacheData.getSeatIds())
-                    .seatCount(cacheData.getSeatCount())
-                    .unitPrice(cacheData.getUnitPrice())
-                    .totalAmount(cacheData.getTotalAmount())
-                    .status(OrderStatus.PROCESSING.getCode())
-                    .statusDesc(OrderStatus.PROCESSING.getDesc())
-                    .paymentStatus(cacheData.getPaymentStatus() == null ? "NOT_READY" : cacheData.getPaymentStatus())
-                    .nextPollMs(resolveNextPollMs(OrderStatus.PROCESSING.getCode(), cacheData.getPaymentStatus(), cacheData.getExpireTime()))
-                    .expireTime(cacheData.getExpireTime())
-                    .createdAt(cacheData.getCreatedAt())
-                    .build();
-        } catch (Exception e) {
-            log.warn("查询 processing 缓存失败: orderNo={}, userId={}", orderNo, userId, e);
-            return null;
-        }
-    }
-
     private long resolveNextPollMs(OrderResponse response) {
         if (response == null) {
-            return POLL_MS_PROCESSING;
+            return POLL_MS_UNPAID_NOT_READY;
         }
         return resolveNextPollMs(response.getStatus(), response.getPaymentStatus(), response.getExpireTime());
     }
@@ -537,7 +301,7 @@ public class OrderServiceImpl implements OrderService {
             return POLL_MS_UNPAID_NOT_READY;
         }
 
-        return POLL_MS_PROCESSING;
+        return POLL_MS_UNPAID_NOT_READY;
     }
 
     private OrderPageResponse.OrderListItem buildOrderListItem(Order order) {

@@ -1,7 +1,8 @@
 package com.duanyan.taopiaopiao.seckillservice.application.controller;
 
+import com.duanyan.taopiaopiao.common.dto.CancelOrderRequest;
+import com.duanyan.taopiaopiao.common.dto.ConfirmOrderRequest;
 import com.duanyan.taopiaopiao.common.response.Result;
-import com.duanyan.taopiaopiao.seckillservice.api.dto.InternalLockOrderResponse;
 import com.duanyan.taopiaopiao.seckillservice.application.service.impl.SeckillServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,10 +17,26 @@ public class InternalLockOrderController {
 
     private final SeckillServiceImpl seckillService;
 
-    @GetMapping("/{orderNo}")
-    @Operation(summary = "查询锁单")
-    public Result<InternalLockOrderResponse> getLockOrder(@PathVariable String orderNo,
-                                                          @RequestParam Long userId) {
-        return Result.success(seckillService.getLockOrder(orderNo, userId));
+    @PostMapping("/confirm")
+    @Operation(summary = "确认订单并售出座位")
+    public Result<Boolean> confirmOrder(@RequestBody ConfirmOrderRequest request) {
+        return Result.success(seckillService.confirmOrder(
+                request.getOrderNo(),
+                request.getSessionId(),
+                request.getUserId(),
+                request.getSeatIds()
+        ));
+    }
+
+    @PostMapping("/cancel")
+    @Operation(summary = "取消订单并释放座位")
+    public Result<Boolean> cancelOrder(@RequestBody CancelOrderRequest request) {
+        return Result.success(seckillService.cancelOrder(
+                request.getOrderNo(),
+                request.getSessionId(),
+                request.getUserId(),
+                request.getSeatIds(),
+                request.getReason()
+        ));
     }
 }

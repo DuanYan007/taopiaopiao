@@ -23,3 +23,21 @@ docker run -d \
 docker exec -i mysql mysql -uroot -p7566 < deploy/mysql/ddl.sql
 docker exec -i mysql mysql -uroot -p7566 < deploy/mysql/dml.sql
 ```
+
+## 3. 已有库增量迁移
+
+如果数据库已经按旧结构初始化过，需要按顺序执行以下增量迁移：
+
+```bash
+docker exec -i mysql mysql -uroot -p7566 < deploy/mysql/migrate-remove-order-lock-id.sql
+docker exec -i mysql mysql -uroot -p7566 < deploy/mysql/migrate-add-order-prepare.sql
+```
+
+当前订单链路已经统一使用 `orderNo` 作为 Redis 临时锁 owner token，`orders` 表不再保留 `lock_id` 字段。
+
+当前锁座 + 下单链路已经接入 Seata TCC：
+
+- `seckill-service` Try 只写 Redis 临时锁。
+- `order-service` Try 只写 `order_prepare` 预留记录。
+- TCC Confirm 时才正式创建 `orders` 的 `UNPAID` 订单并发送 `TIMEOUT_CHECK` 延时消息。
+- 支付不纳入 Seata 全局事务，仍由支付回调和超时检查异步收敛。

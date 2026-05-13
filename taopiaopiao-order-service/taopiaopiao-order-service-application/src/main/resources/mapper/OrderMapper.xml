@@ -20,4 +20,13 @@
           AND status = 1
     </update>
 
+    <update id="markCancelledIfUnpaid">
+        UPDATE orders
+        SET status = #{cancelledStatus},
+            cancel_time = NOW(),
+            updated_at = NOW()
+        WHERE order_no = #{orderNo}
+          AND status = 1
+    </update>
+
 </mapper>

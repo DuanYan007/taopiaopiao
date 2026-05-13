@@ -10,7 +10,6 @@ let eventId = null;
 let sessionData = null;
 let selectedSeats = [];
 let totalPrice = 0;
-let lockId = null;
 let orderNo = null;   // 订单号
 let payUrl = null;
 let paymentStatus = 'NOT_READY';
@@ -46,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedEventId = sessionStorage.getItem('eventId');
     const storedSessionData = sessionStorage.getItem('sessionData');
     const storedTotalPrice = sessionStorage.getItem('totalPrice');
-    const storedLockId = sessionStorage.getItem('lockId');
     const storedOrderNo = sessionStorage.getItem('orderNo');
     const storedPayUrl = sessionStorage.getItem('payUrl');    // 【新增】支付URL
     const storedOrderExpireTime = sessionStorage.getItem('orderExpireTime');
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventId = storedEventId;
     selectedSeats = JSON.parse(storedSeats);
     totalPrice = parseFloat(storedTotalPrice) || 0;
-    lockId = storedLockId;
     payUrl = storedPayUrl;
     paymentStatus = sessionStorage.getItem('paymentStatus') || 'NOT_READY';
     orderStatus = sessionStorage.getItem('orderStatus') || 'PROCESSING';
@@ -501,7 +498,6 @@ async function processPayment() {
         sessionStorage.removeItem('eventId');
         sessionStorage.removeItem('sessionData');
         sessionStorage.removeItem('totalPrice');
-        sessionStorage.removeItem('lockId');
         sessionStorage.removeItem('lockExpireTime');
         sessionStorage.removeItem('orderNo');
         sessionStorage.removeItem('payUrl');

@@ -1,7 +1,5 @@
 package com.duanyan.payment;
 
-import com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure;
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -13,9 +11,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @since 1.0.0
  */
 @SpringBootApplication(exclude = {
-        DataSourceAutoConfiguration.class,
-        DruidDataSourceAutoConfigure.class,
-        MybatisPlusAutoConfiguration.class
+        DataSourceAutoConfiguration.class
 })
 public class PaymentApplication {
 

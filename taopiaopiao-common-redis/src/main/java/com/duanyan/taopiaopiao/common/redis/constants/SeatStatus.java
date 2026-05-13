@@ -19,6 +19,11 @@ public enum SeatStatus {
     AVAILABLE(0, "可选"),
 
     /**
+     * 已下单未支付
+     */
+    RESERVED(1, "已下单未支付"),
+
+    /**
      * 已售出
      */
     SOLD(2, "已售出");

@@ -1,11 +1,9 @@
 package com.duanyan.taopiaopiao.seckillservice.application.service.impl;
 
 import com.duanyan.taopiaopiao.common.exception.BusinessException;
-import com.duanyan.taopiaopiao.common.mq.message.LockAcceptedMessage;
-import com.duanyan.taopiaopiao.common.redis.model.OrderProcessingCacheData;
-import com.duanyan.taopiaopiao.common.redis.model.RedisLockOrderData;
+import com.duanyan.taopiaopiao.common.dto.PrepareOrderRequest;
 import com.duanyan.taopiaopiao.common.redis.service.RedisService;
-import com.duanyan.taopiaopiao.seckillservice.api.dto.InternalLockOrderResponse;
+import com.duanyan.taopiaopiao.common.response.Result;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.LayoutMetaDTO;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.LockSeatRequest;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.LockSeatResponse;
@@ -14,26 +12,24 @@ import com.duanyan.taopiaopiao.seckillservice.api.dto.SeatLayoutDTO;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitRequest;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionInitResponse;
 import com.duanyan.taopiaopiao.seckillservice.api.dto.SessionLayoutResponse;
+import com.duanyan.taopiaopiao.seckillservice.application.client.OrderInternalClient;
 import com.duanyan.taopiaopiao.seckillservice.application.config.LockOrderNoGenerator;
 import com.duanyan.taopiaopiao.seckillservice.application.service.SeckillService;
-import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockOrderStatus;
-import com.duanyan.taopiaopiao.seckillservice.domain.enums.LockStatus;
+import com.duanyan.taopiaopiao.seckillservice.application.tcc.SeatTccAction;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,13 +41,15 @@ public class SeckillServiceImpl implements SeckillService {
 
     private static final int DEFAULT_ORDER_EXPIRE_SECONDS = 300;
     private static final int LOCK_TTL_GRACE_SECONDS = 30;
-    private static final long LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS = 7200L;
 
     private final RedisService redisService;
+    private final OrderInternalClient orderInternalClient;
+    private final SeatTccAction seatTccAction;
     private final LockOrderNoGenerator lockOrderNoGenerator;
     private final ObjectMapper objectMapper;
 
     @Override
+    @GlobalTransactional(name = "lock-order-tcc", rollbackFor = Exception.class, timeoutMills = 5000)
     public LockSeatResponse lockSeats(LockSeatRequest request, Long userId, String requestId) {
         Long sessionId = request.getSessionId();
         List<String> seatIds = request.getSeatIds();
@@ -62,9 +60,7 @@ public class SeckillServiceImpl implements SeckillService {
         int lockExpireSeconds = orderExpireSeconds + LOCK_TTL_GRACE_SECONDS;
         LocalDateTime orderExpireTime = LocalDateTime.now().plusSeconds(orderExpireSeconds);
 
-        String lockId = UUID.randomUUID().toString().replace("-", "");
         String orderNo = String.valueOf(lockOrderNoGenerator.nextId());
-        long expireTime = System.currentTimeMillis() + lockExpireSeconds * 1000L;
 
         log.info("开始锁座: requestId={}, sessionId={}, userId={}, seatIds={}",
                 requestId, sessionId, userId, seatIds);
@@ -72,164 +68,63 @@ public class SeckillServiceImpl implements SeckillService {
         Long eventId = resolveEventId(sessionId, request.getEventId(), requestId);
         List<BigDecimal> prices = redisService.getSeatsPrice(sessionId, seatIds);
         BigDecimal totalAmount = prices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        LocalDateTime createdAt = LocalDateTime.now();
-        long createdAtMillis = toEpochMillis(createdAt);
+        seatTccAction.tryReserve(
+                null,
+                orderNo,
+                userId,
+                sessionId,
+                eventId,
+                seatIds,
+                lockExpireSeconds
+        );
 
-        int code;
-        try {
-            String payloadJson = objectMapper.writeValueAsString(createLockAcceptedMessage(lockId, orderNo, requestId, userId, sessionId,
-                    eventId, seatIds, frontendUnitPrice, totalAmount, orderExpireTime));
-            code = redisService.lockSeatsAndRecordOrder(
-                    sessionId,
-                    eventId,
-                    userId,
-                    lockId,
-                    orderNo,
-                    seatIds,
-                    frontendUnitPrice,
-                    totalAmount,
-                    lockExpireSeconds,
-                    lockExpireSeconds,
-                    resolveLockOrderAggregateTtlSeconds(orderExpireSeconds),
-                    toEpochMillis(orderExpireTime),
-                    createdAtMillis,
-                    requestId,
-                    payloadJson
-            );
-        } catch (Exception e) {
-            log.error("锁座受理写入 Redis 聚合失败: requestId={}, sessionId={}, userId={}", requestId, sessionId, userId, e);
-            return LockSeatResponse.builder()
-                    .success(false)
-                    .code(8)
-                    .message("系统异常，请重试")
-                    .build();
+        Result<Boolean> result = orderInternalClient.prepare(
+                PrepareOrderRequest.builder()
+                        .orderNo(orderNo)
+                        .requestId(requestId)
+                        .userId(userId)
+                        .sessionId(sessionId)
+                        .eventId(eventId)
+                        .seatIds(seatIds)
+                        .seatCount(seatIds.size())
+                        .unitPrice(frontendUnitPrice)
+                        .totalAmount(totalAmount)
+                        .expireTime(orderExpireTime)
+                        .build()
+        );
+        if (result == null || !result.isSuccess() || !Boolean.TRUE.equals(result.getData())) {
+            throw new IllegalStateException("订单 TCC Try 失败");
         }
 
-        if (code == 0) {
-            try {
-                saveProcessingCache(orderNo, userId, sessionId, eventId, seatIds, frontendUnitPrice,
-                        totalAmount, orderExpireTime, createdAt);
-            } catch (Exception e) {
-                log.warn("写 processing 缓存失败，不影响锁座受理: requestId={}, sessionId={}, orderNo={}",
-                        requestId, sessionId, orderNo, e);
-            }
-
-            log.info("锁座受理成功: requestId={}, sessionId={}, userId={}, lockId={}, orderNo={}",
-                    requestId, sessionId, userId, lockId, orderNo);
-            return LockSeatResponse.builder()
-                    .success(true)
-                    .code(0)
-                    .message("锁座成功")
-                    .lockedSeats(seatIds)
-                    .lockId(lockId)
-                    .orderNo(orderNo)
-                    .expireTime(orderExpireTime)
-                    .orderStatus("PROCESSING")
-                    .paymentStatus("NOT_READY")
-                    .nextPollMs(INITIAL_NEXT_POLL_MS)
-                    .nextAction("POLL_ORDER")
-                    .build();
-        }
-
-        String message = switch (code) {
-            case 1 -> "座位不存在";
-            case 2 -> "座位已被锁定或售出";
-            case 3 -> "您已锁定或购买了该座位";
-            case 4 -> "场次与演出信息不匹配";
-            default -> "系统错误";
-        };
-
-        log.warn("锁座失败: requestId={}, code={}, message={}", requestId, code, message);
+        log.info("锁座受理成功: requestId={}, sessionId={}, userId={}, orderNo={}",
+                requestId, sessionId, userId, orderNo);
         return LockSeatResponse.builder()
-                .success(false)
-                .code(code)
-                .message(message)
+                .success(true)
+                .code(0)
+                .message("锁座成功")
+                .lockedSeats(seatIds)
+                .orderNo(orderNo)
+                .expireTime(orderExpireTime)
+                .orderStatus("UNPAID")
+                .paymentStatus("NOT_READY")
+                .nextPollMs(INITIAL_NEXT_POLL_MS)
+                .nextAction("POLL_ORDER")
                 .build();
     }
 
-    /**
-     * 内部方法：释放座位（不对外暴露）
-     */
-    public void releaseSeats(Long sessionId, Long userId, String lockId, List<String> seatIds, LockStatus releaseStatus) {
-        redisService.unlockSeats(sessionId, userId, lockId, seatIds);
-        log.info("释放座位成功: sessionId={}, userId={}, lockId={}, status={}, count={}",
-                sessionId, userId, lockId, releaseStatus, seatIds.size());
+    public boolean confirmOrder(String orderNo,
+                                Long sessionId,
+                                Long userId,
+                                List<String> seatIds) {
+        return redisService.markSeatsPaid(sessionId, userId, orderNo, seatIds);
     }
 
-    public InternalLockOrderResponse getLockOrder(String orderNo, Long userId) {
-        RedisLockOrderData redisLockOrder = redisService.getLockOrder(orderNo);
-        if (redisLockOrder == null || !userId.equals(redisLockOrder.getUserId())) {
-            return null;
-        }
-        return buildInternalLockOrderResponse(redisLockOrder);
-    }
-
-    public boolean markLockOrderOrderCreated(String orderNo) {
-        RedisLockOrderData redisLockOrder = redisService.getLockOrder(orderNo);
-        if (redisLockOrder == null) {
-            return false;
-        }
-
-        Integer status = redisLockOrder.getStatus();
-        if (LockOrderStatus.ORDER_CREATED.getCode().equals(status)
-                || LockOrderStatus.PAID.getCode().equals(status)) {
-            redisService.deleteOrderProcessing(orderNo);
-            return true;
-        }
-
-        boolean updated = redisService.transitionLockOrderStatus(
-                orderNo,
-                List.of(LockOrderStatus.LOCKED.getCode(), LockOrderStatus.ORDER_CREATING.getCode()),
-                LockOrderStatus.ORDER_CREATED.getCode(),
-                "NOT_READY",
-                null,
-                false,
-                LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
-        );
-        if (updated) {
-            redisService.deleteOrderProcessing(orderNo);
-        }
-        return updated;
-    }
-
-    public void markLockOrderPaid(String orderNo) {
-        boolean updated = redisService.transitionLockOrderStatus(
-                orderNo,
-                List.of(
-                        LockOrderStatus.LOCKED.getCode(),
-                        LockOrderStatus.ORDER_CREATING.getCode(),
-                        LockOrderStatus.ORDER_CREATED.getCode()
-                ),
-                LockOrderStatus.PAID.getCode(),
-                "SUCCESS",
-                null,
-                true,
-                LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
-        );
-        if (!updated) {
-            log.debug("Redis 锁单未更新为已支付: orderNo={}", orderNo);
-        }
-        redisService.deleteOrderProcessing(orderNo);
-    }
-
-    public void markLockOrderReleased(String orderNo, LockOrderStatus targetStatus, String failReason) {
-        boolean updated = redisService.transitionLockOrderStatus(
-                orderNo,
-                List.of(
-                        LockOrderStatus.LOCKED.getCode(),
-                        LockOrderStatus.ORDER_CREATING.getCode(),
-                        LockOrderStatus.ORDER_CREATED.getCode()
-                ),
-                targetStatus.getCode(),
-                "NOT_AVAILABLE",
-                failReason,
-                true,
-                LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS
-        );
-        if (!updated) {
-            log.debug("Redis 锁单未更新为目标状态: orderNo={}, targetStatus={}", orderNo, targetStatus);
-        }
-        redisService.deleteOrderProcessing(orderNo);
+    public boolean cancelOrder(String orderNo,
+                               Long sessionId,
+                               Long userId,
+                               List<String> seatIds,
+                               String reason) {
+        return redisService.releaseHeldSeats(sessionId, orderNo, seatIds);
     }
 
     @Override
@@ -423,104 +318,6 @@ public class SeckillServiceImpl implements SeckillService {
         }
 
         return cachedEventId;
-    }
-
-    private LockAcceptedMessage createLockAcceptedMessage(String lockId,
-                                                         String orderNo,
-                                                         String requestId,
-                                                         Long userId,
-                                                         Long sessionId,
-                                                         Long eventId,
-                                                         List<String> seatIds,
-                                                         BigDecimal unitPrice,
-                                                         BigDecimal totalAmount,
-                                                         LocalDateTime expireTime) {
-        return LockAcceptedMessage.builder()
-                .lockId(lockId)
-                .orderNo(orderNo)
-                .requestId(requestId)
-                .userId(userId)
-                .sessionId(sessionId)
-                .eventId(eventId)
-                .seatIds(seatIds)
-                .seatCount(seatIds.size())
-                .unitPrice(unitPrice)
-                .totalAmount(totalAmount)
-                .expireTime(expireTime)
-                .build();
-    }
-
-    private void saveProcessingCache(String orderNo,
-                                     Long userId,
-                                     Long sessionId,
-                                     Long eventId,
-                                     List<String> seatIds,
-                                     BigDecimal unitPrice,
-                                     BigDecimal totalAmount,
-                                     LocalDateTime expireTime,
-                                     LocalDateTime createdAt) {
-        redisService.saveOrderProcessing(OrderProcessingCacheData.builder()
-                .orderNo(orderNo)
-                .userId(userId)
-                .sessionId(sessionId)
-                .eventId(eventId)
-                .seatIds(seatIds)
-                .seatCount(seatIds.size())
-                .unitPrice(unitPrice)
-                .totalAmount(totalAmount)
-                .status("PROCESSING")
-                .paymentStatus("NOT_READY")
-                .expireTime(expireTime)
-                .createdAt(createdAt)
-                .build(), resolveProcessingCacheTtl(expireTime));
-    }
-
-    private long resolveProcessingCacheTtl(LocalDateTime expireTime) {
-        if (expireTime == null) {
-            return 60L;
-        }
-        return Math.max(30L, java.time.Duration.between(LocalDateTime.now(), expireTime).getSeconds() + 30L);
-    }
-
-    private LockOrderStatus resolveLockOrderStatus(Integer statusCode) {
-        if (statusCode == null) {
-            return null;
-        }
-        for (LockOrderStatus status : LockOrderStatus.values()) {
-            if (status.getCode().equals(statusCode)) {
-                return status;
-            }
-        }
-        return null;
-    }
-
-    private InternalLockOrderResponse buildInternalLockOrderResponse(RedisLockOrderData redisLockOrder) {
-        LockOrderStatus status = resolveLockOrderStatus(redisLockOrder.getStatus());
-        return InternalLockOrderResponse.builder()
-                .lockId(redisLockOrder.getLockId())
-                .orderNo(redisLockOrder.getOrderNo())
-                .requestId(redisLockOrder.getRequestId())
-                .userId(redisLockOrder.getUserId())
-                .sessionId(redisLockOrder.getSessionId())
-                .eventId(redisLockOrder.getEventId())
-                .seatIds(redisLockOrder.getSeatIds())
-                .seatCount(redisLockOrder.getSeatCount())
-                .unitPrice(redisLockOrder.getUnitPrice())
-                .totalAmount(redisLockOrder.getTotalAmount())
-                .status(redisLockOrder.getStatus())
-                .statusDesc(status == null ? null : status.getDesc())
-                .failReason(redisLockOrder.getFailReason())
-                .expireTime(redisLockOrder.getExpireTime())
-                .createdAt(redisLockOrder.getCreatedAt())
-                .build();
-    }
-
-    private long resolveLockOrderAggregateTtlSeconds(int orderExpireSeconds) {
-        return Math.max(LOCK_ORDER_AGGREGATE_MIN_TTL_SECONDS, orderExpireSeconds + 3600L);
-    }
-
-    private long toEpochMillis(LocalDateTime dateTime) {
-        return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     /**

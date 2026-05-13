@@ -49,7 +49,6 @@ CREATE TABLE `orders` (
   `order_no` varchar(64) NOT NULL,
   `user_id` bigint NOT NULL,
   `session_id` bigint NOT NULL,
-  `lock_id` varchar(64) NOT NULL,
   `event_id` bigint NOT NULL,
   `seat_ids` json NOT NULL,
   `seat_count` int NOT NULL,
@@ -66,9 +65,28 @@ CREATE TABLE `orders` (
   UNIQUE KEY `order_no` (`order_no`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_status_expire` (`status`,`expire_time`),
-  KEY `idx_session_id` (`session_id`),
-  KEY `idx_lock_id` (`lock_id`)
+  KEY `idx_session_id` (`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='订单表';
+CREATE TABLE `order_prepare` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(64) NOT NULL,
+  `xid` varchar(128) DEFAULT NULL,
+  `user_id` bigint DEFAULT NULL,
+  `session_id` bigint DEFAULT NULL,
+  `event_id` bigint DEFAULT NULL,
+  `seat_ids` json DEFAULT NULL,
+  `seat_count` int DEFAULT NULL,
+  `unit_price` decimal(10,2) DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
+  `expire_time` datetime DEFAULT NULL,
+  `status` tinyint NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_prepare_order_no` (`order_no`),
+  KEY `idx_order_prepare_status` (`status`),
+  KEY `idx_order_prepare_xid` (`xid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='TCC订单预留表';
 CREATE TABLE `seat_templates` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,

@@ -17,7 +17,6 @@ let seatIdMap = new Map(); // 座位位置到座位ID的映射，key: "areaName-
 const MAX_SEATS = 4;
 
 // 锁座相关
-let lockId = null;
 let lockExpireTime = null;
 let lockTimer = null;
 
@@ -1136,16 +1135,14 @@ async function handleSubmit() {
         console.log('是否有 orderNo:', 'orderNo' in lockResult);
         console.log('orderNo 值:', lockResult?.orderNo);
 
-        // clientPost 已解包，lockResult 就是 { success, code, message, lockId, lockedSeats, orderNo, expireTime, orderStatus, paymentStatus, nextPollMs }
+        // clientPost 已解包，lockResult 就是 { success, code, message, lockedSeats, orderNo, expireTime, orderStatus, paymentStatus, nextPollMs }
         if (lockResult.success === true || lockResult.code === 0) {
             // 锁座成功，前端进入订单准备页并轮询支付信息
-            lockId = lockResult.lockId;
             lockExpireTime = lockResult.expireTime;
             const orderNo = lockResult.orderNo;
             const payUrl = lockResult.payUrl || '';
 
             console.log('=== 解析订单信息 ===');
-            console.log('lockId:', lockId);
             console.log('orderNo:', orderNo);
             console.log('payUrl(初始可能为空，后续由订单轮询补齐):', payUrl);
 
@@ -1164,7 +1161,6 @@ async function handleSubmit() {
             sessionStorage.setItem('sessionId', currentSessionId);
             sessionStorage.setItem('eventId', currentEventId);
             sessionStorage.setItem('sessionData', JSON.stringify(currentSessionData));
-            sessionStorage.setItem('lockId', lockId);
             sessionStorage.setItem('lockExpireTime', lockExpireTime);
             sessionStorage.setItem('orderNo', orderNo);
             sessionStorage.setItem('payUrl', payUrl);

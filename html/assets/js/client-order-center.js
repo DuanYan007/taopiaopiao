@@ -190,10 +190,11 @@ function createOrderCard(order) {
 
     // 格式化时间
     var createdAt = formatDateTime(order.createdAt);
-    var showTime = formatShowTime(order.showTime);
+    var showTime = formatShowTime(order.startTime);
+    var seatSummary = order.seatInfo || (order.seatCount ? ('共' + order.seatCount + '张') : '座位信息待补充');
 
     // 根据订单状态设置透明度
-    var opacityStyle = (status === 3 || status === 4) ? 'opacity: 0.7;' : '';
+    var opacityStyle = (status === 3 || status === 4 || status === 5) ? 'opacity: 0.7;' : '';
 
     var card = document.createElement('div');
     card.className = 'order-card';
@@ -215,10 +216,10 @@ function createOrderCard(order) {
                     '<div class="order-item-title" style="margin-bottom: 12px;">' + order.eventName + '</div>' +
                     '<div class="text-muted" style="margin-bottom: 8px;">' + showTime + '</div>' +
                     '<div class="text-muted" style="margin-bottom: 8px;">' + order.venueName + '</div>' +
-                    '<div class="text-muted">' + order.sessionName + ' × ' + order.seatCount + '张</div>' +
+                    '<div class="text-muted">' + seatSummary + '</div>' +
                 '</div>' +
                 '<div style="text-align: right;">' +
-                    '<div class="price price-large"' + (status === 3 ? ' style="color: #999; text-decoration: line-through;"' : '') + '>¥' + order.totalAmount + '</div>' +
+                    '<div class="price price-large"' + ((status === 3 || status === 5) ? ' style="color: #999; text-decoration: line-through;"' : '') + '>¥' + order.totalAmount + '</div>' +
                     '<div class="text-small text-muted" style="margin-top: 8px;">' + getStatusSubText(status) + '</div>' +
                 '</div>' +
             '</div>' +
@@ -253,6 +254,10 @@ function renderOrderActions(order) {
         case 3: // 已取消
             actions =
                 '<button class="btn btn-secondary btn-small order-action-btn" onclick="deleteOrderByNo(\'' + order.orderNo + '\')">删除订单</button>' +
+                '<a href="index.html" class="btn btn-primary btn-small order-action-btn">重新购买</a>';
+            break;
+        case 5: // 超时取消
+            actions =
                 '<a href="index.html" class="btn btn-primary btn-small order-action-btn">重新购买</a>';
             break;
         case 4: // 已退款
@@ -409,7 +414,8 @@ function getStatusText(status) {
         1: '未支付',
         2: '已支付',
         3: '已取消',
-        4: '已退款'
+        4: '已退款',
+        5: '超时取消'
     };
     return statusMap[status] || '未知';
 }
@@ -422,7 +428,8 @@ function getStatusBadgeClass(status) {
         1: 'badge-warning',
         2: 'badge-success',
         3: 'badge-secondary',
-        4: 'badge-secondary'
+        4: 'badge-secondary',
+        5: 'badge-secondary'
     };
     return classMap[status] || 'badge-secondary';
 }
@@ -435,7 +442,8 @@ function getStatusSubText(status) {
         1: '待支付',
         2: '已支付',
         3: '未支付',
-        4: '已退款'
+        4: '已退款',
+        5: '已超时'
     };
     return subTextMap[status] || '';
 }
@@ -448,11 +456,13 @@ function getStatusFooterText(status, order) {
         case 1: // 未支付
             return '请尽快完成支付，超时订单将自动取消';
         case 2: // 已支付
-            return '支付时间：' + formatDateTime(order.payTime || order.updatedAt);
+            return '支付时间：' + formatDateTime(order.payTime);
         case 3: // 已取消
-            return '取消时间：' + formatDateTime(order.updatedAt);
+            return '取消时间：' + formatDateTime(order.cancelTime);
         case 4: // 已退款
-            return '退款时间：' + formatDateTime(order.updatedAt);
+            return '退款时间：' + formatDateTime(order.refundTime);
+        case 5: // 超时取消
+            return '订单已超时取消';
         default:
             return '';
     }

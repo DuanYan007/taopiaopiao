@@ -41,3 +41,22 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+seata:
+  enabled: true
+  tx-service-group: ${SEATA_TX_GROUP:tpp_tx_group}
+  enable-auto-data-source-proxy: false
+  transport:
+    enable-client-batch-send-request: false
+  registry:
+    type: nacos
+    nacos:
+      application: ${SEATA_APPLICATION:seata-server}
+      server-addr: ${NACOS_SERVER_ADDR:192.168.3.36:8848}
+      group: ${SEATA_REGISTRY_GROUP:DEFAULT_GROUP}
+      namespace: ${NACOS_CONFIG_NAMESPACE:}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+  service:
+    vgroup-mapping:
+      tpp_tx_group: ${SEATA_CLUSTER:default}

@@ -92,7 +92,7 @@ const SEAT_STATUS = {
  * @param {array} seatIds - 座位ID列表
  * @param {number} expireSeconds - 锁定时长(秒)，默认900(15分钟)
  * @param {number} unitPrice - 座位单价（前端已确保所有选中座位价格一致）
- * @returns {Promise<object>} 锁座结果 { success, code, message, lockId, lockedSeats, expireTime, orderNo, orderStatus, paymentStatus, nextPollMs }
+ * @returns {Promise<object>} 锁座结果 { success, code, message, lockedSeats, expireTime, orderNo, orderStatus, paymentStatus, nextPollMs, payUrl? }
  */
 async function lockSeats(sessionId, eventId, userId, seatIds, expireSeconds = 900, unitPrice) {
     const params = {
@@ -109,21 +109,6 @@ async function lockSeats(sessionId, eventId, userId, seatIds, expireSeconds = 90
     return clientPost('/api/seckill/lock', params);
 }
 
-/**
- * 释放座位
- * @param {number} sessionId - 场次ID
- * @param {number} userId - 用户ID
- * @param {array} seatIds - 座位ID列表
- * @returns {Promise<object>} 释放结果
- */
-async function releaseSeats(sessionId, userId, seatIds) {
-    return clientPost('/api/seckill/release', {
-        sessionId: sessionId,
-        userId: userId,
-        seatIds: seatIds
-    });
-}
-
 // 导出函数和常量
 // export {
 //     getSeatLayout,
@@ -131,6 +116,5 @@ async function releaseSeats(sessionId, userId, seatIds) {
 //     getSeatStatusClass,
 //     getSeatStatusColor,
 //     SEAT_STATUS,
-//     lockSeats,
-//     releaseSeats
+//     lockSeats
 // };

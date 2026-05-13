@@ -11,4 +11,6 @@ public interface OrderMapper extends BaseMapper<Order> {
     int markPaidIfUnpaid(@Param("orderNo") String orderNo, @Param("paidStatus") Integer paidStatus);
 
     int markTimeoutIfUnpaid(@Param("orderNo") String orderNo, @Param("timeoutStatus") Integer timeoutStatus);
+
+    int markCancelledIfUnpaid(@Param("orderNo") String orderNo, @Param("cancelledStatus") Integer cancelledStatus);
 }

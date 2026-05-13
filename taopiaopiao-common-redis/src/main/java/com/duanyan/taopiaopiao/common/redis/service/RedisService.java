@@ -1,8 +1,5 @@
 package com.duanyan.taopiaopiao.common.redis.service;
 
-import com.duanyan.taopiaopiao.common.redis.model.RedisLockOrderData;
-import com.duanyan.taopiaopiao.common.redis.model.OrderProcessingCacheData;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -23,42 +20,45 @@ public interface RedisService {
      */
     List<BigDecimal> getSeatsPrice(Long sessionId, List<String> seatIds);
 
-    int lockSeatsAndRecordOrder(Long sessionId,
-                                Long eventId,
-                                Long userId,
-                                String lockId,
-                                String orderNo,
-                                List<String> seatIds,
-                                BigDecimal unitPrice,
-                                BigDecimal totalAmount,
-                                int seatLockExpireSeconds,
-                                int userLockExpireSeconds,
-                                long lockOrderTtlSeconds,
-                                long expireTimeMillis,
-                                long createdAtMillis,
-                                String requestId,
-                                String payloadJson);
+    int tryReserveSeatsTcc(Long sessionId,
+                           Long eventId,
+                           Long userId,
+                           String orderNo,
+                           String xid,
+                           List<String> seatIds,
+                           int seatLockExpireSeconds,
+                           int userLockExpireSeconds);
+
+    int cancelReserveSeatsTcc(Long sessionId,
+                              Long userId,
+                              String orderNo,
+                              String xid,
+                              List<String> seatIds,
+                              int cancelMarkerExpireSeconds);
 
     /**
-     * 释放座位
+     * TCC Confirm。
+     * 校验临时锁归属后删除 seat:lock，并把 seat:state 置为 1（已下单未支付）。
      *
      * @param sessionId 场次ID
      * @param userId    用户ID
      * @param seatIds   座位ID列表
-     * @return 实际释放的座位数量
      */
-    int unlockSeats(Long sessionId, Long userId, String lockId, List<String> seatIds);
+    int confirmReserveSeatsTcc(Long sessionId,
+                               Long userId,
+                               String orderNo,
+                               String xid,
+                               List<String> seatIds);
 
     /**
-     * 确认购买。
-     * 校验锁归属后将座位状态写为已售出，并删除临时锁键。
-     *
-     * @param sessionId 场次ID
-     * @param userId    用户ID
-     * @param seatIds   座位ID列表
-     * @return true=成功, false=失败（无权操作）
+     * 支付成功后把长期占座从 1 更新为 2。
      */
-    boolean confirmPurchase(Long sessionId, Long userId, String lockId, List<String> seatIds);
+    boolean markSeatsPaid(Long sessionId, Long userId, String orderNo, List<String> seatIds);
+
+    /**
+     * 用户取消或超时取消后把长期占座从 1 释放为 0。
+     */
+    boolean releaseHeldSeats(Long sessionId, String orderNo, List<String> seatIds);
 
     /**
      * 获取场次座位布局（含状态）
@@ -120,19 +120,4 @@ public interface RedisService {
      */
     Map<String, Integer> getEffectiveSeatStatuses(Long sessionId, List<String> seatIds);
 
-    void saveOrderProcessing(OrderProcessingCacheData data, long ttlSeconds);
-
-    OrderProcessingCacheData getOrderProcessing(String orderNo);
-
-    void deleteOrderProcessing(String orderNo);
-
-    RedisLockOrderData getLockOrder(String orderNo);
-
-    boolean transitionLockOrderStatus(String orderNo,
-                                      List<Integer> expectedStatuses,
-                                      Integer targetStatus,
-                                      String paymentStatus,
-                                      String failReason,
-                                      boolean clearUserLockIndex,
-                                      long ttlSeconds);
 }
