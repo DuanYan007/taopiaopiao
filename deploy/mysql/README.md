@@ -39,5 +39,9 @@ docker exec -i mysql mysql -uroot -p7566 < deploy/mysql/migrate-add-order-prepar
 
 - `seckill-service` Try 只写 Redis 临时锁。
 - `order-service` Try 只写 `order_prepare` 预留记录。
+- Seat Confirm 只把 Redis 长期状态推进到 `seat:state=1`，表示“已下单未支付”。
 - TCC Confirm 时才正式创建 `orders` 的 `UNPAID` 订单并发送 `TIMEOUT_CHECK` 延时消息。
+- 真实支付成功后，再由异步支付收敛链路把 `seat:state` 从 `1` 推进到 `2`。
+- 若超时或取消，则由取消收敛链路把 `seat:state` 从 `1` 释放回 `0`。
+- Seat / Order 两个 TCC 分支都已实现空回滚防护，避免 Cancel 先到时出现悬挂 Try。
 - 支付不纳入 Seata 全局事务，仍由支付回调和超时检查异步收敛。

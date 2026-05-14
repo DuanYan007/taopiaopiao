@@ -26,12 +26,14 @@
 - 临时锁 owner token 统一使用 `orderNo`，不再单独维护 `lockId`
 - Seata TCC 只覆盖 `锁座 + 下单`：`seckill-service` Try 写临时锁，`order-service` Try 写 `order_prepare`
 - 当前已验证运行组合为 `Seata client 2.0.0 + Seata server 2.6.0`，不要仅因 server 升级就直接修改仓库里的 client 依赖版本
+- Seat Confirm 只把长期状态推进到 `seat:state=1`，表示“已下单未支付”；真正支付成功后才由异步链路把它推进到 `seat:state=2`
 - TCC Confirm 时 `order-service` 才创建正式 `UNPAID` 订单并发送 `TIMEOUT_CHECK` 延时消息
 - 支付单不是锁座成功时同步创建，而是前端进入订单确认页后，由 `order-service` 在查询订单详情时按需创建
 - 支付成功或超时取消由 `order-service` 回调 `seckill-service` 完成确认售出或释放座位
 - 订单终态收敛统一走条件更新：只允许 `UNPAID -> PAID / CANCELLED / TIMEOUT`
 - `ORDER_PAID`、`TIMEOUT_CHECK`、用户取消互相并发时，迟到链路只要发现订单已进入其他终态就直接跳过，不再覆盖
 - `TIMEOUT_CHECK vs 支付成功`、`取消 vs 支付成功`、`取消后迟到支付成功` 都已经做过实链路回放验证
+- Seat / Order 两个 TCC 分支都实现了空回滚防护：Seat 侧复用 `seat:lock:*` 与 `lock:user:*` 写入短 TTL `CANCEL` marker，Order 侧通过 `order_prepare(CANCELED)` 拦截悬挂 Try
 
 当前本地默认链路：
 
@@ -43,6 +45,15 @@
 - MySQL `taopiaopiao` 是正式业务数据持久化来源
 - RocketMQ 承接订单超时检查、支付成功、取消收敛等异步事件
 - OpenResty 同时承担前端静态资源入口、API 反向代理、秒杀闸门 Lua 限流
+
+当前 Seata TCC 分工：
+
+- Seat Try：校验座位长期状态必须为 `0`，写入 `seat:lock:*` 与 `lock:user:*` 的 `TRY|...|xid`
+- Seat Confirm：删除临时锁，把 `seat:state` 从 `0` 推进到 `1`
+- Seat Cancel：删除临时锁；若 Cancel 先到，则写入短 TTL `CANCEL|...|xid` marker 防止悬挂
+- Order Try：写入 `order_prepare(PREPARED)`，只预留建单资源，不创建正式单
+- Order Confirm：创建 `orders(UNPAID)`，发送 `TIMEOUT_CHECK`，再把 `order_prepare` 标为 `CONFIRMED`
+- Order Cancel：把 `order_prepare` 标为 `CANCELED`；若 Cancel 先到，则借此拦截后到的 Try
 
 并发裁决补充：
 
